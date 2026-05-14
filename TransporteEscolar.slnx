@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TransporteEscolar.API/TransporteEscolar.API.csproj" />
+    <Project Path="src/TransporteEscolar.Application/TransporteEscolar.Application.csproj" />
+    <Project Path="src/TransporteEscolar.Domain/TransporteEscolar.Domain.csproj" />
+    <Project Path="src/TransporteEscolar.Infrastructure/TransporteEscolar.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TransporteEscolar.Application.Tests/TransporteEscolar.Application.Tests.csproj" />
+    <Project Path="tests/TransporteEscolar.Domain.Tests/TransporteEscolar.Domain.Tests.csproj" />
+    <Project Path="tests/TransporteEscolar.Integration.Tests/TransporteEscolar.Integration.Tests.csproj" />
+  </Folder>
+</Solution>
