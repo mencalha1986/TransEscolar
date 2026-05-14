@@ -1,0 +1,12 @@
+namespace TransporteEscolar.Application.Common;
+
+public record PagedResult<T>(
+    IEnumerable<T> Items,
+    int Total,
+    int Page,
+    int PageSize)
+{
+    public int TotalPages => (int)Math.Ceiling(Total / (double)PageSize);
+    public bool HasNext => Page < TotalPages;
+    public bool HasPrev => Page > 1;
+}

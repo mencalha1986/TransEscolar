@@ -1,0 +1,12 @@
+using MediatR;
+using TransporteEscolar.Application.Common;
+using TransporteEscolar.Domain.Entities;
+
+namespace TransporteEscolar.Application.Transporte.Commands.RegistrarCheckIn;
+
+public record RegistrarCheckInCommand(
+    Guid AlunoId,
+    Guid TransporteId,
+    TipoCheckIn Tipo,
+    double? Latitude = null,
+    double? Longitude = null) : IRequest<Result<Guid>>;
