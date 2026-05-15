@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Alunos.Commands.CadastrarAluno;
@@ -6,6 +7,7 @@ using TransporteEscolar.Application.Alunos.Queries.ListarAlunos;
 
 namespace TransporteEscolar.API.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 public class AlunosController : BaseController
 {

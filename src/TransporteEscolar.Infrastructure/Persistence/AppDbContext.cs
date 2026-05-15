@@ -13,6 +13,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Escola> Escolas => Set<Escola>();
     public DbSet<Transporte> Transportes => Set<Transporte>();
     public DbSet<CheckIn> CheckIns => Set<CheckIn>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

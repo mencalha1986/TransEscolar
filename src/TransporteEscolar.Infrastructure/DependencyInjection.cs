@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TransporteEscolar.Domain.Interfaces;
 using TransporteEscolar.Infrastructure.Persistence;
 using TransporteEscolar.Infrastructure.Repositories;
+using TransporteEscolar.Infrastructure.Services;
 
 namespace TransporteEscolar.Infrastructure;
 
@@ -19,6 +20,9 @@ public static class DependencyInjection
         services.AddScoped<IResponsavelRepository, ResponsavelRepository>();
         services.AddScoped<IEscolaRepository, EscolaRepository>();
         services.AddScoped<ITransporteRepository, TransporteRepository>();
+        services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
 
         return services;
     }

@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Transporte.Commands.RegistrarCheckIn;
@@ -6,6 +7,7 @@ using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.API.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 public class TransportesController : BaseController
 {
