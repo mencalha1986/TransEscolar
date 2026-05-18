@@ -10,10 +10,19 @@ public class Responsavel : Entity
     public string Telefone { get; private set; } = default!;
     public string Email { get; private set; } = default!;
     public Endereco Endereco { get; private set; } = default!;
+    public Guid TransportadorId { get; private set; }
 
     private Responsavel() { }
 
-    public static Result<Responsavel> Criar(string nome, CPF cpf, string telefone, string email, Endereco endereco)
+    public void Atualizar(string nome, string telefone, string email)
+    {
+        Nome = nome;
+        Telefone = telefone;
+        Email = email;
+        MarcarAtualizado();
+    }
+
+    public static Result<Responsavel> Criar(string nome, CPF cpf, string telefone, string email, Guid transportadorId, Endereco? endereco = null)
     {
         if (string.IsNullOrWhiteSpace(nome))
             return Result<Responsavel>.Failure("Nome é obrigatório.");
@@ -22,7 +31,12 @@ public class Responsavel : Entity
 
         return Result<Responsavel>.Success(new Responsavel
         {
-            Nome = nome, CPF = cpf, Telefone = telefone, Email = email, Endereco = endereco
+            Nome = nome,
+            CPF = cpf,
+            Telefone = telefone,
+            Email = email,
+            Endereco = endereco ?? new Endereco("", "", "", "", "", ""),
+            TransportadorId = transportadorId
         });
     }
 }

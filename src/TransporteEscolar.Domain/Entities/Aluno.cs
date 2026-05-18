@@ -2,6 +2,8 @@ using TransporteEscolar.Domain.Common;
 
 namespace TransporteEscolar.Domain.Entities;
 
+public enum TurnoAluno { Manha, Tarde, Noturno }
+
 public class Aluno : Entity
 {
     public string Nome { get; private set; } = default!;
@@ -11,9 +13,14 @@ public class Aluno : Entity
     private readonly List<Guid> _responsavelIds = new();
     public IReadOnlyList<Guid> ResponsavelIds => _responsavelIds.AsReadOnly();
 
+    public decimal ValorMensalidade { get; private set; }
+    public int DiaVencimento { get; private set; }
+    public TurnoAluno Turno { get; private set; }
+    public Guid TransportadorId { get; private set; }
+
     private Aluno() { }
 
-    public static Result<Aluno> Criar(string nome, DateTime dataNascimento, Guid escolaId, byte[]? foto = null)
+    public static Result<Aluno> Criar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno, Guid transportadorId, byte[]? foto = null)
     {
         if (string.IsNullOrWhiteSpace(nome))
             return Result<Aluno>.Failure("Nome é obrigatório.");
@@ -23,10 +30,32 @@ public class Aluno : Entity
         return Result<Aluno>.Success(new Aluno
         {
             Nome = nome,
-            DataNascimento = dataNascimento,
+            DataNascimento = DateTime.SpecifyKind(dataNascimento, DateTimeKind.Utc),
             EscolaId = escolaId,
-            Foto = foto
+            Foto = foto,
+            ValorMensalidade = valorMensalidade,
+            DiaVencimento = diaVencimento,
+            Turno = turno,
+            TransportadorId = transportadorId
         });
+    }
+
+    public void Atualizar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno)
+    {
+        Nome = nome;
+        DataNascimento = DateTime.SpecifyKind(dataNascimento, DateTimeKind.Utc);
+        EscolaId = escolaId;
+        ValorMensalidade = valorMensalidade;
+        DiaVencimento = diaVencimento;
+        Turno = turno;
+        MarcarAtualizado();
+    }
+
+    public void AtualizarMensalidade(decimal valorMensalidade, int diaVencimento)
+    {
+        ValorMensalidade = valorMensalidade;
+        DiaVencimento = diaVencimento;
+        MarcarAtualizado();
     }
 
     public void AtualizarFoto(byte[] foto)

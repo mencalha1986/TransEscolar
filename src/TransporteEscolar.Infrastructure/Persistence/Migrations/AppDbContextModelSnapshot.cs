@@ -38,6 +38,9 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("DataNascimento")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DiaVencimento")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("EscolaId")
                         .HasColumnType("uuid");
 
@@ -49,6 +52,16 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Turno")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("ValorMensalidade")
+                        .HasColumnType("numeric(10,2)");
+
                     b.PrimitiveCollection<List<Guid>>("_responsavelIds")
                         .IsRequired()
                         .HasColumnType("uuid[]")
@@ -57,6 +70,44 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Alunos");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Assinatura", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DataInicio")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DataProximoVencimento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PlanoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ValorContratado")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransportadorId");
+
+                    b.ToTable("Assinaturas");
                 });
 
             modelBuilder.Entity("TransporteEscolar.Domain.Entities.CheckIn", b =>
@@ -86,14 +137,14 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("TransporteId")
+                    b.Property<Guid>("TransportadorId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AlunoId");
 
-                    b.HasIndex("TransporteId", "HoraRegistro");
+                    b.HasIndex("TransportadorId", "HoraRegistro");
 
                     b.ToTable("CheckIns");
                 });
@@ -120,9 +171,170 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.ToTable("Escolas");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Mensalidade", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AlunoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Competencia")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("DataPagamento")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("DataVencimento")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlunoId", "Competencia")
+                        .IsUnique();
+
+                    b.ToTable("Mensalidades");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.PagamentoAssinatura", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssinaturaId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CompetenciaAno")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CompetenciaMes")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("DataPagamento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Observacao")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal>("ValorPago")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssinaturaId");
+
+                    b.ToTable("PagamentosAssinatura");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Plano", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Ativo")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("LimiteAlunos")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("PrecoMensal")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Planos");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Recado", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AutorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AutorNome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Conteudo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DestinatarioUsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("EscolaFiltroId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("TurnoFiltro")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Recados");
                 });
 
             modelBuilder.Entity("TransporteEscolar.Domain.Entities.Responsavel", b =>
@@ -152,9 +364,66 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.ToTable("Responsaveis");
+                });
+
+            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Transportador", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtualizadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CpfCnpj")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NomeContato")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("NomeEmpresa")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("PlanoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Telefone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CpfCnpj")
+                        .IsUnique();
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Transportadores");
                 });
 
             modelBuilder.Entity("TransporteEscolar.Domain.Entities.Transporte", b =>
@@ -185,6 +454,9 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("TransportadorId")
+                        .HasColumnType("uuid");
+
                     b.PrimitiveCollection<List<Guid>>("_alunoIds")
                         .IsRequired()
                         .HasColumnType("uuid[]")
@@ -212,6 +484,9 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<bool>("MustChangePassword")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -221,8 +496,12 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Perfil")
-                        .HasColumnType("integer");
+                    b.Property<string>("Perfil")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("TransportadorId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

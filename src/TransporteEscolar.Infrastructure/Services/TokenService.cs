@@ -21,7 +21,7 @@ public class TokenService : ITokenService
         var expires = DateTime.UtcNow.AddHours(
             double.Parse(_config["Jwt:ExpiresHours"] ?? "8"));
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
@@ -29,6 +29,11 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.Role, usuario.Perfil.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (usuario.TransportadorId.HasValue)
+            claimsList.Add(new Claim("tenant_id", usuario.TransportadorId.Value.ToString()));
+
+        var claims = claimsList.ToArray();
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],

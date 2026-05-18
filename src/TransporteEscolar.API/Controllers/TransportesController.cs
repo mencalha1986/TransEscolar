@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Transporte.Commands.RegistrarCheckIn;
+using TransporteEscolar.Application.Transporte.Queries.ListarCheckIns;
+using TransporteEscolar.Application.Transportes.Queries.ListarTransportes;
 using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.API.Controllers;
@@ -15,10 +17,24 @@ public class TransportesController : BaseController
 
     public TransportesController(IMediator mediator) => _mediator = mediator;
 
-    [HttpPost("{id:guid}/checkins")]
-    public async Task<IActionResult> RegistrarCheckIn(Guid id, [FromBody] RegistrarCheckInRequest req, CancellationToken ct)
+    [HttpGet]
+    public async Task<IActionResult> Listar(CancellationToken ct)
     {
-        var cmd = new RegistrarCheckInCommand(req.AlunoId, id, req.Tipo, req.Latitude, req.Longitude);
+        var result = await _mediator.Send(new ListarTransportesQuery(), ct);
+        return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
+    }
+
+    [HttpGet("checkins")]
+    public async Task<IActionResult> ListarCheckIns(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ListarCheckInsQuery(), ct);
+        return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
+    }
+
+    [HttpPost("checkins")]
+    public async Task<IActionResult> RegistrarCheckIn([FromBody] RegistrarCheckInRequest req, CancellationToken ct)
+    {
+        var cmd = new RegistrarCheckInCommand(req.AlunoId, req.Tipo, req.Latitude, req.Longitude);
         var result = await _mediator.Send(cmd, ct);
 
         if (!result.IsSuccess)

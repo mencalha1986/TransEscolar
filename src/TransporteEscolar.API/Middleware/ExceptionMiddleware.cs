@@ -31,7 +31,8 @@ public class ExceptionMiddleware
             _logger.LogError(ex, "Erro inesperado");
             ctx.Response.StatusCode = 500;
             ctx.Response.ContentType = "application/json";
-            var body = JsonSerializer.Serialize(ApiResponse<object>.Fail("Erro interno do servidor."));
+            var msg = "Erro interno do servidor.";
+            var body = JsonSerializer.Serialize(ApiResponse<object>.Fail(msg));
             await ctx.Response.WriteAsync(body);
         }
     }

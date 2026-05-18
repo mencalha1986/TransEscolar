@@ -11,4 +11,7 @@ public class ResponsavelRepository : BaseRepository<Responsavel>, IResponsavelRe
 
     public async Task<Responsavel?> ObterPorCPFAsync(string cpf, CancellationToken ct = default) =>
         await DbSet.FirstOrDefaultAsync(r => r.CPF.Numero == cpf, ct);
+
+    public async Task<IEnumerable<Responsavel>> ListarPorIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default) =>
+        await DbSet.Where(r => ids.Contains(r.Id)).ToListAsync(ct);
 }

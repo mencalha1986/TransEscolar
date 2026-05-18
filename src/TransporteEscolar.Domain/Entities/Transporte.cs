@@ -12,10 +12,11 @@ public class Transporte : Entity
     public StatusTransporte Status { get; private set; } = StatusTransporte.Aguardando;
     private readonly List<Guid> _alunoIds = new();
     public IReadOnlyList<Guid> AlunoIds => _alunoIds.AsReadOnly();
+    public Guid TransportadorId { get; private set; }
 
     private Transporte() { }
 
-    public static Result<Transporte> Criar(string placa, string nomeMotorista, int capacidade)
+    public static Result<Transporte> Criar(string placa, string nomeMotorista, int capacidade, Guid transportadorId)
     {
         if (string.IsNullOrWhiteSpace(placa))
             return Result<Transporte>.Failure("Placa é obrigatória.");
@@ -26,7 +27,8 @@ public class Transporte : Entity
         {
             Placa = placa.ToUpper(),
             NomeMotorista = nomeMotorista,
-            CapacidadeMaxima = capacidade
+            CapacidadeMaxima = capacidade,
+            TransportadorId = transportadorId
         });
     }
 

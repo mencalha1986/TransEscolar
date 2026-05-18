@@ -10,8 +10,8 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
     public UsuarioRepository(AppDbContext ctx) : base(ctx) { }
 
     public async Task<Usuario?> ObterPorEmailAsync(string email, CancellationToken ct = default) =>
-        await DbSet.FirstOrDefaultAsync(u => u.Email == email, ct);
+        await DbSet.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == email, ct);
 
     public async Task<bool> ExisteEmailAsync(string email, CancellationToken ct = default) =>
-        await DbSet.AnyAsync(u => u.Email == email.ToLowerInvariant(), ct);
+        await DbSet.IgnoreQueryFilters().AnyAsync(u => u.Email == email.ToLowerInvariant(), ct);
 }

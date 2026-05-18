@@ -6,7 +6,13 @@ namespace TransporteEscolar.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext, IUnitOfWork
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    private readonly ICurrentTenantService? _tenantService;
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentTenantService? tenantService = null)
+        : base(options)
+    {
+        _tenantService = tenantService;
+    }
 
     public DbSet<Aluno> Alunos => Set<Aluno>();
     public DbSet<Responsavel> Responsaveis => Set<Responsavel>();
@@ -14,9 +20,51 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Transporte> Transportes => Set<Transporte>();
     public DbSet<CheckIn> CheckIns => Set<CheckIn>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<Mensalidade> Mensalidades => Set<Mensalidade>();
+    public DbSet<Transportador> Transportadores => Set<Transportador>();
+    public DbSet<Plano> Planos => Set<Plano>();
+    public DbSet<Assinatura> Assinaturas => Set<Assinatura>();
+    public DbSet<PagamentoAssinatura> PagamentosAssinatura => Set<PagamentoAssinatura>();
+    public DbSet<Recado> Recados => Set<Recado>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        ApplyTenantFilters(modelBuilder);
+    }
+
+    // Propriedades avaliadas a cada query (não cached pelo EF Core model)
+    private bool CurrentIsSuperAdmin => _tenantService?.IsSuperAdmin ?? false;
+    private Guid? CurrentTenantId => _tenantService?.TenantId;
+    // Versão segura para uso no HasQueryFilter — nunca lança NullReferenceException
+    private Guid CurrentTenantIdOrEmpty => _tenantService?.TenantId ?? Guid.Empty;
+
+    private void ApplyTenantFilters(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Aluno>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Escola>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Responsavel>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Transporte>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<CheckIn>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Mensalidade>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Usuario>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Recado>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+    }
 
     public async Task<int> CommitAsync(CancellationToken ct = default) => await SaveChangesAsync(ct);
 }

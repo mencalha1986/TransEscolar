@@ -4,7 +4,7 @@ using TransporteEscolar.Domain.Interfaces;
 
 namespace TransporteEscolar.Application.Auth.Commands.LoginUsuario;
 
-public class LoginUsuarioHandler : IRequestHandler<LoginUsuarioCommand, Result<string>>
+public class LoginUsuarioHandler : IRequestHandler<LoginUsuarioCommand, Result<LoginResponse>>
 {
     private readonly IUsuarioRepository _repo;
     private readonly IPasswordHasher _hasher;
@@ -13,13 +13,13 @@ public class LoginUsuarioHandler : IRequestHandler<LoginUsuarioCommand, Result<s
     public LoginUsuarioHandler(IUsuarioRepository repo, IPasswordHasher hasher, ITokenService tokenService)
         => (_repo, _hasher, _tokenService) = (repo, hasher, tokenService);
 
-    public async Task<Result<string>> Handle(LoginUsuarioCommand request, CancellationToken ct)
+    public async Task<Result<LoginResponse>> Handle(LoginUsuarioCommand request, CancellationToken ct)
     {
         var usuario = await _repo.ObterPorEmailAsync(request.Email.ToLowerInvariant(), ct);
         if (usuario is null || !_hasher.Verify(request.Senha, usuario.PasswordHash))
-            return Result<string>.Failure("Credenciais inválidas.");
+            return Result<LoginResponse>.Failure("Credenciais inválidas.");
 
         var token = _tokenService.GerarToken(usuario);
-        return Result<string>.Success(token);
+        return Result<LoginResponse>.Success(new LoginResponse(token, usuario.MustChangePassword));
     }
 }

@@ -12,6 +12,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentTenantService, CurrentTenantService>();
+
         services.AddDbContext<AppDbContext>(opts =>
             opts.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
@@ -21,8 +24,14 @@ public static class DependencyInjection
         services.AddScoped<IEscolaRepository, EscolaRepository>();
         services.AddScoped<ITransporteRepository, TransporteRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+        services.AddScoped<IMensalidadeRepository, MensalidadeRepository>();
+        services.AddScoped<ITransportadorRepository, TransportadorRepository>();
+        services.AddScoped<IPlanoRepository, PlanoRepository>();
+        services.AddScoped<IAssinaturaRepository, AssinaturaRepository>();
+        services.AddScoped<IRecadoRepository, RecadoRepository>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

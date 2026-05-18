@@ -9,18 +9,18 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
 {
     private readonly ITransporteRepository _repo;
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentTenantService _tenant;
 
-    public RegistrarCheckInHandler(ITransporteRepository repo, IUnitOfWork uow)
-        => (_repo, _uow) = (repo, uow);
+    public RegistrarCheckInHandler(ITransporteRepository repo, IUnitOfWork uow, ICurrentTenantService tenant)
+        => (_repo, _uow, _tenant) = (repo, uow, tenant);
 
     public async Task<Result<Guid>> Handle(RegistrarCheckInCommand request, CancellationToken ct)
     {
-        var transporte = await _repo.ObterPorIdAsync(request.TransporteId, ct);
-        if (transporte is null)
-            return Result<Guid>.Failure("Transporte não encontrado.");
+        if (!_tenant.TenantId.HasValue)
+            return Result<Guid>.Failure("Usuário sem transportador associado.");
 
-        var checkIn = CheckIn.Registrar(request.AlunoId, request.TransporteId,
-            request.Tipo, request.Latitude, request.Longitude);
+        var checkIn = CheckIn.Registrar(request.AlunoId, request.Tipo,
+            _tenant.TenantId.Value, request.Latitude, request.Longitude);
 
         await _repo.AdicionarCheckInAsync(checkIn, ct);
         await _uow.CommitAsync(ct);

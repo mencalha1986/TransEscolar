@@ -10,6 +10,7 @@ namespace TransporteEscolar.Integration.Tests;
 
 public class AlunoRepositoryTests : IAsyncLifetime
 {
+    private static readonly Guid TenantId = Guid.NewGuid();
     private readonly PostgreSqlContainer _pg = new PostgreSqlBuilder().Build();
     private AppDbContext _ctx = null!;
 
@@ -33,11 +34,11 @@ public class AlunoRepositoryTests : IAsyncLifetime
     {
         var repo = new AlunoRepository(_ctx);
         var escola = Escola.Criar("Escola Teste",
-            new Endereco("Rua A", "1", "Centro", "SP", "SP", "01001-000"), "11999999999").Value;
+            new Endereco("Rua A", "1", "Centro", "SP", "SP", "01001-000"), "11999999999", TenantId).Value;
         await _ctx.Escolas.AddAsync(escola);
         await _ctx.SaveChangesAsync();
 
-        var aluno = Aluno.Criar("João Silva", new DateTime(2015, 3, 10), escola.Id).Value;
+        var aluno = Aluno.Criar("João Silva", new DateTime(2015, 3, 10), escola.Id, 500m, 10, TurnoAluno.Manha, TenantId).Value;
         await repo.AdicionarAsync(aluno);
         await _ctx.CommitAsync();
 
@@ -45,6 +46,8 @@ public class AlunoRepositoryTests : IAsyncLifetime
         found.Should().NotBeNull();
         found!.Nome.Should().Be("João Silva");
         found.Foto.Should().BeNull();
+        found.ValorMensalidade.Should().Be(500m);
+        found.DiaVencimento.Should().Be(10);
     }
 
     [Fact]
@@ -52,11 +55,11 @@ public class AlunoRepositoryTests : IAsyncLifetime
     {
         var repo = new AlunoRepository(_ctx);
         var escola = Escola.Criar("Escola B",
-            new Endereco("Rua B", "2", "Centro", "SP", "SP", "01001-000"), "11999999998").Value;
+            new Endereco("Rua B", "2", "Centro", "SP", "SP", "01001-000"), "11999999998", TenantId).Value;
         await _ctx.Escolas.AddAsync(escola);
         await _ctx.SaveChangesAsync();
 
-        var aluno = Aluno.Criar("Maria", new DateTime(2016, 5, 20), escola.Id).Value;
+        var aluno = Aluno.Criar("Maria", new DateTime(2016, 5, 20), escola.Id, 350m, 5, TurnoAluno.Tarde, TenantId).Value;
         await repo.AdicionarAsync(aluno);
         await _ctx.CommitAsync();
 
