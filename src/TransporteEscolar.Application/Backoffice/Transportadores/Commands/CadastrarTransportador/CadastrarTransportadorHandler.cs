@@ -11,13 +11,15 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
     private readonly IUsuarioRepository _usuarioRepo;
     private readonly IPasswordHasher _hasher;
     private readonly IUnitOfWork _uow;
+    private readonly IEmailService _emailService;
 
     public CadastrarTransportadorHandler(
         ITransportadorRepository repo,
         IUsuarioRepository usuarioRepo,
         IPasswordHasher hasher,
-        IUnitOfWork uow)
-        => (_repo, _usuarioRepo, _hasher, _uow) = (repo, usuarioRepo, hasher, uow);
+        IUnitOfWork uow,
+        IEmailService emailService)
+        => (_repo, _usuarioRepo, _hasher, _uow, _emailService) = (repo, usuarioRepo, hasher, uow, emailService);
 
     public async Task<Result<Guid>> Handle(CadastrarTransportadorCommand request, CancellationToken ct)
     {
@@ -54,6 +56,12 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
             await _usuarioRepo.AdicionarAsync(usuarioResult.Value, ct);
 
         await _uow.CommitAsync(ct);
+
+        if (usuarioResult.IsSuccess)
+        {
+            try { await _emailService.EnviarAcessoResponsavelAsync(request.Email, request.NomeContato, senhaTemp, ct); }
+            catch { /* email falhou, mas o cadastro já foi salvo */ }
+        }
 
         return Result<Guid>.Success(transportador.Id);
     }
