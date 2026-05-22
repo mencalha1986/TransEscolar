@@ -16,3 +16,8 @@ export interface LoginRequest {
   email: string
   senha: string
 }
+
+export interface AlterarSenhaRequest {
+  senhaAtual: string
+  novaSenha: string
+}

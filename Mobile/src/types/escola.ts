@@ -9,3 +9,16 @@ export interface EscolaDto {
   estado: string
   cep: string
 }
+
+export interface CadastrarEscolaRequest {
+  nome: string
+  telefone: string
+  logradouro: string
+  numero: string
+  bairro: string
+  cidade: string
+  estado: string
+  cep: string
+}
+
+export type AtualizarEscolaRequest = CadastrarEscolaRequest

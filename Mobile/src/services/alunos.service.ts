@@ -14,3 +14,19 @@ export async function obterAluno(id: string): Promise<AlunoDetalheDto> {
   if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Aluno não encontrado")
   return res.data.data
 }
+
+export async function cadastrarAluno(formData: FormData): Promise<AlunoDto> {
+  const res = await api.post<ApiResponse<AlunoDto>>("/alunos", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  })
+  if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Erro ao cadastrar aluno")
+  return res.data.data
+}
+
+export async function editarAluno(id: string, formData: FormData): Promise<string> {
+  const res = await api.put<ApiResponse<string>>(`/alunos/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  })
+  if (!res.data.success) throw new Error(res.data.error ?? "Erro ao editar aluno")
+  return id
+}

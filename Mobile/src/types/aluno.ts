@@ -10,11 +10,15 @@ export interface AlunoDto {
   turno: string
 }
 
+export interface ResponsavelDto {
+  id: string
+  nome: string
+  cpf: string
+  telefone: string
+  email: string
+}
+
 export interface AlunoDetalheDto extends AlunoDto {
   fotoBase64?: string | null
-  responsaveis: {
-    id: string
-    nome: string
-    telefone: string
-  }[]
+  responsaveis: ResponsavelDto[]
 }

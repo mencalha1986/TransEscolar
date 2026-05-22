@@ -12,3 +12,9 @@ export interface MensalidadeDto {
   status: StatusMensalidade
   dataPagamento?: string | null
 }
+
+export interface GerarMensalidadeRequest {
+  alunoId: string
+  ano: number
+  mes: number
+}

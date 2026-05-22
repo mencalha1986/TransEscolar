@@ -29,8 +29,11 @@ function decodeUser(token: string): AuthUser | null {
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
+  isImpersonating: boolean
   login: (data: LoginRequest) => Promise<{ mustChangePassword: boolean }>
   logout: () => void
+  impersonar: (transportadorId: string) => Promise<void>
+  voltarParaBackoffice: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -40,6 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem("token")
     return token ? decodeUser(token) : null
   })
+  const [isImpersonating, setIsImpersonating] = useState(
+    () => !!localStorage.getItem("token_superadmin")
+  )
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -65,11 +71,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     localStorage.removeItem("token")
+    localStorage.removeItem("token_superadmin")
     setUser(null)
+    setIsImpersonating(false)
+  }
+
+  async function impersonar(transportadorId: string): Promise<void> {
+    const res = await api.post<ApiResponse<{ token: string }>>(
+      `/backoffice/transportadores/${transportadorId}/impersonate`
+    )
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Erro ao acessar transportador")
+    }
+    const currentToken = localStorage.getItem("token")!
+    localStorage.setItem("token_superadmin", currentToken)
+    localStorage.setItem("token", res.data.data.token)
+    setUser(decodeUser(res.data.data.token))
+    setIsImpersonating(true)
+  }
+
+  function voltarParaBackoffice(): void {
+    const superAdminToken = localStorage.getItem("token_superadmin")
+    if (!superAdminToken) return
+    localStorage.setItem("token", superAdminToken)
+    localStorage.removeItem("token_superadmin")
+    setUser(decodeUser(superAdminToken))
+    setIsImpersonating(false)
+    window.location.href = "/backoffice"
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated: !!user, isImpersonating, login, logout, impersonar, voltarParaBackoffice }}
+    >
       {children}
     </AuthContext.Provider>
   )

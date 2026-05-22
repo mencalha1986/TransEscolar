@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
-import { listarAlunos, obterAluno } from "@/services/alunos.service"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { queryClient } from "@/lib/queryClient"
+import { cadastrarAluno, editarAluno, listarAlunos, obterAluno } from "@/services/alunos.service"
 
 export const ALUNO_KEYS = {
   all: ["alunos"] as const,
@@ -19,5 +20,24 @@ export function useAluno(id: string) {
     queryKey: ALUNO_KEYS.detail(id),
     queryFn: () => obterAluno(id),
     enabled: !!id,
+  })
+}
+
+export function useCadastrarAluno() {
+  return useMutation({
+    mutationFn: (formData: FormData) => cadastrarAluno(formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.all })
+    },
+  })
+}
+
+export function useEditarAluno(id: string) {
+  return useMutation({
+    mutationFn: (formData: FormData) => editarAluno(id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.all })
+      queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.detail(id) })
+    },
   })
 }
