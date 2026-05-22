@@ -45,6 +45,9 @@ export const backofficeService = {
   impersonar: (id: string) =>
     api.post<ApiResponse<{ token: string }>>(`${BASE}/transportadores/${id}/impersonate`).then(r => unwrap(r).token),
 
+  deletarTransportador: (id: string) =>
+    api.delete<ApiResponse<boolean>>(`${BASE}/transportadores/${id}`).then(unwrap),
+
   listarPlanos: () =>
     api.get<ApiResponse<Plano[]>>(`${BASE}/planos`).then(unwrapList),
 

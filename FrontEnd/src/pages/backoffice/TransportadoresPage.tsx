@@ -1,6 +1,7 @@
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import { Trash2 } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +18,7 @@ const statusColor: Record<StatusTransportador, string> = {
 
 export function TransportadoresPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { data, isLoading } = useQuery({ queryKey: ["backoffice", "transportadores"], queryFn: backofficeService.listarTransportadores })
 
   const impersonar = useMutation({
@@ -29,6 +31,20 @@ export function TransportadoresPage() {
     },
     onError: () => toast.error("Erro ao acessar transportador"),
   })
+
+  const deletar = useMutation({
+    mutationFn: (id: string) => backofficeService.deletarTransportador(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["backoffice", "transportadores"] })
+      toast.success("Transportador removido!")
+    },
+    onError: () => toast.error("Não foi possível remover o transportador."),
+  })
+
+  async function onDeletar(id: string, nomeEmpresa: string) {
+    if (!window.confirm(`Remover "${nomeEmpresa}"?\n\nEsta ação apagará todos os dados do cliente (alunos, responsáveis, mensalidades, etc.) e não pode ser desfeita.`)) return
+    deletar.mutate(id)
+  }
 
   return (
     <div>
@@ -62,12 +78,22 @@ export function TransportadoresPage() {
                   <Badge variant={statusColor[t.status] as "default" | "secondary" | "destructive"}>{t.status}</Badge>
                 </TableCell>
                 <TableCell>{new Date(t.criadoEm).toLocaleDateString("pt-BR")}</TableCell>
-                <TableCell className="flex gap-2">
+                <TableCell className="flex gap-2 items-center">
                   <Button size="sm" variant="outline" onClick={() => navigate(`/backoffice/transportadores/${t.id}`)}>
                     Detalhes
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => impersonar.mutate(t.id)} disabled={impersonar.isPending}>
                     Acessar
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => onDeletar(t.id, t.nomeEmpresa)}
+                    disabled={deletar.isPending}
+                    aria-label="Remover"
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
               </TableRow>
