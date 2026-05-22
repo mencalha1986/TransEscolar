@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using TransporteEscolar.Application.Common;
 using TransporteEscolar.Domain.Entities;
 using TransporteEscolar.Domain.Interfaces;
@@ -12,14 +13,23 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
     private readonly IPasswordHasher _hasher;
     private readonly IUnitOfWork _uow;
     private readonly IEmailService _emailService;
+    private readonly ILogger<CadastrarTransportadorHandler> _logger;
 
     public CadastrarTransportadorHandler(
         ITransportadorRepository repo,
         IUsuarioRepository usuarioRepo,
         IPasswordHasher hasher,
         IUnitOfWork uow,
-        IEmailService emailService)
-        => (_repo, _usuarioRepo, _hasher, _uow, _emailService) = (repo, usuarioRepo, hasher, uow, emailService);
+        IEmailService emailService,
+        ILogger<CadastrarTransportadorHandler> logger)
+    {
+        _repo = repo;
+        _usuarioRepo = usuarioRepo;
+        _hasher = hasher;
+        _uow = uow;
+        _emailService = emailService;
+        _logger = logger;
+    }
 
     public async Task<Result<Guid>> Handle(CadastrarTransportadorCommand request, CancellationToken ct)
     {
@@ -60,7 +70,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         if (usuarioResult.IsSuccess)
         {
             try { await _emailService.EnviarAcessoResponsavelAsync(request.Email, request.NomeContato, senhaTemp, ct); }
-            catch { /* email falhou, mas o cadastro já foi salvo */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Email de acesso não enviado para o transportador {Email}", request.Email); }
         }
 
         return Result<Guid>.Success(transportador.Id);

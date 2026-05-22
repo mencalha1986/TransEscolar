@@ -1,6 +1,7 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 using TransporteEscolar.Domain.Interfaces;
 
@@ -9,8 +10,13 @@ namespace TransporteEscolar.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration config) => _config = config;
+    public EmailService(IConfiguration config, ILogger<EmailService> logger)
+    {
+        _config = config;
+        _logger = logger;
+    }
 
     public async Task EnviarAcessoResponsavelAsync(string email, string nome, string senha, CancellationToken ct = default)
     {
@@ -39,11 +45,20 @@ public class EmailService : IEmailService
                 """
         };
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
-        await client.AuthenticateAsync(username, password, ct);
-        await client.SendAsync(message, ct);
-        await client.DisconnectAsync(true, ct);
+        try
+        {
+            using var client = new SmtpClient();
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
+            await client.AuthenticateAsync(username, password, ct);
+            await client.SendAsync(message, ct);
+            await client.DisconnectAsync(true, ct);
+            _logger.LogInformation("Email de acesso enviado para {Email}", email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar email de acesso para {Email} via {Host}:{Port} from {From}", email, host, port, from);
+            throw;
+        }
     }
 
     public async Task EnviarContatoAsync(string nome, string email, string telefone, string mensagem, CancellationToken ct = default)
@@ -75,10 +90,19 @@ public class EmailService : IEmailService
                 """
         };
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
-        await client.AuthenticateAsync(username, password, ct);
-        await client.SendAsync(msg, ct);
-        await client.DisconnectAsync(true, ct);
+        try
+        {
+            using var client = new SmtpClient();
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
+            await client.AuthenticateAsync(username, password, ct);
+            await client.SendAsync(msg, ct);
+            await client.DisconnectAsync(true, ct);
+            _logger.LogInformation("Email de contato enviado por {Nome} ({Email})", nome, email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar email de contato de {Nome} via {Host}:{Port}", nome, host, port);
+            throw;
+        }
     }
 }
