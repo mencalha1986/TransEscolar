@@ -47,7 +47,8 @@ public class EmailService : IEmailService
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(60));
             using var client = new SmtpClient();
             await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
             await client.AuthenticateAsync(username, password, cts.Token);
@@ -93,7 +94,8 @@ public class EmailService : IEmailService
 
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(60));
             using var client = new SmtpClient();
             await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
             await client.AuthenticateAsync(username, password, cts.Token);

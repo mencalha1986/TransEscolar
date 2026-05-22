@@ -15,7 +15,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
     private readonly IUnitOfWork _uow;
     private readonly IEmailService _emailService;
     private readonly IEmailLogRepository _emailLogRepo;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<CadastrarTransportadorHandler> _logger;
 
     public CadastrarTransportadorHandler(
@@ -25,7 +25,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         IUnitOfWork uow,
         IEmailService emailService,
         IEmailLogRepository emailLogRepo,
-        IServiceProvider serviceProvider,
+        IServiceScopeFactory scopeFactory,
         ILogger<CadastrarTransportadorHandler> logger)
     {
         _repo = repo;
@@ -34,7 +34,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         _uow = uow;
         _emailService = emailService;
         _emailLogRepo = emailLogRepo;
-        _serviceProvider = serviceProvider;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -81,7 +81,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         {
             var logId = emailLog.Id;
             var emailService = _emailService;
-            var serviceProvider = _serviceProvider;
+            var scopeFactory = _scopeFactory;
             var logger = _logger;
             var email = request.Email;
             var nome = request.NomeContato;
@@ -93,7 +93,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
                 {
                     await emailService.EnviarAcessoResponsavelAsync(email, nome, senha);
 
-                    using var scope = serviceProvider.CreateScope();
+                    using var scope = scopeFactory.CreateScope();
                     var repo = scope.ServiceProvider.GetRequiredService<IEmailLogRepository>();
                     var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                     var log = await repo.ObterPorIdAsync(logId);
@@ -105,7 +105,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
                     logger.LogWarning(ex, "Email de acesso não enviado para o transportador {Email}", email);
                     try
                     {
-                        using var scope = serviceProvider.CreateScope();
+                        using var scope = scopeFactory.CreateScope();
                         var repo = scope.ServiceProvider.GetRequiredService<IEmailLogRepository>();
                         var uow = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                         var log = await repo.ObterPorIdAsync(logId);
