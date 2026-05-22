@@ -25,7 +25,7 @@ export function TransportadoresPage() {
       const tokenAnterior = localStorage.getItem("token")
       localStorage.setItem("token_superadmin", tokenAnterior ?? "")
       localStorage.setItem("token", token)
-      window.location.href = "/"
+      window.location.href = "/dashboard"
     },
     onError: () => toast.error("Erro ao acessar transportador"),
   })

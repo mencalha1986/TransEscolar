@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/alunos", label: "Alunos", icon: GraduationCap },
   { to: "/escolas", label: "Escolas", icon: School },
   { to: "/transportes", label: "Transportes", icon: Bus },
@@ -72,7 +72,7 @@ export function Sidebar({ onClose }: SidebarProps) {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/" || item.to === "/backoffice"}
+              end={item.to === "/dashboard" || item.to === "/backoffice"}
               onClick={onClose}
               className={({ isActive }) =>
                 cn(
