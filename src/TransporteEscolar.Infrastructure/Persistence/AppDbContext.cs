@@ -26,6 +26,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Assinatura> Assinaturas => Set<Assinatura>();
     public DbSet<PagamentoAssinatura> PagamentosAssinatura => Set<PagamentoAssinatura>();
     public DbSet<Recado> Recados => Set<Recado>();
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

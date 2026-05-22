@@ -85,3 +85,16 @@ export interface RegistrarPagamentoRequest {
   competenciaAno: number
   observacao?: string
 }
+
+export type StatusEmailLog = "Pendente" | "Enviado" | "Falha"
+
+export interface EmailLog {
+  id: string
+  destinatario: string
+  nome: string
+  transportadorId: string
+  status: StatusEmailLog
+  erroMensagem?: string
+  enviadoEm?: string
+  criadoEm: string
+}

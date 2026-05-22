@@ -42,4 +42,11 @@ public class Usuario : Entity
         MarcarAtualizado();
         return Result<bool>.Success(true);
     }
+
+    public void RedefinirSenha(string novoPasswordHash)
+    {
+        PasswordHash = novoPasswordHash;
+        MustChangePassword = true;
+        MarcarAtualizado();
+    }
 }

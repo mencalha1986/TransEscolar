@@ -19,6 +19,7 @@ import { CadastrarTransportadorPage } from "@/pages/backoffice/CadastrarTranspor
 import { TransportadorDetailPage } from "@/pages/backoffice/TransportadorDetailPage"
 import { PlanosPage } from "@/pages/backoffice/PlanosPage"
 import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
+import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
 import { MuralPage } from "@/pages/mural/MuralPage"
 
 export const router = createBrowserRouter([
@@ -63,6 +64,7 @@ export const router = createBrowserRouter([
               { path: "/backoffice/transportadores/:id", element: <TransportadorDetailPage /> },
               { path: "/backoffice/planos", element: <PlanosPage /> },
               { path: "/backoffice/assinaturas", element: <AssinaturasPage /> },
+              { path: "/backoffice/email-logs", element: <EmailLogsPage /> },
             ],
           },
         ],

@@ -6,6 +6,7 @@ import type {
   CriarAssinaturaRequest,
   CriarPlanoRequest,
   DashboardBackoffice,
+  EmailLog,
   PagamentoAssinatura,
   Plano,
   RegistrarPagamentoRequest,
@@ -65,4 +66,10 @@ export const backofficeService = {
 
   registrarPagamento: (assinaturaId: string, data: RegistrarPagamentoRequest) =>
     api.post<ApiResponse<string>>(`${BASE}/assinaturas/${assinaturaId}/pagamentos`, data).then(unwrap),
+
+  listarEmailLogs: () =>
+    api.get<ApiResponse<EmailLog[]>>(`${BASE}/email-logs`).then(unwrapList),
+
+  reenviarEmail: (id: string) =>
+    api.post<ApiResponse<boolean>>(`${BASE}/email-logs/${id}/reenviar`).then(unwrap),
 }

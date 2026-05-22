@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   LayoutDashboard, GraduationCap, School, Bus, CreditCard,
-  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare
+  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail
 } from "lucide-react"
 
 const navItems = [
@@ -22,6 +22,7 @@ const backofficeItems = [
   { to: "/backoffice/transportadores", label: "Clientes", icon: Building2 },
   { to: "/backoffice/planos", label: "Planos", icon: ClipboardList },
   { to: "/backoffice/assinaturas", label: "Assinaturas", icon: Receipt },
+  { to: "/backoffice/email-logs", label: "Logs Email", icon: Mail },
 ]
 
 interface SidebarProps {

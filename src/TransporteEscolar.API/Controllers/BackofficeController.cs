@@ -14,6 +14,8 @@ using TransporteEscolar.Application.Backoffice.Transportadores.Commands.DeletarT
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ImpersonarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ListarTransportadores;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ObterTransportador;
+using TransporteEscolar.Application.Backoffice.EmailLogs.Queries;
+using TransporteEscolar.Application.Backoffice.EmailLogs.Commands;
 using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.API.Controllers;
@@ -86,6 +88,23 @@ public class BackofficeController : BaseController
         var result = await _mediator.Send(new ImpersonarTransportadorQuery(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(new { token = result.Value });
+    }
+
+    // --- Email Logs ---
+
+    [HttpGet("email-logs")]
+    public async Task<IActionResult> ListarEmailLogs(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ListarEmailLogsQuery(), ct);
+        return OkResponse(result.Value);
+    }
+
+    [HttpPost("email-logs/{id:guid}/reenviar")]
+    public async Task<IActionResult> ReenviarEmail(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ReenviarEmailCommand(id), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
     }
 
     // --- Planos ---

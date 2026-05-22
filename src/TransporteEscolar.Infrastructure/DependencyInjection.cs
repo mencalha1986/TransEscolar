@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IPlanoRepository, PlanoRepository>();
         services.AddScoped<IAssinaturaRepository, AssinaturaRepository>();
         services.AddScoped<IRecadoRepository, RecadoRepository>();
+        services.AddScoped<IEmailLogRepository, EmailLogRepository>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IEmailService, EmailService>();
