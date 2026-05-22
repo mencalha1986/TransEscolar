@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Alunos.Commands.CadastrarAluno;
+using TransporteEscolar.Application.Alunos.Commands.DeletarAluno;
 using TransporteEscolar.Application.Alunos.Commands.EditarAluno;
 using TransporteEscolar.Application.Alunos.Queries.ListarAlunos;
 using TransporteEscolar.Application.Alunos.Queries.ObterAluno;
@@ -51,6 +52,14 @@ public class AlunosController : BaseController
     {
         var result = await _mediator.Send(new ObterAlunoQuery(id), ct);
         return result.IsSuccess ? OkResponse(result.Value) : NotFoundResponse(result.Error);
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Deletar(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeletarAlunoCommand(id), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
     }
 
     [HttpPut("{id:guid}")]

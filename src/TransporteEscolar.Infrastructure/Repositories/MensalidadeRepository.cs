@@ -24,4 +24,7 @@ public class MensalidadeRepository : BaseRepository<Mensalidade>, IMensalidadeRe
 
     public async Task<bool> ExisteMensalidadeAsync(Guid alunoId, DateOnly competencia, CancellationToken ct = default) =>
         await DbSet.AnyAsync(m => m.AlunoId == alunoId && m.Competencia == competencia, ct);
+
+    public async Task RemoverPorAlunoAsync(Guid alunoId, CancellationToken ct = default) =>
+        await DbSet.Where(m => m.AlunoId == alunoId).ExecuteDeleteAsync(ct);
 }

@@ -21,4 +21,7 @@ public class TransporteRepository : BaseRepository<Domain.Entities.Transporte>, 
 
     public async Task AdicionarCheckInAsync(CheckIn checkIn, CancellationToken ct = default) =>
         await Ctx.CheckIns.AddAsync(checkIn, ct);
+
+    public async Task RemoverCheckInsPorAlunoAsync(Guid alunoId, CancellationToken ct = default) =>
+        await Ctx.CheckIns.Where(c => c.AlunoId == alunoId).ExecuteDeleteAsync(ct);
 }

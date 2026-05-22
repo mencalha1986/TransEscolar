@@ -10,6 +10,7 @@ using TransporteEscolar.Application.Backoffice.Planos.Commands.CriarPlano;
 using TransporteEscolar.Application.Backoffice.Planos.Queries.ListarPlanos;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.AlterarStatusTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.CadastrarTransportador;
+using TransporteEscolar.Application.Backoffice.Transportadores.Commands.DeletarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ImpersonarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ListarTransportadores;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ObterTransportador;
@@ -67,6 +68,14 @@ public class BackofficeController : BaseController
     public async Task<IActionResult> AlterarStatus(Guid id, [FromBody] AlterarStatusRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(new AlterarStatusTransportadorCommand(id, req.Status), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpDelete("transportadores/{id:guid}")]
+    public async Task<IActionResult> DeletarTransportador(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeletarTransportadorCommand(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }

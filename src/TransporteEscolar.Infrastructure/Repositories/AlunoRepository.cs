@@ -11,4 +11,7 @@ public class AlunoRepository : BaseRepository<Aluno>, IAlunoRepository
 
     public async Task<IEnumerable<Aluno>> ListarPorEscolaAsync(Guid escolaId, CancellationToken ct = default) =>
         await DbSet.Where(a => a.EscolaId == escolaId).ToListAsync(ct);
+
+    public async Task<int> ContarPorResponsavelAsync(Guid responsavelId, CancellationToken ct = default) =>
+        await DbSet.CountAsync(a => a.ResponsavelIds.Contains(responsavelId), ct);
 }

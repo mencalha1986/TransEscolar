@@ -42,6 +42,12 @@ public class Transporte : Entity
         return Result<bool>.Success(true);
     }
 
+    public void RemoverAluno(Guid alunoId)
+    {
+        _alunoIds.Remove(alunoId);
+        MarcarAtualizado();
+    }
+
     public void IniciarRota() { Status = StatusTransporte.EmRota; MarcarAtualizado(); }
     public void ConcluirRota() { Status = StatusTransporte.Concluido; MarcarAtualizado(); }
 }

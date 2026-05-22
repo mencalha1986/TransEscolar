@@ -8,4 +8,5 @@ public interface ITransporteRepository : IRepository<Transporte>
     Task<IEnumerable<CheckIn>> ListarCheckInsAsync(CancellationToken ct = default);
     Task<IEnumerable<CheckIn>> ListarCheckInsPorAlunoAsync(Guid alunoId, CancellationToken ct = default);
     Task AdicionarCheckInAsync(CheckIn checkIn, CancellationToken ct = default);
+    Task RemoverCheckInsPorAlunoAsync(Guid alunoId, CancellationToken ct = default);
 }
