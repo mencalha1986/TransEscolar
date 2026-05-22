@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const links = [
   { label: 'Funcionalidades', href: '#funcionalidades' },
@@ -30,12 +31,12 @@ export default function LandingNavbar() {
                 {l.label}
               </a>
             ))}
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
             >
               Entrar
-            </a>
+            </Link>
           </div>
 
           <button
