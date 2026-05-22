@@ -69,12 +69,13 @@ export default function LandingNavbar() {
               {l.label}
             </a>
           ))}
-          <a
-            href="/login"
+          <Link
+            to="/login"
             className="bg-blue-600 text-white text-center px-5 py-3 rounded-lg font-semibold hover:bg-blue-700 mt-2 transition-colors"
+            onClick={() => setOpen(false)}
           >
             Entrar
-          </a>
+          </Link>
         </div>
       )}
     </nav>
