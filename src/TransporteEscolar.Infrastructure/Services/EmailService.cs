@@ -47,11 +47,12 @@ public class EmailService : IEmailService
 
         try
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(username, password, ct);
-            await client.SendAsync(message, ct);
-            await client.DisconnectAsync(true, ct);
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
+            await client.AuthenticateAsync(username, password, cts.Token);
+            await client.SendAsync(message, cts.Token);
+            await client.DisconnectAsync(true, cts.Token);
             _logger.LogInformation("Email de acesso enviado para {Email}", email);
         }
         catch (Exception ex)
@@ -92,11 +93,12 @@ public class EmailService : IEmailService
 
         try
         {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(username, password, ct);
-            await client.SendAsync(msg, ct);
-            await client.DisconnectAsync(true, ct);
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
+            await client.AuthenticateAsync(username, password, cts.Token);
+            await client.SendAsync(msg, cts.Token);
+            await client.DisconnectAsync(true, cts.Token);
             _logger.LogInformation("Email de contato enviado por {Nome} ({Email})", nome, email);
         }
         catch (Exception ex)

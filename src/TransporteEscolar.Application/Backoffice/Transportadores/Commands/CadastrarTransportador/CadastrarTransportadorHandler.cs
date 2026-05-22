@@ -69,8 +69,16 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
 
         if (usuarioResult.IsSuccess)
         {
-            try { await _emailService.EnviarAcessoResponsavelAsync(request.Email, request.NomeContato, senhaTemp, ct); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Email de acesso não enviado para o transportador {Email}", request.Email); }
+            var emailService = _emailService;
+            var logger = _logger;
+            var email = request.Email;
+            var nome = request.NomeContato;
+            var senha = senhaTemp;
+            _ = Task.Run(async () =>
+            {
+                try { await emailService.EnviarAcessoResponsavelAsync(email, nome, senha); }
+                catch (Exception ex) { logger.LogWarning(ex, "Email de acesso não enviado para o transportador {Email}", email); }
+            });
         }
 
         return Result<Guid>.Success(transportador.Id);
