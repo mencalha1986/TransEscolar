@@ -30,6 +30,16 @@ services:
       Jwt__Audience: "TransporteEscolar"
       Jwt__ExpiresHours: "8"
 
+  landing:
+    build:
+      context: ./LandingPage
+      args:
+        VITE_APP_URL: http://localhost:3000
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
   frontend:
     build: ./FrontEnd
     ports:
