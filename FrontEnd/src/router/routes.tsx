@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { LoginPage } from "@/pages/auth/LoginPage"
 import { AlterarSenhaPage } from "@/pages/auth/AlterarSenhaPage"
 import { DashboardPage } from "@/pages/dashboard/DashboardPage"
+import { LandingPage } from "@/pages/landing/LandingPage"
 import { AlunosPage } from "@/pages/alunos/AlunosPage"
 import { CadastrarAlunoPage } from "@/pages/alunos/CadastrarAlunoPage"
 import { AlunoDetailPage } from "@/pages/alunos/AlunoDetailPage"
@@ -22,6 +23,10 @@ import { MuralPage } from "@/pages/mural/MuralPage"
 
 export const router = createBrowserRouter([
   {
+    path: "/",
+    element: <LandingPage />,
+  },
+  {
     path: "/login",
     element: <LoginPage />,
   },
@@ -35,7 +40,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: "/", element: <DashboardPage /> },
+          { path: "/dashboard", element: <DashboardPage /> },
           { path: "/alunos", element: <AlunosPage /> },
           { path: "/alunos/novo", element: <CadastrarAlunoPage /> },
           { path: "/alunos/:id", element: <AlunoDetailPage /> },

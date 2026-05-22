@@ -32,7 +32,7 @@ export function LoginPage() {
       if (mustChangePassword) {
         navigate("/alterar-senha")
       } else {
-        navigate("/")
+        navigate("/dashboard")
       }
     } catch (err) {
       toast.error("Email ou senha incorretos. Verifique suas credenciais e tente novamente.")
