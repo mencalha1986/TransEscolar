@@ -1,8 +1,6 @@
-using MailKit.Net.Smtp;
-using MailKit.Security;
+using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MimeKit;
 using TransporteEscolar.Domain.Interfaces;
 
 namespace TransporteEscolar.Infrastructure.Services;
@@ -10,31 +8,28 @@ namespace TransporteEscolar.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
+    private readonly IHttpClientFactory _httpFactory;
     private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration config, ILogger<EmailService> logger)
+    public EmailService(IConfiguration config, IHttpClientFactory httpFactory, ILogger<EmailService> logger)
     {
         _config = config;
+        _httpFactory = httpFactory;
         _logger = logger;
     }
 
     public async Task EnviarAcessoResponsavelAsync(string email, string nome, string senha, CancellationToken ct = default)
     {
-        var host = _config["Email:Host"]!;
-        var port = int.Parse(_config["Email:Port"] ?? "587");
-        var username = _config["Email:Username"]!;
-        var password = _config["Email:Password"]!;
+        var apiKey = _config["Email:ApiKey"]!;
         var from = _config["Email:From"]!;
         var fromName = _config["Email:FromName"] ?? "TransporteEscolar";
 
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(fromName, from));
-        message.To.Add(new MailboxAddress(nome, email));
-        message.Subject = "Acesso ao Sistema de Transporte Escolar";
-
-        message.Body = new TextPart("html")
+        var payload = new
         {
-            Text = $"""
+            sender = new { name = fromName, email = from },
+            to = new[] { new { email, name = nome } },
+            subject = "Acesso ao Sistema de Transporte Escolar",
+            htmlContent = $"""
                 <h2>Olá, {nome}!</h2>
                 <p>Seu acesso ao sistema de Transporte Escolar foi criado.</p>
                 <p><strong>Email:</strong> {email}</p>
@@ -48,39 +43,37 @@ public class EmailService : IEmailService
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(TimeSpan.FromSeconds(60));
-            using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
-            await client.AuthenticateAsync(username, password, cts.Token);
-            await client.SendAsync(message, cts.Token);
-            await client.DisconnectAsync(true, cts.Token);
+            cts.CancelAfter(TimeSpan.FromSeconds(30));
+
+            using var client = _httpFactory.CreateClient("brevo");
+            using var req = new HttpRequestMessage(HttpMethod.Post, "v3/smtp/email");
+            req.Headers.Add("api-key", apiKey);
+            req.Content = JsonContent.Create(payload);
+
+            var response = await client.SendAsync(req, cts.Token);
+            response.EnsureSuccessStatusCode();
             _logger.LogInformation("Email de acesso enviado para {Email}", email);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao enviar email de acesso para {Email} via {Host}:{Port} from {From}", email, host, port, from);
+            _logger.LogError(ex, "Falha ao enviar email de acesso para {Email} via Brevo API from {From}", email, from);
             throw;
         }
     }
 
     public async Task EnviarContatoAsync(string nome, string email, string telefone, string mensagem, CancellationToken ct = default)
     {
-        var host = _config["Email:Host"]!;
-        var port = int.Parse(_config["Email:Port"] ?? "587");
-        var username = _config["Email:Username"]!;
-        var password = _config["Email:Password"]!;
+        var apiKey = _config["Email:ApiKey"]!;
         var from = _config["Email:From"]!;
         var fromName = _config["Email:FromName"] ?? "TransEscolar";
 
-        var msg = new MimeMessage();
-        msg.From.Add(new MailboxAddress(fromName, from));
-        msg.To.Add(new MailboxAddress("TransEscolar", "mencalha1986@gmail.com"));
-        msg.ReplyTo.Add(new MailboxAddress(nome, email));
-        msg.Subject = $"[TransEscolar] Novo contato: {nome}";
-
-        msg.Body = new TextPart("html")
+        var payload = new
         {
-            Text = $"""
+            sender = new { name = fromName, email = from },
+            to = new[] { new { email = "mencalha1986@gmail.com", name = "TransEscolar" } },
+            replyTo = new { email, name = nome },
+            subject = $"[TransEscolar] Novo contato: {nome}",
+            htmlContent = $"""
                 <h2>Novo contato pelo site</h2>
                 <table cellpadding="8" style="border-collapse:collapse">
                   <tr><td><strong>Nome:</strong></td><td>{nome}</td></tr>
@@ -95,17 +88,20 @@ public class EmailService : IEmailService
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(TimeSpan.FromSeconds(60));
-            using var client = new SmtpClient();
-            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, cts.Token);
-            await client.AuthenticateAsync(username, password, cts.Token);
-            await client.SendAsync(msg, cts.Token);
-            await client.DisconnectAsync(true, cts.Token);
+            cts.CancelAfter(TimeSpan.FromSeconds(30));
+
+            using var client = _httpFactory.CreateClient("brevo");
+            using var req = new HttpRequestMessage(HttpMethod.Post, "v3/smtp/email");
+            req.Headers.Add("api-key", apiKey);
+            req.Content = JsonContent.Create(payload);
+
+            var response = await client.SendAsync(req, cts.Token);
+            response.EnsureSuccessStatusCode();
             _logger.LogInformation("Email de contato enviado por {Nome} ({Email})", nome, email);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao enviar email de contato de {Nome} via {Host}:{Port}", nome, host, port);
+            _logger.LogError(ex, "Falha ao enviar email de contato de {Nome} via Brevo API", nome);
             throw;
         }
     }
