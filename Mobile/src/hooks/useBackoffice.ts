@@ -9,6 +9,7 @@ export const BACKOFFICE_KEYS = {
   transportador: (id: string) => ["backoffice", "transportadores", id] as const,
   planos: ["backoffice", "planos"] as const,
   assinaturas: ["backoffice", "assinaturas"] as const,
+  emailLogs: ["backoffice", "email-logs"] as const,
 }
 
 export function useBackofficeDashboard() {
@@ -74,5 +75,30 @@ export function useAssinaturas() {
   return useQuery({
     queryKey: BACKOFFICE_KEYS.assinaturas,
     queryFn: backofficeService.listarAssinaturas,
+  })
+}
+
+export function useDeletarTransportador() {
+  return useMutation({
+    mutationFn: (id: string) => backofficeService.deletarTransportador(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportadores })
+    },
+  })
+}
+
+export function useEmailLogs() {
+  return useQuery({
+    queryKey: BACKOFFICE_KEYS.emailLogs,
+    queryFn: backofficeService.listarEmailLogs,
+  })
+}
+
+export function useReenviarEmail() {
+  return useMutation({
+    mutationFn: (id: string) => backofficeService.reenviarEmail(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.emailLogs })
+    },
   })
 }

@@ -41,6 +41,7 @@ import { CadastrarTransportadorPage } from "@/pages/backoffice/CadastrarTranspor
 import { TransportadorDetailPage } from "@/pages/backoffice/TransportadorDetailPage"
 import { PlanosPage } from "@/pages/backoffice/PlanosPage"
 import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
+import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
@@ -91,6 +92,7 @@ export function App() {
           <Route path="/backoffice/transportadores/:id" element={<SuperAdminRoute><TransportadorDetailPage /></SuperAdminRoute>} />
           <Route path="/backoffice/planos" element={<SuperAdminRoute><PlanosPage /></SuperAdminRoute>} />
           <Route path="/backoffice/assinaturas" element={<SuperAdminRoute><AssinaturasPage /></SuperAdminRoute>} />
+          <Route path="/backoffice/email-logs" element={<SuperAdminRoute><EmailLogsPage /></SuperAdminRoute>} />
 
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Route>

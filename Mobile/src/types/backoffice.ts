@@ -64,3 +64,16 @@ export interface CriarPlanoRequest {
   limiteAlunos?: number
   descricao?: string
 }
+
+export type StatusEmailLog = "Pendente" | "Enviado" | "Falha"
+
+export interface EmailLog {
+  id: string
+  destinatario: string
+  nome: string
+  transportadorId: string
+  status: StatusEmailLog
+  erroMensagem?: string
+  enviadoEm?: string
+  criadoEm: string
+}

@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
 import { alterarSenha } from "@/services/auth.service"
-import { LogOut, User, Shield, Bell, HelpCircle, ChevronRight, ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { LogOut, User, Shield, Bell, HelpCircle, ChevronRight, ArrowLeft, Eye, EyeOff, Fingerprint } from "lucide-react"
+import { biometricIsAvailable, biometricHasCredentials, biometricDeleteCredentials } from "@/hooks/useBiometric"
 
 const senhaSchema = z
   .object({
@@ -127,6 +128,25 @@ function AlterarSenhaView({ onBack }: { onBack: () => void }) {
 export function PerfilPage() {
   const { user, logout } = useAuth()
   const [view, setView] = useState<"perfil" | "senha">("perfil")
+  const [biometricAvailable, setBiometricAvailable] = useState(false)
+  const [biometricEnabled, setBiometricEnabled] = useState(false)
+
+  useEffect(() => {
+    async function checkBiometric() {
+      const available = await biometricIsAvailable()
+      if (!available) return
+      setBiometricAvailable(true)
+      const enabled = await biometricHasCredentials()
+      setBiometricEnabled(enabled)
+    }
+    checkBiometric()
+  }, [])
+
+  async function handleDisableBiometric() {
+    await biometricDeleteCredentials()
+    setBiometricEnabled(false)
+    toast.success("Biometria desativada.")
+  }
 
   if (view === "senha") {
     return <AlterarSenhaView onBack={() => setView("perfil")} />
@@ -156,6 +176,23 @@ export function PerfilPage() {
           <span className="font-medium text-slate-700 flex-1 text-left">Segurança e Senha</span>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </button>
+        {biometricAvailable && (
+          <button
+            onClick={biometricEnabled ? handleDisableBiometric : undefined}
+            className="w-full p-4 flex items-center gap-4 active:bg-slate-50 transition-colors border-b border-slate-50"
+          >
+            <Fingerprint className="h-5 w-5 text-indigo-500" />
+            <div className="flex-1 text-left">
+              <span className="font-medium text-slate-700">Login Biométrico</span>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {biometricEnabled ? "Ativado — toque para desativar" : "Desativado — ative no próximo login"}
+              </p>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${biometricEnabled ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+              {biometricEnabled ? "ATIVO" : "INATIVO"}
+            </span>
+          </button>
+        )}
         <button className="w-full p-4 flex items-center gap-4 active:bg-slate-50 transition-colors border-b border-slate-50">
           <Bell className="h-5 w-5 text-amber-500" />
           <span className="font-medium text-slate-700 flex-1 text-left">Notificações</span>

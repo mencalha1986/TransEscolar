@@ -5,6 +5,7 @@ import type {
   CadastrarTransportadorRequest,
   CriarPlanoRequest,
   DashboardBackoffice,
+  EmailLog,
   Plano,
   StatusTransportador,
   TransportadorDetalhe,
@@ -52,4 +53,13 @@ export const backofficeService = {
 
   listarAssinaturas: () =>
     api.get<ApiResponse<Assinatura[]>>(`${BASE}/assinaturas`).then(unwrapList),
+
+  deletarTransportador: (id: string) =>
+    api.delete<ApiResponse<boolean>>(`${BASE}/transportadores/${id}`).then(unwrap),
+
+  listarEmailLogs: () =>
+    api.get<ApiResponse<EmailLog[]>>(`${BASE}/email-logs`).then(unwrapList),
+
+  reenviarEmail: (id: string) =>
+    api.post<ApiResponse<boolean>>(`${BASE}/email-logs/${id}/reenviar`).then(unwrap),
 }
