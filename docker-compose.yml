@@ -29,7 +29,12 @@ services:
       Jwt__Issuer: "TransporteEscolar"
       Jwt__Audience: "TransporteEscolar"
       Jwt__ExpiresHours: "8"
-      Email__ApiKey: ""
+      Email__Host: "smtp.gmail.com"
+      Email__Port: "587"
+      Email__Username: "noreplytransescolar@gmail.com"
+      Email__Password: ""
+      Email__From: "noreplytransescolar@gmail.com"
+      Email__FromName: "TransporteEscolar"
 
   landing:
     build:

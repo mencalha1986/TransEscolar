@@ -32,8 +32,6 @@ public static class DependencyInjection
         services.AddScoped<IEmailLogRepository, EmailLogRepository>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
-        services.AddHttpClient("brevo", c =>
-            c.BaseAddress = new Uri("https://api.brevo.com/"));
         services.AddScoped<IEmailService, EmailService>();
 
         return services;

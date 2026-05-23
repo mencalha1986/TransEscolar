@@ -42,14 +42,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// 🔧 ADICIONAR AQUI: Configurar HttpClientFactory para Brevo
-builder.Services.AddHttpClient("brevo")
-    .ConfigureHttpClient(client =>
-    {
-        client.BaseAddress = new Uri("https://api.brevo.com/");
-        client.DefaultRequestHeaders.Add("Accept", "application/json");
-    });
-
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
