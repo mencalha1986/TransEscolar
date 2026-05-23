@@ -29,6 +29,7 @@ services:
       Jwt__Issuer: "TransporteEscolar"
       Jwt__Audience: "TransporteEscolar"
       Jwt__ExpiresHours: "8"
+      Email__ApiKey: ""
 
   landing:
     build:
