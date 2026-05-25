@@ -27,6 +27,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<PagamentoAssinatura> PagamentosAssinatura => Set<PagamentoAssinatura>();
     public DbSet<Recado> Recados => Set<Recado>();
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
+    public DbSet<Viagem> Viagens => Set<Viagem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +65,9 @@ public class AppDbContext : DbContext, IUnitOfWork
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
 
         modelBuilder.Entity<Recado>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Viagem>().HasQueryFilter(e =>
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
     }
 

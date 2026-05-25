@@ -12,8 +12,13 @@ public class TransporteRepository : BaseRepository<Domain.Entities.Transporte>, 
     public async Task<Transporte?> ObterPorTransportadorAsync(Guid transportadorId, CancellationToken ct = default) =>
         await DbSet.FirstOrDefaultAsync(t => t.TransportadorId == transportadorId, ct);
 
-    public async Task<IEnumerable<CheckIn>> ListarCheckInsAsync(CancellationToken ct = default) =>
-        await Ctx.CheckIns.OrderByDescending(c => c.HoraRegistro).ToListAsync(ct);
+    public async Task<IEnumerable<CheckIn>> ListarCheckInsAsync(DateOnly? data = null, CancellationToken ct = default)
+    {
+        var query = Ctx.CheckIns.AsQueryable();
+        if (data.HasValue)
+            query = query.Where(c => DateOnly.FromDateTime(c.HoraRegistro) == data.Value);
+        return await query.OrderByDescending(c => c.HoraRegistro).ToListAsync(ct);
+    }
 
     public async Task<IEnumerable<CheckIn>> ListarCheckInsPorAlunoAsync(Guid alunoId, CancellationToken ct = default) =>
         await Ctx.CheckIns.Where(c => c.AlunoId == alunoId)

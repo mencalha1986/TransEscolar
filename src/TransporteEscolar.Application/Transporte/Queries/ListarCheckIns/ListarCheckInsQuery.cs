@@ -12,6 +12,8 @@ public record CheckInDto(
     TipoCheckIn Tipo,
     DateTime HoraRegistro,
     double? Latitude,
-    double? Longitude);
+    double? Longitude,
+    string? Endereco,
+    Guid? ViagemId);
 
-public record ListarCheckInsQuery : IRequest<Result<IEnumerable<CheckInDto>>>;
+public record ListarCheckInsQuery(DateOnly? Data = null, string? Turno = null) : IRequest<Result<IEnumerable<CheckInDto>>>;

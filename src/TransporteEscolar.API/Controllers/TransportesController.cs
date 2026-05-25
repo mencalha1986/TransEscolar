@@ -25,9 +25,9 @@ public class TransportesController : BaseController
     }
 
     [HttpGet("checkins")]
-    public async Task<IActionResult> ListarCheckIns(CancellationToken ct)
+    public async Task<IActionResult> ListarCheckIns([FromQuery] DateOnly? data, [FromQuery] string? turno, CancellationToken ct)
     {
-        var result = await _mediator.Send(new ListarCheckInsQuery(), ct);
+        var result = await _mediator.Send(new ListarCheckInsQuery(data, turno), ct);
         return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
     }
 

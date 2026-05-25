@@ -41,6 +41,67 @@ public class EmailService : IEmailService
         _logger.LogInformation("Email de acesso enviado com sucesso para {Email}", email);
     }
 
+    public async Task EnviarTransporteACaminhoAsync(string email, string nomeResponsavel, string turno, CancellationToken ct = default)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeResponsavel, email));
+        message.Subject = "🚌 O transporte escolar está a caminho!";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Olá, {nomeResponsavel}!</h2>
+                <p>O transporte do turno <strong>{turno}</strong> já saiu e está a caminho.</p>
+                <p>Acompanhe em tempo real pelo aplicativo TransporteEscolar.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email 'a caminho' enviado para {Email}", email);
+    }
+
+    public async Task EnviarCheckInAsync(string email, string nomeResponsavel, string nomeAluno, string tipoCheckIn, string hora, string? endereco, CancellationToken ct = default)
+    {
+        var acao = tipoCheckIn == "Embarque" ? "embarcou" : "desembarcou";
+        var localInfo = !string.IsNullOrWhiteSpace(endereco) ? $" em <em>{endereco}</em>" : "";
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeResponsavel, email));
+        message.Subject = $"🎒 {nomeAluno} {acao} às {hora}";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Olá, {nomeResponsavel}!</h2>
+                <p>O aluno <strong>{nomeAluno}</strong> {acao}{localInfo} às <strong>{hora}</strong>.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email de checkin ({Tipo}) enviado para {Email} - aluno {Aluno}", tipoCheckIn, email, nomeAluno);
+    }
+
+    public async Task EnviarTrajretoConcluidoAsync(string email, string nomeResponsavel, string turno, CancellationToken ct = default)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeResponsavel, email));
+        message.Subject = "✅ Trajeto escolar concluído";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Olá, {nomeResponsavel}!</h2>
+                <p>O trajeto do turno <strong>{turno}</strong> foi concluído com sucesso.</p>
+                <p>Todos os alunos foram entregues.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email de trajeto concluído enviado para {Email}", email);
+    }
+
     public async Task EnviarContatoAsync(string nome, string email, string telefone, string mensagem, CancellationToken ct = default)
     {
         var message = new MimeMessage();
