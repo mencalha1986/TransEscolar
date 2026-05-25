@@ -6,7 +6,7 @@ using TransporteEscolar.Domain.Interfaces;
 
 namespace TransporteEscolar.Application.Transporte.Commands.RegistrarCheckIn;
 
-public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, Result<Guid>>
+public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, Result<RegistrarCheckInResultDto>>
 {
     private readonly ITransporteRepository _repo;
     private readonly IAlunoRepository _alunoRepo;
@@ -27,10 +27,10 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
         => (_repo, _alunoRepo, _responsavelRepo, _viagemRepo, _geocoding, _email, _uow, _tenant, _logger)
             = (repo, alunoRepo, responsavelRepo, viagemRepo, geocoding, email, uow, tenant, logger);
 
-    public async Task<Result<Guid>> Handle(RegistrarCheckInCommand request, CancellationToken ct)
+    public async Task<Result<RegistrarCheckInResultDto>> Handle(RegistrarCheckInCommand request, CancellationToken ct)
     {
         if (!_tenant.TenantId.HasValue)
-            return Result<Guid>.Failure("Usuário sem transportador associado.");
+            return Result<RegistrarCheckInResultDto>.Failure("Usuário sem transportador associado.");
 
         string? endereco = null;
         if (request.Latitude.HasValue && request.Longitude.HasValue)
@@ -51,7 +51,7 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
 
         _ = NotificarResponsaveisAsync(request.AlunoId, request.Tipo, checkIn.HoraRegistro, endereco, ct);
 
-        return Result<Guid>.Success(checkIn.Id);
+        return Result<RegistrarCheckInResultDto>.Success(new RegistrarCheckInResultDto(checkIn.Id, endereco));
     }
 
     private async Task NotificarResponsaveisAsync(Guid alunoId, TipoCheckIn tipo, DateTime hora, string? endereco, CancellationToken ct)

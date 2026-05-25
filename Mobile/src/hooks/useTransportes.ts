@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { listarTransportes, registrarCheckIn, listarCheckIns } from "@/services/transportes.service"
+import type { CheckInResultDto } from "@/services/transportes.service"
 import type { RegistrarCheckInRequest } from "@/types/transporte"
 
 export const TRANSPORTE_KEYS = {
@@ -23,8 +24,8 @@ export function useCheckIns() {
 }
 
 export function useRegistrarCheckIn() {
-  return useMutation({
-    mutationFn: (data: RegistrarCheckInRequest) => registrarCheckIn(data),
+  return useMutation<CheckInResultDto, Error, RegistrarCheckInRequest>({
+    mutationFn: (data) => registrarCheckIn(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TRANSPORTE_KEYS.checkins })
     },

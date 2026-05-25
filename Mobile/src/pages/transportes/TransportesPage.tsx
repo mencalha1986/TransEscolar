@@ -108,7 +108,12 @@ export function TransportesPage() {
       registrar(
         { alunoId, tipo, latitude: location?.latitude, longitude: location?.longitude },
         {
-          onSuccess: () => toast.success(`${tipo} de ${nome} registrado!`, { id: "gps-status" }),
+          onSuccess: (result) => {
+            const msg = result.endereco
+              ? `${tipo} de ${nome}\n📍 ${result.endereco}`
+              : `${tipo} de ${nome} registrado!`
+            toast.success(msg, { id: "gps-status" })
+          },
           onError: (err: unknown) => toast.error("Erro: " + (err as Error).message, { id: "gps-status" }),
         }
       )
