@@ -255,7 +255,7 @@ export function TransportesPage() {
 
   const checkinsHoje = checkins ?? []
   const alunosDoTurno = viagemAtual ? alunos?.filter(a => a.turno === viagemAtual.turno) ?? [] : alunos ?? []
-  const todosDesembarcados = alunosDoTurno.length > 0 &&
+  const todosDesembarcados = alunosDoTurno.length === 0 ||
     alunosDoTurno.every(a => checkinsHoje.some(c => c.alunoId === a.id && c.tipo === "Desembarque"))
   const posicaoMotorista = viagemAtual?.latitudeAtual && viagemAtual?.longitudeAtual
     ? { lat: viagemAtual.latitudeAtual, lng: viagemAtual.longitudeAtual } : null
