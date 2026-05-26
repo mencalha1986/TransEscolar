@@ -1,5 +1,6 @@
 import { api } from "@/lib/axios"
 import type { ApiResponse } from "@/types/api"
+import type { ViagemAtivaDto, HistoricoRotaDto } from "@/types/monitoramento"
 import type {
   Assinatura,
   CadastrarTransportadorRequest,
@@ -72,4 +73,12 @@ export const backofficeService = {
 
   reenviarEmail: (id: string) =>
     api.post<ApiResponse<boolean>>(`${BASE}/email-logs/${id}/reenviar`).then(unwrap),
+
+  listarViagensAtivas: () =>
+    api.get<ApiResponse<ViagemAtivaDto[]>>(`${BASE}/monitoramento/ativas`).then(unwrapList),
+
+  obterHistoricoRota: (transportadorId: string, data: string) =>
+    api.get<ApiResponse<HistoricoRotaDto>>(`${BASE}/monitoramento/historico`, {
+      params: { transportadorId, data },
+    }).then(unwrap),
 }

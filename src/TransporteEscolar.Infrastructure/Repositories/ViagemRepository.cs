@@ -25,4 +25,9 @@ public class ViagemRepository : BaseRepository<Viagem>, IViagemRepository
         await DbSet.Where(v => v.TransportadorId == transportadorId && v.Data == data)
             .OrderByDescending(v => v.IniciadaEm)
             .ToListAsync(ct);
+
+    public async Task<IEnumerable<Viagem>> ListarAtivasHojeAsync(CancellationToken ct = default) =>
+        await DbSet
+            .Where(v => v.Status == StatusViagem.EmRota && v.Data == DateOnly.FromDateTime(DateTime.UtcNow))
+            .ToListAsync(ct);
 }

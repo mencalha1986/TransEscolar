@@ -16,6 +16,8 @@ using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ListarTra
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ObterTransportador;
 using TransporteEscolar.Application.Backoffice.EmailLogs.Queries;
 using TransporteEscolar.Application.Backoffice.EmailLogs.Commands;
+using TransporteEscolar.Application.Backoffice.Monitoramento.Queries.ListarViagensAtivas;
+using TransporteEscolar.Application.Backoffice.Monitoramento.Queries.ObterHistoricoRota;
 using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.API.Controllers;
@@ -27,6 +29,25 @@ public class BackofficeController : BaseController
     private readonly IMediator _mediator;
 
     public BackofficeController(IMediator mediator) => _mediator = mediator;
+
+    // --- Monitoramento ---
+
+    [HttpGet("monitoramento/ativas")]
+    public async Task<IActionResult> ViagensAtivas(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ListarViagensAtivasQuery(), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpGet("monitoramento/historico")]
+    public async Task<IActionResult> HistoricoRota(
+        [FromQuery] Guid transportadorId, [FromQuery] DateOnly? data, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ObterHistoricoRotaQuery(transportadorId, data ?? DateOnly.FromDateTime(DateTime.UtcNow)), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
 
     // --- Dashboard ---
 
