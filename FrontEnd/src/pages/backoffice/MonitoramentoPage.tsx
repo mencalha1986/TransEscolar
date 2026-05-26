@@ -12,17 +12,42 @@ import { Bus, MapPin, Clock, Users, Radio, History } from "lucide-react"
 
 const CENTER: [number, number] = [-15.7801, -47.9292]
 
-const CORES = [
+// Paleta base de 16 cores distintas; além disso gera HSL para N > 16
+const CORES_BASE = [
   "#3b82f6", "#10b981", "#f59e0b", "#ef4444",
   "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16",
+  "#f97316", "#14b8a6", "#6366f1", "#a855f7",
+  "#0ea5e9", "#d946ef", "#22c55e", "#eab308",
 ]
 
-function makeIcon(cor: string) {
+function getCores(n: number): string[] {
+  if (n <= CORES_BASE.length) return CORES_BASE.slice(0, n)
+  return Array.from({ length: n }, (_, i) =>
+    i < CORES_BASE.length
+      ? CORES_BASE[i]
+      : `hsl(${Math.round((i * 360) / n)},70%,50%)`
+  )
+}
+
+const CAR_SVG = (cor: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+    <filter id="s"><feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity=".4"/></filter>
+    <g filter="url(#s)">
+      <rect x="2" y="9" width="20" height="9" rx="2" fill="${cor}"/>
+      <path d="M5 9 L7 4 H17 L19 9Z" fill="${cor}"/>
+      <rect x="3" y="16" width="4" height="3" rx="1.5" fill="#1a1a1a"/>
+      <rect x="17" y="16" width="4" height="3" rx="1.5" fill="#1a1a1a"/>
+      <rect x="7.5" y="5.5" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.55)"/>
+      <rect x="12.5" y="5.5" width="4" height="3" rx="0.5" fill="rgba(255,255,255,0.55)"/>
+    </g>
+  </svg>`
+
+function makeCarIcon(cor: string) {
   return L.divIcon({
     className: "",
-    html: `<div style="background:${cor};width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: CAR_SVG(cor),
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   })
 }
 
@@ -72,8 +97,8 @@ function AbaTempoReal() {
             <p>Nenhuma viagem ativa agora</p>
           </div>
         ) : (
-          viagens.map((v, i) => {
-            const cor = CORES[i % CORES.length]
+          getCores(viagens.length).map((cor, i) => {
+            const v = viagens[i]
             const ativo = selecionado === v.id
             return (
               <button
@@ -111,11 +136,11 @@ function AbaTempoReal() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {flyTarget && <FlyTo lat={flyTarget.lat} lng={flyTarget.lng} />}
-          {viagens.map((v, i) => {
+          {getCores(viagens.length).map((cor, i) => {
+            const v = viagens[i]
             if (!v.latitude || !v.longitude) return null
-            const cor = CORES[i % CORES.length]
             return (
-              <Marker key={v.id} position={[v.latitude, v.longitude]} icon={makeIcon(cor)}>
+              <Marker key={v.id} position={[v.latitude, v.longitude]} icon={makeCarIcon(cor)}>
                 <Popup>
                   <div className="text-sm space-y-1 min-w-[180px]">
                     <p className="font-bold">{v.transportadorNome}</p>
@@ -268,7 +293,7 @@ function AbaHistorico() {
           {pontosComGps.map((c, i) => {
             const cor = c.tipo === "Embarque" ? "#3b82f6" : "#10b981"
             return (
-              <Marker key={i} position={[c.latitude!, c.longitude!]} icon={makeIcon(cor)}>
+              <Marker key={i} position={[c.latitude!, c.longitude!]} icon={makeCarIcon(cor)}>
                 <Popup>
                   <div className="text-sm space-y-0.5">
                     <p className="font-bold">{c.alunoNome}</p>
@@ -292,7 +317,7 @@ export function MonitoramentoPage() {
   const [aba, setAba] = useState<"realtime" | "historico">("realtime")
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] gap-4">
+    <div className="flex flex-col h-[calc(100vh-6rem)] gap-3">
       <div className="flex items-center justify-between">
         <PageHeader title="Monitoramento" description="Viagens em tempo real e histórico de rotas" />
         <div className="flex gap-1 bg-muted p-1 rounded-lg">
