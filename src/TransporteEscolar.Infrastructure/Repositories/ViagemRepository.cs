@@ -18,7 +18,8 @@ public class ViagemRepository : BaseRepository<Viagem>, IViagemRepository
     public async Task<Viagem?> ObterEmRotaAsync(Guid transportadorId, CancellationToken ct = default) =>
         await DbSet.FirstOrDefaultAsync(v =>
             v.TransportadorId == transportadorId &&
-            v.Status == StatusViagem.EmRota, ct);
+            v.Status == StatusViagem.EmRota &&
+            v.Data == DateOnly.FromDateTime(DateTime.UtcNow), ct);
 
     public async Task<IEnumerable<Viagem>> ListarPorDataAsync(DateOnly data, Guid transportadorId, CancellationToken ct = default) =>
         await DbSet.Where(v => v.TransportadorId == transportadorId && v.Data == data)

@@ -373,9 +373,16 @@ export function TransportesPage() {
         {view === "lista" && (
           <div className="p-4 space-y-3">
             {!viagemAtual && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center space-y-1">
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center space-y-3">
                 <p className="text-blue-700 font-semibold text-sm">Pronto para iniciar?</p>
-                <p className="text-xs text-blue-500">Toque em "Sair de Casa" para notificar os responsáveis.</p>
+                <p className="text-xs text-blue-500">Selecione o turno e notifique os responsáveis.</p>
+                <button
+                  onClick={handleSairDeCasa}
+                  disabled={isIniciando}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-sm disabled:opacity-50">
+                  {isIniciando ? <Loader2 className="animate-spin h-4 w-4" /> : <Navigation className="h-4 w-4" />}
+                  Iniciar Rota
+                </button>
               </div>
             )}
             {loadingAlunos ? (

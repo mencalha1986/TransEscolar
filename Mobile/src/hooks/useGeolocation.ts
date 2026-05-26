@@ -7,12 +7,14 @@ export function useGeolocation() {
   async function getCurrentPosition() {
     setLoading(true);
     try {
-      // Solicita permissão se necessário e obtém a posição
+      const permission = await Geolocation.requestPermissions();
+      if (permission.location !== 'granted') {
+        throw new Error('Permissão de localização negada pelo usuário');
+      }
       const coordinates = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
         timeout: 10000
       });
-
       return {
         latitude: coordinates.coords.latitude,
         longitude: coordinates.coords.longitude
