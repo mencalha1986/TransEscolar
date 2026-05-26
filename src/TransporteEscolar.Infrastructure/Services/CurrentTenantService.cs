@@ -44,6 +44,10 @@ public class CurrentTenantService : ICurrentTenantService
         _httpContextAccessor.HttpContext?.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Name)?.Value
         ?? _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value;
 
+    public string? UsuarioEmail =>
+        _httpContextAccessor.HttpContext?.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)?.Value
+        ?? _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
     public string? UsuarioPerfil =>
         _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
 }

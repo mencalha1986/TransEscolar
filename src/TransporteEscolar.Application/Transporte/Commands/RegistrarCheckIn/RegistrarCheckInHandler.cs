@@ -49,7 +49,7 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
         await _repo.AdicionarCheckInAsync(checkIn, ct);
         await _uow.CommitAsync(ct);
 
-        _ = NotificarResponsaveisAsync(request.AlunoId, request.Tipo, checkIn.HoraRegistro, endereco, ct);
+        _ = NotificarResponsaveisAsync(request.AlunoId, request.Tipo, checkIn.HoraRegistro, endereco, CancellationToken.None);
 
         return Result<RegistrarCheckInResultDto>.Success(new RegistrarCheckInResultDto(checkIn.Id, endereco));
     }

@@ -38,7 +38,7 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
         await _viagemRepo.AdicionarAsync(viagem, ct);
         await _uow.CommitAsync(ct);
 
-        _ = NotificarResponsaveisAsync(request.Turno, _tenant.TenantId.Value, ct);
+        _ = NotificarResponsaveisAsync(request.Turno, _tenant.TenantId.Value, CancellationToken.None);
 
         return Result<Guid>.Success(viagem.Id);
     }

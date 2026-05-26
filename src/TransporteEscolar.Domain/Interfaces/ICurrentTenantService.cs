@@ -6,5 +6,6 @@ public interface ICurrentTenantService
     bool IsSuperAdmin { get; }
     Guid? UsuarioId { get; }
     string? UsuarioNome { get; }
+    string? UsuarioEmail { get; }
     string? UsuarioPerfil { get; }
 }

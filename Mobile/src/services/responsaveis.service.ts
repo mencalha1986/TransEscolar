@@ -17,3 +17,21 @@ export async function buscarResponsavelPorCpf(cpf: string): Promise<ResponsavelR
     return null
   }
 }
+
+export interface AlunoResumoDto {
+  id: string
+  nome: string
+  turno: string
+}
+
+export interface PerfilResponsavelDto {
+  responsavelId: string
+  nome: string
+  alunos: AlunoResumoDto[]
+}
+
+export async function obterPerfilResponsavel(): Promise<PerfilResponsavelDto> {
+  const res = await api.get<ApiResponse<PerfilResponsavelDto>>("/responsaveis/meu-perfil")
+  if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Perfil não encontrado")
+  return res.data.data
+}
