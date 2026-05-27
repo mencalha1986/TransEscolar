@@ -12,7 +12,7 @@ export function useTransportes() {
 export function useCheckIns() {
   return useQuery({
     queryKey: ["checkins"],
-    queryFn: listarCheckIns,
+    queryFn: () => listarCheckIns(),
   })
 }
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   LayoutDashboard, GraduationCap, School, Bus, CreditCard,
-  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin
+  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin, Phone, History
 } from "lucide-react"
 
 const navItems = [
@@ -15,6 +15,15 @@ const navItems = [
   { to: "/transportes", label: "Transportes", icon: Bus },
   { to: "/mensalidades", label: "Mensalidades", icon: CreditCard },
   { to: "/mural", label: "Mural", icon: MessageSquare },
+]
+
+const responsavelItems = [
+  { to: "/dashboard", label: "Início", icon: LayoutDashboard },
+  { to: "/meus-filhos", label: "Meus Filhos", icon: GraduationCap },
+  { to: "/mensalidades/responsavel", label: "Mensalidades", icon: CreditCard },
+  { to: "/historico", label: "Histórico", icon: History },
+  { to: "/acompanhar", label: "Acompanhar", icon: MapPin },
+  { to: "/contato-transportador", label: "Contato", icon: Phone },
 ]
 
 const backofficeItems = [
@@ -33,7 +42,8 @@ interface SidebarProps {
 export function Sidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth()
   const isSuperAdmin = user?.perfil === "SuperAdmin"
-  const items = isSuperAdmin ? backofficeItems : navItems
+  const isResponsavel = user?.perfil === "Responsavel"
+  const items = isSuperAdmin ? backofficeItems : isResponsavel ? responsavelItems : navItems
 
   return (
     <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground shadow-xl">

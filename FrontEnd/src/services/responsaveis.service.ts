@@ -7,6 +7,25 @@ export interface ResponsavelResumoDto {
   email: string
 }
 
+export interface AlunoResumoDto {
+  id: string
+  nome: string
+  turno: string
+}
+
+export interface TransportadorContatoDto {
+  nomeEmpresa: string
+  telefone: string | null
+  email: string
+}
+
+export interface PerfilResponsavelDto {
+  responsavelId: string
+  nome: string
+  alunos: AlunoResumoDto[]
+  transportador: TransportadorContatoDto | null
+}
+
 export async function buscarResponsavelPorCpf(cpf: string): Promise<ResponsavelResumoDto | null> {
   try {
     const res = await api.get<ApiResponse<ResponsavelResumoDto>>("/responsaveis/por-cpf", {
@@ -16,4 +35,10 @@ export async function buscarResponsavelPorCpf(cpf: string): Promise<ResponsavelR
   } catch {
     return null
   }
+}
+
+export async function obterMeuPerfil(): Promise<PerfilResponsavelDto> {
+  const res = await api.get<ApiResponse<PerfilResponsavelDto>>("/responsaveis/meu-perfil")
+  if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Erro ao obter perfil")
+  return res.data.data
 }

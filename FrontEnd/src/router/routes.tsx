@@ -22,6 +22,11 @@ import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
 import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
 import { MonitoramentoPage } from "@/pages/backoffice/MonitoramentoPage"
 import { MuralPage } from "@/pages/mural/MuralPage"
+import { MeusFilhosPage } from "@/pages/responsavel/MeusFilhosPage"
+import { MensalidadesResponsavelPage } from "@/pages/responsavel/MensalidadesResponsavelPage"
+import { HistoricoPage } from "@/pages/responsavel/HistoricoPage"
+import { AcompanharPage } from "@/pages/responsavel/AcompanharPage"
+import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +56,11 @@ export const router = createBrowserRouter([
           { path: "/transportes", element: <TransportesPage /> },
           { path: "/mensalidades", element: <MensalidadesPage /> },
           { path: "/mural", element: <MuralPage /> },
+          { path: "/meus-filhos", element: <MeusFilhosPage /> },
+          { path: "/mensalidades/responsavel", element: <MensalidadesResponsavelPage /> },
+          { path: "/historico", element: <HistoricoPage /> },
+          { path: "/acompanhar", element: <AcompanharPage /> },
+          { path: "/contato-transportador", element: <ContatoTransportadorPage /> },
         ],
       },
       {
