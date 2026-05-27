@@ -60,7 +60,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
 
         await _repo.AdicionarAsync(transportador, ct);
 
-        var senhaTemp = GerarSenhaAleatoria();
+        var senhaTemp = SenhaPadrao;
         var usuarioResult = Usuario.Criar(
             request.NomeContato,
             request.Email,
@@ -123,9 +123,5 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         return Result<Guid>.Success(transportador.Id);
     }
 
-    private static string GerarSenhaAleatoria()
-    {
-        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-        return new string(Enumerable.Range(0, 10).Select(_ => chars[Random.Shared.Next(chars.Length)]).ToArray());
-    }
+    private const string SenhaPadrao = "Trans@123";
 }

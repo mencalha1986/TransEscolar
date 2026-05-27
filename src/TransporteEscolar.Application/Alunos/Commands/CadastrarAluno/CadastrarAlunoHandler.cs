@@ -85,7 +85,7 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
             var emailNormalizado = request.EmailResponsavel.ToLowerInvariant();
             if (!await _usuarioRepo.ExisteEmailAsync(emailNormalizado, ct))
             {
-                var senhaTemporaria = GerarSenhaAleatoria();
+                var senhaTemporaria = SenhaPadrao;
                 var hash = _hasher.Hash(senhaTemporaria);
                 var usuarioResult = Usuario.Criar(request.NomeResponsavel, emailNormalizado, hash, PerfilUsuario.Responsavel, transportadorId, mustChangePassword: true);
                 if (usuarioResult.IsSuccess)
@@ -113,9 +113,5 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
         return Result<Guid>.Success(aluno.Id);
     }
 
-    private static string GerarSenhaAleatoria()
-    {
-        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-        return new string(Enumerable.Range(0, 8).Select(_ => chars[Random.Shared.Next(chars.Length)]).ToArray());
-    }
+    private const string SenhaPadrao = "Trans@123";
 }
