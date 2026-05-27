@@ -30,6 +30,7 @@ export function useIniciarViagem() {
 
 export function useAtualizarPosicao() {
   return useMutation({
+    mutationKey: ["gps-update"],
     mutationFn: ({ viagemId, ...data }: { viagemId: string } & AtualizarPosicaoRequest) =>
       atualizarPosicao(viagemId, data),
   })

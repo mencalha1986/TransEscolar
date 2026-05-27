@@ -43,8 +43,12 @@ function LoadingDots() {
 }
 
 export function LoadingOverlay() {
-  const isFetching = useIsFetching()
-  const isMutating = useIsMutating()
+  const isFetching = useIsFetching({
+    predicate: (query) => query.state.status === "pending",
+  })
+  const isMutating = useIsMutating({
+    predicate: (mutation) => mutation.options.mutationKey?.[0] !== "gps-update",
+  })
   const isLoading = isFetching > 0 || isMutating > 0
 
   const [visible, setVisible] = useState(false)
