@@ -14,9 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchSelect } from "@/components/ui/search-select"
 import { useCadastrarAluno } from "@/hooks/useAlunos"
 import { useEscolas } from "@/hooks/useEscolas"
-import { formatCPFCNPJ, formatPhone, onlyDigitsKeyDown, blockNumberExtras } from "@/lib/masks"
+import { formatCPFCNPJ, formatPhone, formatCEP, onlyDigitsKeyDown, blockNumberExtras } from "@/lib/masks"
 import { compressImage } from "@/lib/imageUtils"
 import { buscarResponsavelPorCpf } from "@/services/responsaveis.service"
+import { buscarEnderecoPorCEP } from "@/services/viacep.service"
 
 const schema = z.object({
   nome: z.string().min(2, "Nome deve ter ao menos 2 caracteres"),
@@ -30,6 +31,12 @@ const schema = z.object({
   telefoneResponsavel: z.string().min(1, "Telefone do responsável é obrigatório"),
   cpfResponsavel: z.string().min(14, "CPF inválido"),
   foto: z.instanceof(FileList).optional(),
+  enderecoCEP: z.string().optional(),
+  enderecoLogradouro: z.string().optional(),
+  enderecoNumero: z.string().optional(),
+  enderecoBairro: z.string().optional(),
+  enderecoCidade: z.string().optional(),
+  enderecoEstado: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -40,6 +47,8 @@ export function CadastrarAlunoPage() {
   const { data: escolas } = useEscolas()
   const [buscandoResp, setBuscandoResp] = useState(false)
   const [respEncontrado, setRespEncontrado] = useState(false)
+  const [buscandoCEP, setBuscandoCEP] = useState(false)
+  const [cepNaoEncontrado, setCepNaoEncontrado] = useState(false)
 
   const {
     register,
@@ -82,6 +91,30 @@ export function CadastrarAlunoPage() {
     }
   }
 
+  async function handleCEPChange(value: string, onChange: (v: string) => void) {
+    const formatted = formatCEP(value)
+    onChange(formatted)
+    setCepNaoEncontrado(false)
+
+    if (formatted.length === 9) {
+      setBuscandoCEP(true)
+      const resultado = await buscarEnderecoPorCEP(formatted)
+      setBuscandoCEP(false)
+      if (resultado) {
+        setValue("enderecoLogradouro", resultado.logradouro)
+        setValue("enderecoBairro", resultado.bairro)
+        setValue("enderecoCidade", resultado.localidade)
+        setValue("enderecoEstado", resultado.uf)
+      } else {
+        setCepNaoEncontrado(true)
+        setValue("enderecoLogradouro", "")
+        setValue("enderecoBairro", "")
+        setValue("enderecoCidade", "")
+        setValue("enderecoEstado", "")
+      }
+    }
+  }
+
   async function onSubmit(values: FormValues) {
     const fd = new FormData()
     fd.append("nome", values.nome)
@@ -94,6 +127,14 @@ export function CadastrarAlunoPage() {
     fd.append("nomeResponsavel", values.nomeResponsavel)
     fd.append("telefoneResponsavel", values.telefoneResponsavel)
     fd.append("cpfResponsavel", values.cpfResponsavel.replace(/\D/g, ""))
+    if (values.enderecoCEP) {
+      fd.append("enderecoCEP", values.enderecoCEP.replace(/\D/g, ""))
+      fd.append("enderecoLogradouro", values.enderecoLogradouro ?? "")
+      fd.append("enderecoNumero", values.enderecoNumero ?? "")
+      fd.append("enderecoBairro", values.enderecoBairro ?? "")
+      fd.append("enderecoCidade", values.enderecoCidade ?? "")
+      fd.append("enderecoEstado", values.enderecoEstado ?? "")
+    }
     if (values.foto?.[0]) {
       const compressed = await compressImage(values.foto[0])
       fd.append("foto", compressed)
@@ -178,6 +219,57 @@ export function CadastrarAlunoPage() {
                 <Input id="foto" type="file" accept="image/*" {...register("foto")} />
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Endereço <span className="text-xs font-normal text-muted-foreground">(opcional)</span></CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="enderecoCEP">CEP</Label>
+              <Controller
+                control={control}
+                name="enderecoCEP"
+                render={({ field }) => (
+                  <Input
+                    id="enderecoCEP"
+                    placeholder="00000-000"
+                    inputMode="numeric"
+                    onKeyDown={onlyDigitsKeyDown}
+                    maxLength={9}
+                    value={field.value ?? ""}
+                    onChange={(e) => handleCEPChange(e.target.value, field.onChange)}
+                    disabled={buscandoCEP}
+                  />
+                )}
+              />
+              {buscandoCEP && <p className="text-xs text-muted-foreground">Buscando endereço...</p>}
+              {cepNaoEncontrado && <p className="text-xs text-destructive">CEP não encontrado.</p>}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="enderecoLogradouro">Logradouro</Label>
+              <Input id="enderecoLogradouro" {...register("enderecoLogradouro")} placeholder="Rua, Avenida..." disabled={buscandoCEP} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="enderecoNumero">Número</Label>
+                <Input id="enderecoNumero" {...register("enderecoNumero")} placeholder="123" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="enderecoBairro">Bairro</Label>
+                <Input id="enderecoBairro" {...register("enderecoBairro")} disabled={buscandoCEP} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="enderecoCidade">Cidade</Label>
+                <Input id="enderecoCidade" {...register("enderecoCidade")} disabled={buscandoCEP} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="enderecoEstado">Estado (UF)</Label>
+                <Input id="enderecoEstado" {...register("enderecoEstado")} maxLength={2} placeholder="SP" disabled={buscandoCEP} />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

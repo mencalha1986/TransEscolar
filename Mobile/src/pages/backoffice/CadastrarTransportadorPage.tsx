@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useNavigate } from "react-router-dom"
@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { ArrowLeft } from "lucide-react"
 import { useCadastrarTransportador } from "@/hooks/useBackoffice"
 import { usePlanos } from "@/hooks/useBackoffice"
+import { formatCPFCNPJ, formatPhone } from "@/lib/masks"
 
 const schema = z.object({
   nomeEmpresa: z.string().min(1, "Nome da empresa é obrigatório"),
@@ -34,6 +35,7 @@ export function CadastrarTransportadorPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -42,9 +44,9 @@ export function CadastrarTransportadorPage() {
       await mutateAsync({
         nomeEmpresa: values.nomeEmpresa,
         nomeContato: values.nomeContato,
-        cpfCnpj: values.cpfCnpj,
+        cpfCnpj: values.cpfCnpj.replace(/\D/g, ""),
         email: values.email,
-        telefone: values.telefone || undefined,
+        telefone: values.telefone ? values.telefone.replace(/\D/g, "") : undefined,
         planoId: values.planoId || undefined,
       })
       toast.success("Transportador cadastrado!")
@@ -81,7 +83,20 @@ export function CadastrarTransportadorPage() {
 
           <div>
             <p className="text-xs font-semibold text-slate-600 mb-1">CPF / CNPJ *</p>
-            <input className={inputClass} placeholder="000.000.000-00" inputMode="numeric" {...register("cpfCnpj")} />
+            <Controller
+              control={control}
+              name="cpfCnpj"
+              render={({ field }) => (
+                <input
+                  className={inputClass}
+                  placeholder="000.000.000-00"
+                  inputMode="numeric"
+                  value={field.value ?? ""}
+                  maxLength={18}
+                  onChange={(e) => field.onChange(formatCPFCNPJ(e.target.value))}
+                />
+              )}
+            />
             <FieldError msg={errors.cpfCnpj?.message} />
           </div>
 
@@ -93,7 +108,19 @@ export function CadastrarTransportadorPage() {
 
           <div>
             <p className="text-xs font-semibold text-slate-600 mb-1">Telefone</p>
-            <input className={inputClass} placeholder="(11) 99999-0000" inputMode="tel" {...register("telefone")} />
+            <Controller
+              control={control}
+              name="telefone"
+              render={({ field }) => (
+                <input
+                  className={inputClass}
+                  placeholder="(11) 99999-0000"
+                  inputMode="tel"
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                />
+              )}
+            />
           </div>
 
           <div>

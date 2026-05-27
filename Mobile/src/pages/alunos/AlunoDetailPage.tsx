@@ -107,6 +107,19 @@ export function AlunoDetailPage() {
             <InfoRow label="Dia de Vencimento" value={`Dia ${aluno.diaVencimento}`} />
           </div>
 
+          {/* Endereço */}
+          {aluno.endereco && (
+            <div className="bg-white rounded-2xl p-4 border border-slate-100">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-2">Endereço</h3>
+              <InfoRow label="Logradouro" value={aluno.endereco.logradouro} />
+              <InfoRow label="Número" value={aluno.endereco.numero} />
+              <InfoRow label="Bairro" value={aluno.endereco.bairro} />
+              <InfoRow label="Cidade" value={aluno.endereco.cidade} />
+              <InfoRow label="Estado" value={aluno.endereco.estado} />
+              <InfoRow label="CEP" value={aluno.endereco.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2")} />
+            </div>
+          )}
+
           {/* Responsáveis */}
           <div className="bg-white rounded-2xl p-4 border border-slate-100">
             <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-3">Responsáveis</h3>

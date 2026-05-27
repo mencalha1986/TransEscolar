@@ -8,11 +8,12 @@ namespace TransporteEscolar.Application.Viagens.Commands.AtualizarPosicao;
 public class AtualizarPosicaoViagemHandler : IRequestHandler<AtualizarPosicaoViagemCommand, Result<bool>>
 {
     private readonly IViagemRepository _repo;
+    private readonly IViagemPercursoRepository _percursoRepo;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
 
-    public AtualizarPosicaoViagemHandler(IViagemRepository repo, IUnitOfWork uow, ICurrentTenantService tenant)
-        => (_repo, _uow, _tenant) = (repo, uow, tenant);
+    public AtualizarPosicaoViagemHandler(IViagemRepository repo, IViagemPercursoRepository percursoRepo, IUnitOfWork uow, ICurrentTenantService tenant)
+        => (_repo, _percursoRepo, _uow, _tenant) = (repo, percursoRepo, uow, tenant);
 
     public async Task<Result<bool>> Handle(AtualizarPosicaoViagemCommand request, CancellationToken ct)
     {
@@ -27,6 +28,7 @@ public class AtualizarPosicaoViagemHandler : IRequestHandler<AtualizarPosicaoVia
 
         viagem.AtualizarPosicao(request.Latitude, request.Longitude);
         _repo.Atualizar(viagem);
+        _percursoRepo.Adicionar(ViagemPercurso.Criar(viagem.Id, request.Latitude, request.Longitude));
         await _uow.CommitAsync(ct);
 
         return Result<bool>.Success(true);

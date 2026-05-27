@@ -21,5 +21,15 @@ public class AlunoConfiguration : IEntityTypeConfiguration<Aluno>
             .HasField("_responsavelIds")
             .UsePropertyAccessMode(PropertyAccessMode.Field)
             .HasColumnName("ResponsavelIds");
+
+        builder.OwnsOne(a => a.Endereco, end =>
+        {
+            end.Property(e => e.Logradouro).HasColumnName("Logradouro").HasMaxLength(200).IsRequired(false);
+            end.Property(e => e.Numero).HasColumnName("NumeroEndereco").HasMaxLength(10).IsRequired(false);
+            end.Property(e => e.Bairro).HasColumnName("Bairro").HasMaxLength(100).IsRequired(false);
+            end.Property(e => e.Cidade).HasColumnName("Cidade").HasMaxLength(100).IsRequired(false);
+            end.Property(e => e.Estado).HasColumnName("Estado").HasMaxLength(2).IsRequired(false);
+            end.Property(e => e.CEP).HasColumnName("CEP").HasMaxLength(9).IsRequired(false);
+        });
     }
 }

@@ -28,6 +28,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Recado> Recados => Set<Recado>();
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<Viagem> Viagens => Set<Viagem>();
+    public DbSet<ViagemPercurso> ViagemPercursos => Set<ViagemPercurso>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

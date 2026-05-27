@@ -16,8 +16,9 @@ export async function listarTransportes(): Promise<TransporteDto[]> {
   return res.data.data
 }
 
-export async function listarCheckIns(): Promise<CheckInDto[]> {
-  const res = await api.get<ApiResponse<CheckInDto[]>>("/transportes/checkins")
+export async function listarCheckIns(data?: string): Promise<CheckInDto[]> {
+  const params = data ? { data } : {}
+  const res = await api.get<ApiResponse<CheckInDto[]>>("/transportes/checkins", { params })
   if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Erro ao listar check-ins")
   return res.data.data
 }

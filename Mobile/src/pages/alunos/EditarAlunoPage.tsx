@@ -8,22 +8,8 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react"
 import { useAluno, useEditarAluno } from "@/hooks/useAlunos"
 import { useEscolas } from "@/hooks/useEscolas"
 import { buscarResponsavelPorCpf } from "@/services/responsaveis.service"
-
-function formatCPF(value: string) {
-  const d = value.replace(/\D/g, "").slice(0, 11)
-  if (d.length <= 3) return d
-  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`
-  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`
-  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
-}
-
-function formatPhone(value: string) {
-  const d = value.replace(/\D/g, "").slice(0, 11)
-  if (d.length <= 2) return d
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
-  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
-}
+import { buscarEnderecoPorCEP } from "@/services/viacep.service"
+import { formatCEP, formatCPF, formatPhone } from "@/lib/masks"
 
 const responsavelSchema = z.object({
   id: z.string().optional(),
@@ -41,6 +27,12 @@ const schema = z.object({
   diaVencimento: z.string().min(1, "Informe o dia"),
   turno: z.enum(["Manha", "Tarde", "Noturno"]),
   responsaveis: z.array(responsavelSchema).min(1, "Adicione ao menos um responsável"),
+  enderecoCEP: z.string().optional(),
+  enderecoLogradouro: z.string().optional(),
+  enderecoNumero: z.string().optional(),
+  enderecoBairro: z.string().optional(),
+  enderecoCidade: z.string().optional(),
+  enderecoEstado: z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -64,6 +56,8 @@ export function EditarAlunoPage() {
   const { mutateAsync, isPending } = useEditarAluno(id!)
   const { data: escolas } = useEscolas()
   const [buscandoResp, setBuscandoResp] = useState<number | null>(null)
+  const [buscandoCEP, setBuscandoCEP] = useState(false)
+  const [cepNaoEncontrado, setCepNaoEncontrado] = useState(false)
 
   const {
     register,
@@ -95,8 +89,40 @@ export function EditarAlunoPage() {
         email: r.email,
         telefone: r.telefone,
       })),
+      enderecoCEP: aluno.endereco?.cep
+        ? aluno.endereco.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2")
+        : "",
+      enderecoLogradouro: aluno.endereco?.logradouro ?? "",
+      enderecoNumero: aluno.endereco?.numero ?? "",
+      enderecoBairro: aluno.endereco?.bairro ?? "",
+      enderecoCidade: aluno.endereco?.cidade ?? "",
+      enderecoEstado: aluno.endereco?.estado ?? "",
     })
   }, [aluno, reset])
+
+  async function handleCEPChange(value: string, onChange: (v: string) => void) {
+    const formatted = formatCEP(value)
+    onChange(formatted)
+    setCepNaoEncontrado(false)
+
+    if (formatted.length === 9) {
+      setBuscandoCEP(true)
+      const resultado = await buscarEnderecoPorCEP(formatted)
+      setBuscandoCEP(false)
+      if (resultado) {
+        setValue("enderecoLogradouro", resultado.logradouro)
+        setValue("enderecoBairro", resultado.bairro)
+        setValue("enderecoCidade", resultado.localidade)
+        setValue("enderecoEstado", resultado.uf)
+      } else {
+        setCepNaoEncontrado(true)
+        setValue("enderecoLogradouro", "")
+        setValue("enderecoBairro", "")
+        setValue("enderecoCidade", "")
+        setValue("enderecoEstado", "")
+      }
+    }
+  }
 
   async function handleCpfChange(
     index: number,
@@ -132,6 +158,14 @@ export function EditarAlunoPage() {
       fd.append(`responsaveis[${i}].email`, r.email)
       fd.append(`responsaveis[${i}].telefone`, r.telefone)
     })
+    if (values.enderecoCEP) {
+      fd.append("enderecoCEP", values.enderecoCEP.replace(/\D/g, ""))
+      fd.append("enderecoLogradouro", values.enderecoLogradouro ?? "")
+      fd.append("enderecoNumero", values.enderecoNumero ?? "")
+      fd.append("enderecoBairro", values.enderecoBairro ?? "")
+      fd.append("enderecoCidade", values.enderecoCidade ?? "")
+      fd.append("enderecoEstado", values.enderecoEstado ?? "")
+    }
     try {
       await mutateAsync(fd)
       toast.success("Aluno atualizado com sucesso!")
@@ -220,6 +254,59 @@ export function EditarAlunoPage() {
                 {...register("diaVencimento")}
               />
               <FieldError msg={errors.diaVencimento?.message} />
+            </div>
+          </div>
+        </div>
+
+        {/* Endereço */}
+        <div className="bg-white rounded-2xl p-4 border border-slate-100 space-y-4">
+          <h2 className="font-bold text-slate-700">Endereço <span className="text-xs font-normal text-slate-400">(opcional)</span></h2>
+
+          <div>
+            <FieldLabel>CEP</FieldLabel>
+            <Controller
+              control={control}
+              name="enderecoCEP"
+              render={({ field }) => (
+                <input
+                  className={inputClass}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  maxLength={9}
+                  value={field.value ?? ""}
+                  onChange={(e) => handleCEPChange(e.target.value, field.onChange)}
+                  disabled={buscandoCEP}
+                />
+              )}
+            />
+            {buscandoCEP && <p className="text-xs text-slate-500 mt-1">Buscando endereço...</p>}
+            {cepNaoEncontrado && <p className="text-xs text-red-600 mt-1">CEP não encontrado.</p>}
+          </div>
+
+          <div>
+            <FieldLabel>Logradouro</FieldLabel>
+            <input className={inputClass} placeholder="Rua, Avenida..." {...register("enderecoLogradouro")} disabled={buscandoCEP} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Número</FieldLabel>
+              <input className={inputClass} placeholder="123" {...register("enderecoNumero")} />
+            </div>
+            <div>
+              <FieldLabel>Bairro</FieldLabel>
+              <input className={inputClass} {...register("enderecoBairro")} disabled={buscandoCEP} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <FieldLabel>Cidade</FieldLabel>
+              <input className={inputClass} {...register("enderecoCidade")} disabled={buscandoCEP} />
+            </div>
+            <div>
+              <FieldLabel>Estado (UF)</FieldLabel>
+              <input className={inputClass} placeholder="SP" maxLength={2} {...register("enderecoEstado")} disabled={buscandoCEP} />
             </div>
           </div>
         </div>

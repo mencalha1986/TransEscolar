@@ -18,7 +18,17 @@ export interface ResponsavelDto {
   email: string
 }
 
+export interface EnderecoDto {
+  logradouro: string
+  numero: string
+  bairro: string
+  cidade: string
+  estado: string
+  cep: string
+}
+
 export interface AlunoDetalheDto extends AlunoDto {
   fotoBase64?: string | null
   responsaveis: ResponsavelDto[]
+  endereco?: EnderecoDto | null
 }

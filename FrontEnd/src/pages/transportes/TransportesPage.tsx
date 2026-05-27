@@ -62,6 +62,18 @@ export function TransportesPage() {
   const alunoId = watch("alunoId")
   const alunoSelecionado = alunos?.find(a => a.id === alunoId)
 
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setValue("latitude", String(pos.coords.latitude))
+        setValue("longitude", String(pos.coords.longitude))
+        setGpsPos([pos.coords.latitude, pos.coords.longitude])
+      },
+      () => { /* silencioso — o usuário pode usar o botão manualmente */ }
+    )
+  }, [])
+
   const historicoFiltrado = useMemo(() => {
     return (historico ?? []).filter((c) => {
       if (filtroAluno && !c.alunoNome.toLowerCase().includes(filtroAluno.toLowerCase())) return false
@@ -197,6 +209,7 @@ export function TransportesPage() {
                     <strong>{c.tipo}</strong><br />
                     {c.alunoNome ?? c.alunoId}<br />
                     {new Date(c.dataHora).toLocaleString("pt-BR")}
+                    {c.endereco && <><br /><span style={{ fontSize: "0.75rem", color: "#64748b" }}>{c.endereco}</span></>}
                   </Popup>
                 </Marker>
               ))}
@@ -247,6 +260,7 @@ export function TransportesPage() {
                 <TableHead>Aluno</TableHead>
                 <TableHead>Turno</TableHead>
                 <TableHead>Tipo</TableHead>
+                <TableHead>Endereço</TableHead>
                 <TableHead>Data / Hora</TableHead>
               </TableRow>
             </TableHeader>
@@ -257,12 +271,13 @@ export function TransportesPage() {
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   </TableRow>
                 ))
               ) : historicoFiltrado.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
                     Nenhum check-in encontrado
                   </TableCell>
                 </TableRow>
@@ -275,6 +290,9 @@ export function TransportesPage() {
                       <span className={c.tipo === "Embarque" ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
                         {c.tipo}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm max-w-xs truncate" title={c.endereco ?? ""}>
+                      {c.endereco ?? <span className="text-slate-300">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
                       {new Date(c.horaRegistro).toLocaleString("pt-BR")}

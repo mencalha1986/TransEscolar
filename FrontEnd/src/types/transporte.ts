@@ -16,6 +16,7 @@ export interface CheckIn {
   latitude?: number | null
   longitude?: number | null
   dataHora: string
+  endereco?: string | null
 }
 
 export interface CheckInDto {
@@ -27,6 +28,7 @@ export interface CheckInDto {
   horaRegistro: string
   latitude?: number | null
   longitude?: number | null
+  endereco?: string | null
 }
 
 export interface RegistrarCheckInRequest {

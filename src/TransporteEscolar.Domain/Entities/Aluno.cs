@@ -1,4 +1,5 @@
 using TransporteEscolar.Domain.Common;
+using TransporteEscolar.Domain.ValueObjects;
 
 namespace TransporteEscolar.Domain.Entities;
 
@@ -17,10 +18,11 @@ public class Aluno : Entity
     public int DiaVencimento { get; private set; }
     public TurnoAluno Turno { get; private set; }
     public Guid TransportadorId { get; private set; }
+    public Endereco? Endereco { get; private set; }
 
     private Aluno() { }
 
-    public static Result<Aluno> Criar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno, Guid transportadorId, byte[]? foto = null)
+    public static Result<Aluno> Criar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno, Guid transportadorId, byte[]? foto = null, Endereco? endereco = null)
     {
         if (string.IsNullOrWhiteSpace(nome))
             return Result<Aluno>.Failure("Nome é obrigatório.");
@@ -36,11 +38,12 @@ public class Aluno : Entity
             ValorMensalidade = valorMensalidade,
             DiaVencimento = diaVencimento,
             Turno = turno,
-            TransportadorId = transportadorId
+            TransportadorId = transportadorId,
+            Endereco = endereco
         });
     }
 
-    public void Atualizar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno)
+    public void Atualizar(string nome, DateTime dataNascimento, Guid escolaId, decimal valorMensalidade, int diaVencimento, TurnoAluno turno, Endereco? endereco = null)
     {
         Nome = nome;
         DataNascimento = DateTime.SpecifyKind(dataNascimento, DateTimeKind.Utc);
@@ -48,6 +51,7 @@ public class Aluno : Entity
         ValorMensalidade = valorMensalidade;
         DiaVencimento = diaVencimento;
         Turno = turno;
+        Endereco = endereco;
         MarcarAtualizado();
     }
 

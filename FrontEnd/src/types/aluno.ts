@@ -18,6 +18,15 @@ export interface ResponsavelDto {
   email: string
 }
 
+export interface EnderecoDto {
+  logradouro: string
+  numero: string
+  bairro: string
+  cidade: string
+  estado: string
+  cep: string
+}
+
 export interface AlunoDetalheDto {
   id: string
   nome: string
@@ -29,6 +38,7 @@ export interface AlunoDetalheDto {
   diaVencimento: number
   turno: string
   responsaveis: ResponsavelDto[]
+  endereco?: EnderecoDto | null
 }
 
 export interface CadastrarAlunoRequest {

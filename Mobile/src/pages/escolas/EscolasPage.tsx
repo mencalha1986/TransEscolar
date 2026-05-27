@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
 import { Plus, School, MapPin, Phone, Pencil, Trash2, X, Check } from "lucide-react"
 import { useEscolas, useCadastrarEscola, useAtualizarEscola, useDeletarEscola } from "@/hooks/useEscolas"
 import type { EscolaDto } from "@/types/escola"
+import { formatPhone, formatCEP } from "@/lib/masks"
 
 const schema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
@@ -44,6 +45,7 @@ function EscolaForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues })
 
@@ -70,7 +72,19 @@ function EscolaForm({
 
       <div>
         <p className="text-xs font-semibold text-slate-600 mb-1">Telefone</p>
-        <input className={inputClass} placeholder="(11) 9999-9999" inputMode="tel" {...register("telefone")} />
+        <Controller
+          control={control}
+          name="telefone"
+          render={({ field }) => (
+            <input
+              className={inputClass}
+              placeholder="(11) 99999-0000"
+              inputMode="tel"
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(formatPhone(e.target.value))}
+            />
+          )}
+        />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -91,7 +105,20 @@ function EscolaForm({
         </div>
         <div>
           <p className="text-xs font-semibold text-slate-600 mb-1">CEP</p>
-          <input className={inputClass} placeholder="00000-000" inputMode="numeric" {...register("cep")} />
+          <Controller
+            control={control}
+            name="cep"
+            render={({ field }) => (
+              <input
+                className={inputClass}
+                placeholder="00000-000"
+                inputMode="numeric"
+                maxLength={9}
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(formatCEP(e.target.value))}
+              />
+            )}
+          />
         </div>
       </div>
 
@@ -125,9 +152,17 @@ export function EscolasPage() {
   const [editando, setEditando] = useState<EscolaDto | null>(null)
   const [confirmandoDelete, setConfirmandoDelete] = useState<string | null>(null)
 
+  function stripMasks(values: FormValues): FormValues {
+    return {
+      ...values,
+      cep: values.cep?.replace(/\D/g, "") ?? "",
+      telefone: values.telefone?.replace(/\D/g, "") ?? "",
+    }
+  }
+
   async function handleCadastrar(values: FormValues) {
     try {
-      await cadastrar(values)
+      await cadastrar(stripMasks(values))
       toast.success("Escola cadastrada!")
       setShowForm(false)
     } catch (err) {
@@ -138,7 +173,7 @@ export function EscolasPage() {
   async function handleAtualizar(values: FormValues) {
     if (!editando) return
     try {
-      await atualizar({ id: editando.id, data: values })
+      await atualizar({ id: editando.id, data: stripMasks(values) })
       toast.success("Escola atualizada!")
       setEditando(null)
     } catch (err) {
@@ -211,13 +246,13 @@ export function EscolasPage() {
                   <EscolaForm
                     defaultValues={{
                       nome: escola.nome,
-                      telefone: escola.telefone,
+                      telefone: escola.telefone ? formatPhone(escola.telefone) : "",
                       logradouro: escola.logradouro,
                       numero: escola.numero,
                       bairro: escola.bairro,
                       cidade: escola.cidade,
                       estado: escola.estado,
-                      cep: escola.cep,
+                      cep: escola.cep ? formatCEP(escola.cep) : "",
                     }}
                     onSubmit={handleAtualizar}
                     onCancel={() => setEditando(null)}

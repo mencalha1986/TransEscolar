@@ -21,8 +21,20 @@ public class EditarAlunoHandler : IRequestHandler<EditarAlunoCommand, Result<Gui
         if (aluno is null)
             return Result<Guid>.Failure("Aluno não encontrado.");
 
+        Endereco? endereco = null;
+        if (!string.IsNullOrWhiteSpace(request.EnderecoCEP))
+        {
+            endereco = new Endereco(
+                request.EnderecoLogradouro ?? "",
+                request.EnderecoNumero ?? "",
+                request.EnderecoBairro ?? "",
+                request.EnderecoCidade ?? "",
+                request.EnderecoEstado ?? "",
+                request.EnderecoCEP.Replace("-", "").Trim());
+        }
+
         aluno.Atualizar(request.Nome, request.DataNascimento, request.EscolaId,
-            request.ValorMensalidade, request.DiaVencimento, request.Turno);
+            request.ValorMensalidade, request.DiaVencimento, request.Turno, endereco);
 
         if (request.Foto is { Length: > 0 })
             aluno.AtualizarFoto(request.Foto);

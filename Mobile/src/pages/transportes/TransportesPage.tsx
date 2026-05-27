@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from "react"
 import { useAlunos } from "@/hooks/useAlunos"
 import { useRegistrarCheckIn, useCheckIns } from "@/hooks/useTransportes"
-import { useViagemAtual, useIniciarViagem, useAtualizarPosicao, useEncerrarViagem } from "@/hooks/useViagens"
+import { useViagemAtual, useIniciarViagem, useAtualizarPosicao, useEncerrarViagem, useViagensHistorico, usePercursoViagem } from "@/hooks/useViagens"
 import { usePerfilResponsavel } from "@/hooks/useResponsaveis"
 import { useGeolocation } from "@/hooks/useGeolocation"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   Bus, Loader2, Map as MapIcon, UserPlus, UserMinus, List,
-  Search, X, Navigation, CheckCircle, LogOut, MapPin
+  Navigation, CheckCircle, LogOut, MapPin, ChevronRight, X
 } from "lucide-react"
 import { toast } from "sonner"
 import { MapaViagem } from "./MapaViagem"
-import type { TurnoAluno } from "@/types/viagem"
+import { MapaPercursoViagem } from "./MapaPercursoViagem"
+import type { TurnoAluno, ViagemDto } from "@/types/viagem"
 import type { CheckInDto } from "@/types/transporte"
 
 const GPS_INTERVAL_MS = 15_000
@@ -180,20 +181,23 @@ export function TransportesPage() {
   const isMotorista = user?.perfil === "Admin" || user?.perfil === "Motorista" || user?.perfil === "SuperAdmin"
 
   const [view, setView] = useState<"lista" | "mapa" | "historico">("lista")
-  const [searchHistorico, setSearchHistorico] = useState("")
-  const [turnoFiltro, setTurnoFiltro] = useState("")
   const [dataFiltro, setDataFiltro] = useState("")
   const [turnoSelecionado, setTurnoSelecionado] = useState<TurnoAluno>("Manha")
   const [showTurnoModal, setShowTurnoModal] = useState(false)
+  const [viagemSelecionada, setViagemSelecionada] = useState<ViagemDto | null>(null)
 
   const { data: alunos, isLoading: loadingAlunos } = useAlunos()
   const { data: checkins, isLoading: loadingCheckins } = useCheckIns()
-  const { data: viagemAtual, isLoading: loadingViagem } = useViagemAtual()
+  const { data: checkinsDataFiltro } = useCheckIns(dataFiltro || undefined)
+  const { data: checkinsViagem } = useCheckIns(viagemSelecionada?.data ?? undefined)
+  const { data: viagemAtual, isPending: loadingViagem } = useViagemAtual()
   const { mutate: registrar, isPending: isRegistering } = useRegistrarCheckIn()
   const { mutate: iniciarViagem, isPending: isIniciando } = useIniciarViagem()
   const { mutate: atualizarPosicao } = useAtualizarPosicao()
   const { mutate: encerrarViagem, isPending: isEncerrando } = useEncerrarViagem()
-  const { getCurrentPosition, loading: isGettingLocation } = useGeolocation()
+  const { getCurrentPosition, getPositionSilent, loading: isGettingLocation } = useGeolocation()
+  const { data: viagensHistorico, isLoading: loadingHistorico } = useViagensHistorico(dataFiltro || undefined)
+  const { data: percursoSelecionado, isLoading: loadingPercurso } = usePercursoViagem(viagemSelecionada?.id ?? null)
 
   const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -203,7 +207,7 @@ export function TransportesPage() {
       return
     }
     const sendPos = async () => {
-      const pos = await getCurrentPosition()
+      const pos = await getPositionSilent()
       if (pos && viagemAtual?.id) {
         atualizarPosicao({ viagemId: viagemAtual.id, latitude: pos.latitude, longitude: pos.longitude })
       }
@@ -260,12 +264,8 @@ export function TransportesPage() {
   const posicaoMotorista = viagemAtual?.latitudeAtual && viagemAtual?.longitudeAtual
     ? { lat: viagemAtual.latitudeAtual, lng: viagemAtual.longitudeAtual } : null
 
-  const checkinsHistorico = checkins?.filter(c => {
-    const matchSearch = !searchHistorico || c.alunoNome.toLowerCase().includes(searchHistorico.toLowerCase())
-    const matchTurno = !turnoFiltro || c.alunoTurno === turnoFiltro
-    const matchData = !dataFiltro || formatDateBR(c.horaRegistro) === formatDateBR(dataFiltro + "T00:00:00")
-    return matchSearch && matchTurno && matchData
-  }) ?? []
+  const checkinsDeViagem = (viagem: ViagemDto, pool?: CheckInDto[]) =>
+    (pool ?? checkins ?? []).filter(c => c.viagemId === viagem.id)
 
   // ── VIEW RESPONSÁVEL ──
   if (!isMotorista) {
@@ -289,6 +289,44 @@ export function TransportesPage() {
   // ── VIEW MOTORISTA ──
   return (
     <div className="flex flex-col h-full bg-slate-50">
+      {/* Modal rota da viagem */}
+      {viagemSelecionada && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <div className="flex items-center gap-3 px-4 py-3 border-b bg-white">
+            <button onClick={() => setViagemSelecionada(null)}
+              className="p-2 rounded-xl bg-slate-100 text-slate-600">
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm">{turnoLabel(viagemSelecionada.turno)}</p>
+              <p className="text-xs text-slate-500">
+                {viagemSelecionada.iniciadaEm && formatTime(viagemSelecionada.iniciadaEm)}
+                {viagemSelecionada.concluidaEm && ` → ${formatTime(viagemSelecionada.concluidaEm)}`}
+                {" • "}{viagemSelecionada.data && new Date(viagemSelecionada.data).toLocaleDateString("pt-BR")}
+              </p>
+            </div>
+          </div>
+          <div className="flex-1 relative">
+            {loadingPercurso ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="animate-spin text-primary h-8 w-8" />
+              </div>
+            ) : percursoSelecionado && percursoSelecionado.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3 p-8 text-center">
+                <MapPin className="h-12 w-12 text-slate-300" />
+                <p className="font-semibold text-slate-600">Rota sem dados GPS</p>
+                <p className="text-xs text-slate-400">Esta viagem foi registrada antes do rastreamento de rota ser ativado.</p>
+              </div>
+            ) : (
+              <MapaPercursoViagem
+                percurso={percursoSelecionado ?? []}
+                checkins={checkinsDeViagem(viagemSelecionada, checkinsViagem)}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Modal turno */}
       {showTurnoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -448,59 +486,52 @@ export function TransportesPage() {
         {/* Histórico */}
         {view === "historico" && (
           <div className="p-4 space-y-3">
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input type="text" placeholder="Buscar aluno..."
-                  className="w-full h-11 pl-9 pr-4 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                  value={searchHistorico} onChange={e => setSearchHistorico(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <select className="h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none"
-                  value={turnoFiltro} onChange={e => setTurnoFiltro(e.target.value)}>
-                  <option value="">Todos os turnos</option>
-                  <option value="Manha">Manhã</option>
-                  <option value="Tarde">Tarde</option>
-                  <option value="Noturno">Noturno</option>
-                </select>
-                <input type="date"
-                  className="h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none"
-                  value={dataFiltro} onChange={e => setDataFiltro(e.target.value)} />
-              </div>
-              {(searchHistorico || turnoFiltro || dataFiltro) && (
-                <button onClick={() => { setSearchHistorico(""); setTurnoFiltro(""); setDataFiltro("") }}
-                  className="flex items-center gap-1 text-xs text-slate-500">
-                  <X className="h-3.5 w-3.5" />Limpar filtros
+            <div className="flex gap-2">
+              <input type="date"
+                className="flex-1 h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none"
+                value={dataFiltro} onChange={e => setDataFiltro(e.target.value)} />
+              {dataFiltro && (
+                <button onClick={() => setDataFiltro("")}
+                  className="flex items-center gap-1 px-3 h-11 rounded-xl border border-slate-200 bg-white text-xs text-slate-500">
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
-            {loadingCheckins ? (
+
+            {loadingHistorico ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary h-8 w-8" /></div>
-            ) : checkinsHistorico.length === 0 ? (
-              <div className="py-10 text-center text-slate-500">Nenhum registro encontrado.</div>
+            ) : !viagensHistorico || viagensHistorico.length === 0 ? (
+              <div className="py-10 text-center text-slate-500 text-sm">Nenhuma viagem encontrada.</div>
             ) : (
-              checkinsHistorico
-                .sort((a, b) => new Date(b.horaRegistro).getTime() - new Date(a.horaRegistro).getTime())
-                .map(c => (
-                  <div key={c.id} className={`bg-white rounded-xl border p-3 flex items-start gap-3 ${
-                    c.tipo === "Embarque" ? "border-blue-100" : "border-green-100"
-                  }`}>
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${
-                      c.tipo === "Embarque" ? "bg-blue-500" : "bg-green-500"
-                    }`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 text-sm truncate">{c.alunoNome}</p>
-                      <p className="text-xs text-slate-500">{c.alunoTurno}</p>
-                      {c.endereco && <p className="text-[10px] text-slate-400 truncate mt-0.5">{c.endereco}</p>}
+              viagensHistorico
+                .filter(v => v.status === "Concluida")
+                .sort((a, b) => new Date(b.iniciadaEm ?? 0).getTime() - new Date(a.iniciadaEm ?? 0).getTime())
+                .map(v => {
+                  const cins = checkinsDeViagem(v, dataFiltro ? checkinsDataFiltro : undefined)
+                  const alunosCount = new Set(cins.map(c => c.alunoId)).size
+                  return (
+                    <div key={v.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 text-sm">{turnoLabel(v.turno)}</p>
+                        <p className="text-xs text-slate-500">
+                          {v.iniciadaEm && formatTime(v.iniciadaEm)}
+                          {v.concluidaEm && ` → ${formatTime(v.concluidaEm)}`}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {v.data && new Date(v.data).toLocaleDateString("pt-BR")}
+                          {alunosCount > 0 && ` • ${alunosCount} aluno${alunosCount > 1 ? "s" : ""}`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setViagemSelecionada(v)}
+                        className="flex items-center gap-1 px-3 py-2 bg-primary/10 text-primary rounded-xl text-xs font-bold flex-shrink-0">
+                        <MapPin className="h-3.5 w-3.5" />
+                        Ver Rota
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        c.tipo === "Embarque" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
-                      }`}>{c.tipo.toUpperCase()}</span>
-                      <p className="text-xs text-slate-400 mt-0.5">{formatDateBR(c.horaRegistro)} {formatTime(c.horaRegistro)}</p>
-                    </div>
-                  </div>
-                ))
+                  )
+                })
             )}
           </div>
         )}

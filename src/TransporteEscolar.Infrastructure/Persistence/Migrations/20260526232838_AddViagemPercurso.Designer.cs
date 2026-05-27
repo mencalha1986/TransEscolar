@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TransporteEscolar.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using TransporteEscolar.Infrastructure.Persistence;
 namespace TransporteEscolar.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526232838_AddViagemPercurso")]
+    partial class AddViagemPercurso
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -635,54 +638,6 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.HasIndex("ViagemId", "Timestamp");
 
                     b.ToTable("ViagemPercursos");
-                });
-
-            modelBuilder.Entity("TransporteEscolar.Domain.Entities.Aluno", b =>
-                {
-                    b.OwnsOne("TransporteEscolar.Domain.ValueObjects.Endereco", "Endereco", b1 =>
-                        {
-                            b1.Property<Guid>("AlunoId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Bairro")
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)")
-                                .HasColumnName("Bairro");
-
-                            b1.Property<string>("CEP")
-                                .HasMaxLength(9)
-                                .HasColumnType("character varying(9)")
-                                .HasColumnName("CEP");
-
-                            b1.Property<string>("Cidade")
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)")
-                                .HasColumnName("Cidade");
-
-                            b1.Property<string>("Estado")
-                                .HasMaxLength(2)
-                                .HasColumnType("character varying(2)")
-                                .HasColumnName("Estado");
-
-                            b1.Property<string>("Logradouro")
-                                .HasMaxLength(200)
-                                .HasColumnType("character varying(200)")
-                                .HasColumnName("Logradouro");
-
-                            b1.Property<string>("Numero")
-                                .HasMaxLength(10)
-                                .HasColumnType("character varying(10)")
-                                .HasColumnName("NumeroEndereco");
-
-                            b1.HasKey("AlunoId");
-
-                            b1.ToTable("Alunos");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AlunoId");
-                        });
-
-                    b.Navigation("Endereco");
                 });
 
             modelBuilder.Entity("TransporteEscolar.Domain.Entities.Escola", b =>

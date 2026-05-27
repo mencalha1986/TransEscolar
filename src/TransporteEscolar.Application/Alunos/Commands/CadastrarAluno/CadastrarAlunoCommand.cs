@@ -15,4 +15,10 @@ public record CadastrarAlunoCommand(
     string NomeResponsavel = "",
     string TelefoneResponsavel = "",
     string CpfResponsavel = "",
-    byte[]? Foto = null) : IRequest<Result<Guid>>;
+    byte[]? Foto = null,
+    string? EnderecoLogradouro = null,
+    string? EnderecoNumero = null,
+    string? EnderecoBairro = null,
+    string? EnderecoCidade = null,
+    string? EnderecoEstado = null,
+    string? EnderecoCEP = null) : IRequest<Result<Guid>>;

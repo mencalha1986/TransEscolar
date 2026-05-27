@@ -17,4 +17,10 @@ public record EditarAlunoCommand(
     TurnoAluno Turno,
     IReadOnlyList<EditarResponsavelDto>? Responsaveis = null,
     NovoResponsavelDto? NovoResponsavel = null,
-    byte[]? Foto = null) : IRequest<Result<Guid>>;
+    byte[]? Foto = null,
+    string? EnderecoLogradouro = null,
+    string? EnderecoNumero = null,
+    string? EnderecoBairro = null,
+    string? EnderecoCidade = null,
+    string? EnderecoEstado = null,
+    string? EnderecoCEP = null) : IRequest<Result<Guid>>;

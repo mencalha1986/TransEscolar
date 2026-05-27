@@ -38,7 +38,7 @@ public class AlunosController : BaseController
             foto = ms.ToArray();
         }
 
-        var cmd = new CadastrarAlunoCommand(req.Nome, req.DataNascimento, req.EscolaId, req.ValorMensalidade, req.DiaVencimento, req.Turno, req.EmailResponsavel, req.NomeResponsavel, req.TelefoneResponsavel, req.CpfResponsavel, foto);
+        var cmd = new CadastrarAlunoCommand(req.Nome, req.DataNascimento, req.EscolaId, req.ValorMensalidade, req.DiaVencimento, req.Turno, req.EmailResponsavel, req.NomeResponsavel, req.TelefoneResponsavel, req.CpfResponsavel, foto, req.EnderecoLogradouro, req.EnderecoNumero, req.EnderecoBairro, req.EnderecoCidade, req.EnderecoEstado, req.EnderecoCEP);
         var result = await _mediator.Send(cmd, ct);
 
         if (!result.IsSuccess)
@@ -90,13 +90,14 @@ public class AlunosController : BaseController
         }
 
         var cmd = new EditarAlunoCommand(id, req.Nome, req.DataNascimento, req.EscolaId,
-            req.ValorMensalidade, req.DiaVencimento, req.Turno, responsaveis, novoResponsavel, foto);
+            req.ValorMensalidade, req.DiaVencimento, req.Turno, responsaveis, novoResponsavel, foto,
+            req.EnderecoLogradouro, req.EnderecoNumero, req.EnderecoBairro, req.EnderecoCidade, req.EnderecoEstado, req.EnderecoCEP);
         var result = await _mediator.Send(cmd, ct);
 
         return result.IsSuccess ? OkResponse(result.Value) : NotFoundResponse(result.Error);
     }
 }
 
-public record CadastrarAlunoRequest(string Nome, DateTime DataNascimento, Guid EscolaId, decimal ValorMensalidade, int DiaVencimento, TurnoAluno Turno, string EmailResponsavel, string NomeResponsavel, string TelefoneResponsavel, string CpfResponsavel, IFormFile? Foto);
+public record CadastrarAlunoRequest(string Nome, DateTime DataNascimento, Guid EscolaId, decimal ValorMensalidade, int DiaVencimento, TurnoAluno Turno, string EmailResponsavel, string NomeResponsavel, string TelefoneResponsavel, string CpfResponsavel, IFormFile? Foto, string? EnderecoLogradouro, string? EnderecoNumero, string? EnderecoBairro, string? EnderecoCidade, string? EnderecoEstado, string? EnderecoCEP);
 
-public record EditarAlunoRequest(string Nome, DateTime DataNascimento, Guid EscolaId, decimal ValorMensalidade, int DiaVencimento, TurnoAluno Turno, string? ResponsaveisJson, string? NovoResponsavelJson, IFormFile? Foto);
+public record EditarAlunoRequest(string Nome, DateTime DataNascimento, Guid EscolaId, decimal ValorMensalidade, int DiaVencimento, TurnoAluno Turno, string? ResponsaveisJson, string? NovoResponsavelJson, IFormFile? Foto, string? EnderecoLogradouro, string? EnderecoNumero, string? EnderecoBairro, string? EnderecoCidade, string? EnderecoEstado, string? EnderecoCEP);

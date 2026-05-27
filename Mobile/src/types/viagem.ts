@@ -12,6 +12,12 @@ export interface ViagemDto {
   concluidaEm?: string | null
 }
 
+export interface PercursoPontoDto {
+  latitude: number
+  longitude: number
+  timestamp: string
+}
+
 export interface IniciarViagemRequest {
   turno: TurnoAluno
 }

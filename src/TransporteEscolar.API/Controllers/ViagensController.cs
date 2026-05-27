@@ -6,6 +6,7 @@ using TransporteEscolar.Application.Viagens.Commands.AtualizarPosicao;
 using TransporteEscolar.Application.Viagens.Commands.EncerrarViagem;
 using TransporteEscolar.Application.Viagens.Commands.IniciarViagem;
 using TransporteEscolar.Application.Viagens.Queries.ListarViagens;
+using TransporteEscolar.Application.Viagens.Queries.ObterPercursoViagem;
 using TransporteEscolar.Application.Viagens.Queries.ObterViagemAtual;
 using TransporteEscolar.Domain.Entities;
 
@@ -51,6 +52,13 @@ public class ViagensController : BaseController
     public async Task<IActionResult> Listar([FromQuery] DateOnly? data, CancellationToken ct)
     {
         var result = await _mediator.Send(new ListarViagensQuery(data), ct);
+        return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
+    }
+
+    [HttpGet("{id:guid}/percurso")]
+    public async Task<IActionResult> ObterPercurso(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ObterPercursoViagemQuery(id), ct);
         return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
     }
 }

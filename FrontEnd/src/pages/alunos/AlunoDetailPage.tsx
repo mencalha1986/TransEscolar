@@ -95,6 +95,26 @@ export function AlunoDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Endereço */}
+          {aluno.endereco && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Endereço</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  <InfoRow label="Logradouro" value={aluno.endereco.logradouro} />
+                  <InfoRow label="Número" value={aluno.endereco.numero} />
+                  <InfoRow label="Bairro" value={aluno.endereco.bairro} />
+                  <InfoRow label="Cidade" value={aluno.endereco.cidade} />
+                  <InfoRow label="Estado" value={aluno.endereco.estado} />
+                  <InfoRow
+                    label="CEP"
+                    value={aluno.endereco.cep.replace(/^(\d{5})(\d{3})$/, "$1-$2")}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Responsáveis */}
           <Card>
             <CardHeader>

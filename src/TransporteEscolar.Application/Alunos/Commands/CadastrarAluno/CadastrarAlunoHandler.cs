@@ -32,7 +32,19 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
         if (_tenant.TenantId is not Guid transportadorId)
             return Result<Guid>.Failure("Tenant não identificado. Operação não permitida para SuperAdmin.");
 
-        var alunoResult = Aluno.Criar(request.Nome, request.DataNascimento, request.EscolaId, request.ValorMensalidade, request.DiaVencimento, request.Turno, transportadorId, request.Foto);
+        Endereco? endereco = null;
+        if (!string.IsNullOrWhiteSpace(request.EnderecoCEP))
+        {
+            endereco = new Endereco(
+                request.EnderecoLogradouro ?? "",
+                request.EnderecoNumero ?? "",
+                request.EnderecoBairro ?? "",
+                request.EnderecoCidade ?? "",
+                request.EnderecoEstado ?? "",
+                request.EnderecoCEP.Replace("-", "").Trim());
+        }
+
+        var alunoResult = Aluno.Criar(request.Nome, request.DataNascimento, request.EscolaId, request.ValorMensalidade, request.DiaVencimento, request.Turno, transportadorId, request.Foto, endereco);
         if (!alunoResult.IsSuccess)
             return Result<Guid>.Failure(alunoResult.Error);
 

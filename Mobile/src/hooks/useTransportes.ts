@@ -6,7 +6,7 @@ import type { RegistrarCheckInRequest } from "@/types/transporte"
 
 export const TRANSPORTE_KEYS = {
   all: ["transportes"] as const,
-  checkins: ["checkins"] as const,
+  checkins: (data?: string) => ["checkins", data] as const,
 }
 
 export function useTransportes() {
@@ -16,10 +16,10 @@ export function useTransportes() {
   })
 }
 
-export function useCheckIns() {
+export function useCheckIns(data?: string) {
   return useQuery({
-    queryKey: TRANSPORTE_KEYS.checkins,
-    queryFn: listarCheckIns,
+    queryKey: TRANSPORTE_KEYS.checkins(data),
+    queryFn: () => listarCheckIns(data),
   })
 }
 
@@ -27,7 +27,7 @@ export function useRegistrarCheckIn() {
   return useMutation<CheckInResultDto, Error, RegistrarCheckInRequest>({
     mutationFn: (data) => registrarCheckIn(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TRANSPORTE_KEYS.checkins })
+      queryClient.invalidateQueries({ queryKey: ["checkins"] })
     },
   })
 }

@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IViagemRepository, ViagemRepository>();
+        services.AddScoped<IViagemPercursoRepository, ViagemPercursoRepository>();
         services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(client =>
         {
             client.DefaultRequestHeaders.Add("User-Agent", "TransporteEscolar/1.0");

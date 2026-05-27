@@ -28,11 +28,16 @@ public class ObterAlunoHandler : IRequestHandler<ObterAlunoQuery, Result<AlunoDe
             .Select(r => new ResponsavelDto(r.Id, r.Nome, r.CPF.Numero, r.Telefone, r.Email))
             .ToList();
 
+        EnderecoDto? enderecoDto = aluno.Endereco is not null
+            ? new EnderecoDto(aluno.Endereco.Logradouro, aluno.Endereco.Numero, aluno.Endereco.Bairro,
+                aluno.Endereco.Cidade, aluno.Endereco.Estado, aluno.Endereco.CEP)
+            : null;
+
         var dto = new AlunoDetalheDto(
             aluno.Id, aluno.Nome, aluno.DataNascimento, aluno.EscolaId,
             escola?.Nome ?? aluno.EscolaId.ToString(),
             fotoBase64, aluno.ValorMensalidade, aluno.DiaVencimento, aluno.Turno.ToString(),
-            responsaveisDtos);
+            responsaveisDtos, enderecoDto);
 
         return Result<AlunoDetalheDto>.Success(dto);
     }
