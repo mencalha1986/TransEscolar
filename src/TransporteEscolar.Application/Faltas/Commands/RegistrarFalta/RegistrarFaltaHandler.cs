@@ -33,7 +33,13 @@ public class RegistrarFaltaHandler : IRequestHandler<RegistrarFaltaCommand, Resu
         var perfil = _tenant.UsuarioPerfil;
         if (perfil == "Responsavel")
         {
-            var alunos = await _alunoRepo.ListarPorResponsavelAsync(usuarioId.Value, ct);
+            var email = _tenant.UsuarioEmail;
+            if (string.IsNullOrWhiteSpace(email))
+                return Result<FaltaDto>.Failure("Email do usuário não disponível.");
+            var responsavel = await _responsavelRepo.ObterPorEmailAsync(email, ct);
+            if (responsavel is null)
+                return Result<FaltaDto>.Failure("Perfil de responsável não encontrado.");
+            var alunos = await _alunoRepo.ListarPorResponsavelAsync(responsavel.Id, ct);
             if (!alunos.Any(a => a.Id == request.AlunoId))
                 return Result<FaltaDto>.Failure("Aluno não vinculado a este responsável.");
         }
