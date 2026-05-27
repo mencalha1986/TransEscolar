@@ -13,8 +13,8 @@ public class AlunoRepository : BaseRepository<Aluno>, IAlunoRepository
         await DbSet.Where(a => a.EscolaId == escolaId).ToListAsync(ct);
 
     public async Task<IEnumerable<Aluno>> ListarPorResponsavelAsync(Guid responsavelId, CancellationToken ct = default) =>
-        await DbSet.Where(a => a.ResponsavelIds.Contains(responsavelId)).ToListAsync(ct);
+        await DbSet.Where(a => EF.Property<List<Guid>>(a, "_responsavelIds").Contains(responsavelId)).ToListAsync(ct);
 
     public async Task<int> ContarPorResponsavelAsync(Guid responsavelId, CancellationToken ct = default) =>
-        await DbSet.CountAsync(a => a.ResponsavelIds.Contains(responsavelId), ct);
+        await DbSet.CountAsync(a => EF.Property<List<Guid>>(a, "_responsavelIds").Contains(responsavelId), ct);
 }

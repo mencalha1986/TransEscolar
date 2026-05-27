@@ -27,6 +27,7 @@ import { MensalidadesResponsavelPage } from "@/pages/responsavel/MensalidadesRes
 import { HistoricoPage } from "@/pages/responsavel/HistoricoPage"
 import { AcompanharPage } from "@/pages/responsavel/AcompanharPage"
 import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
+import { AusenciaPage } from "@/pages/responsavel/AusenciaPage"
 
 export const router = createBrowserRouter([
   {
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
           { path: "/historico", element: <HistoricoPage /> },
           { path: "/acompanhar", element: <AcompanharPage /> },
           { path: "/contato-transportador", element: <ContatoTransportadorPage /> },
+          { path: "/ausencias", element: <AusenciaPage /> },
         ],
       },
       {

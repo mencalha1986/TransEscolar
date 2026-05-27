@@ -29,6 +29,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<Viagem> Viagens => Set<Viagem>();
     public DbSet<ViagemPercurso> ViagemPercursos => Set<ViagemPercurso>();
+    public DbSet<Falta> Faltas => Set<Falta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -69,6 +70,9 @@ public class AppDbContext : DbContext, IUnitOfWork
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
 
         modelBuilder.Entity<Viagem>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Falta>().HasQueryFilter(e =>
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
     }
 

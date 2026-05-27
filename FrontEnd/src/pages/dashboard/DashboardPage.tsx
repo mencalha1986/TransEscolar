@@ -4,6 +4,8 @@ import { useAlunos } from "@/hooks/useAlunos"
 import { useMensalidades } from "@/hooks/useMensalidades"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
+import { useAuth } from "@/contexts/AuthContext"
+import { DashboardResponsavelPage } from "@/pages/responsavel/DashboardResponsavelPage"
 
 function StatCard({ title, value, icon, isLoading }: { title: string; value: string | number; icon: string; isLoading?: boolean }) {
   return (
@@ -24,6 +26,9 @@ function StatCard({ title, value, icon, isLoading }: { title: string; value: str
 }
 
 export function DashboardPage() {
+  const { user } = useAuth()
+  if (user?.perfil === "Responsavel") return <DashboardResponsavelPage />
+
   const { data: alunos, isLoading: loadingAlunos } = useAlunos()
   const { data: mensalidades, isLoading: loadingMensalidades } = useMensalidades()
 
