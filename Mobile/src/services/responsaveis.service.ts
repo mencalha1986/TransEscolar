@@ -24,10 +24,17 @@ export interface AlunoResumoDto {
   turno: string
 }
 
+export interface TransportadorContatoDto {
+  nomeEmpresa: string
+  telefone?: string
+  email: string
+}
+
 export interface PerfilResponsavelDto {
   responsavelId: string
   nome: string
   alunos: AlunoResumoDto[]
+  transportador?: TransportadorContatoDto
 }
 
 export async function obterPerfilResponsavel(): Promise<PerfilResponsavelDto> {

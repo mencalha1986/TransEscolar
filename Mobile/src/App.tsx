@@ -34,6 +34,14 @@ import { MuralPage } from "@/pages/mural/MuralPage"
 import { MaisPage } from "@/pages/mais/MaisPage"
 import { PerfilPage } from "@/pages/perfil/PerfilPage"
 
+// Responsavel
+import { MaisResponsavelPage } from "@/pages/responsavel/MaisResponsavelPage"
+import { MeusFilhosPage } from "@/pages/responsavel/MeusFilhosPage"
+import { MensalidadesResponsavelPage } from "@/pages/responsavel/MensalidadesResponsavelPage"
+import { HistoricoPage } from "@/pages/responsavel/HistoricoPage"
+import { AusenciaPage } from "@/pages/responsavel/AusenciaPage"
+import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
+
 // Backoffice
 import { BackofficeDashboardPage } from "@/pages/backoffice/BackofficeDashboardPage"
 import { TransportadoresPage } from "@/pages/backoffice/TransportadoresPage"
@@ -84,6 +92,12 @@ export function App() {
           <Route path="/mural" element={<MuralPage />} />
           <Route path="/mais" element={<MaisPage />} />
           <Route path="/perfil" element={<PerfilPage />} />
+          <Route path="/mais-responsavel" element={<MaisResponsavelPage />} />
+          <Route path="/meus-filhos" element={<MeusFilhosPage />} />
+          <Route path="/mensalidades/responsavel" element={<MensalidadesResponsavelPage />} />
+          <Route path="/historico" element={<HistoricoPage />} />
+          <Route path="/ausencias" element={<AusenciaPage />} />
+          <Route path="/contato-transportador" element={<ContatoTransportadorPage />} />
 
           {/* SuperAdmin routes */}
           <Route path="/backoffice" element={<SuperAdminRoute><BackofficeDashboardPage /></SuperAdminRoute>} />

@@ -2,6 +2,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Users, Bus, FileText, MoreHorizontal,
   BarChart3, Building2, ClipboardList, Receipt, UserCircle, ArrowLeft,
+  MapPin, CalendarX, MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
@@ -22,7 +23,18 @@ const superAdminTabs = [
   { label: "Perfil", icon: UserCircle, path: "/perfil" },
 ]
 
-const maisRoutes = ["/mais", "/escolas", "/mural", "/perfil", "/perfil/alterar-senha"]
+const responsavelTabs = [
+  { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Acompanhar", icon: MapPin, path: "/transportes" },
+  { label: "Ausências", icon: CalendarX, path: "/ausencias" },
+  { label: "Mensagens", icon: MessageSquare, path: "/mural" },
+  { label: "Mais", icon: MoreHorizontal, path: "/mais-responsavel" },
+]
+
+const maisRoutes = [
+  "/mais", "/escolas", "/mural", "/perfil", "/perfil/alterar-senha",
+  "/mais-responsavel", "/meus-filhos", "/mensalidades/responsavel", "/historico", "/contato-transportador",
+]
 
 export function MobileLayout() {
   const navigate = useNavigate()
@@ -30,10 +42,11 @@ export function MobileLayout() {
   const { user, isImpersonating, voltarParaBackoffice } = useAuth()
 
   const isSuperAdmin = user?.perfil === "SuperAdmin"
-  const tabs = isSuperAdmin ? superAdminTabs : transportadorTabs
+  const isResponsavel = user?.perfil === "Responsavel"
+  const tabs = isSuperAdmin ? superAdminTabs : isResponsavel ? responsavelTabs : transportadorTabs
 
   function isTabActive(tabPath: string): boolean {
-    if (tabPath === "/mais") {
+    if (tabPath === "/mais" || tabPath === "/mais-responsavel") {
       return maisRoutes.some(r => location.pathname === r || location.pathname.startsWith(r + "/"))
     }
     if (tabPath === "/backoffice") {

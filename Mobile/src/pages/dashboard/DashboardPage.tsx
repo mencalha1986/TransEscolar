@@ -3,6 +3,7 @@ import { useAlunos } from "@/hooks/useAlunos"
 import { useMensalidades } from "@/hooks/useMensalidades"
 import { useAuth } from "@/contexts/AuthContext"
 import { Users, AlertCircle, AlertTriangle, DollarSign } from "lucide-react"
+import { DashboardResponsavelPage } from "@/pages/responsavel/DashboardResponsavelPage"
 
 function StatCard({
   title,
@@ -35,6 +36,7 @@ function formatCurrency(value: number) {
 export function DashboardPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  if (user?.perfil === "Responsavel") return <DashboardResponsavelPage />
   const { data: alunos, isLoading: loadingAlunos } = useAlunos()
   const { data: mensalidades, isLoading: loadingMensalidades } = useMensalidades()
 
