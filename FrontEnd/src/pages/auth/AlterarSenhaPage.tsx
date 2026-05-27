@@ -38,7 +38,7 @@ export function AlterarSenhaPage() {
       await alterarSenha({ senhaAtual: values.senhaAtual, novaSenha: values.novaSenha })
       sessionStorage.removeItem("mustChangePassword")
       toast.success("Senha alterada com sucesso!")
-      navigate("/")
+      navigate("/dashboard")
     } catch (err) {
       toast.error("Não foi possível alterar a senha. Verifique a senha atual e tente novamente.")
     }

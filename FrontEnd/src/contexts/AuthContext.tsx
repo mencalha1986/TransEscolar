@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { token, mustChangePassword } = response.data.data
     localStorage.setItem("token", token)
+    localStorage.removeItem("token_superadmin")
     if (mustChangePassword) {
       sessionStorage.setItem("mustChangePassword", "true")
     }
@@ -70,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     localStorage.removeItem("token")
+    localStorage.removeItem("token_superadmin")
     sessionStorage.removeItem("mustChangePassword")
     setUser(null)
     window.location.href = "/login"
