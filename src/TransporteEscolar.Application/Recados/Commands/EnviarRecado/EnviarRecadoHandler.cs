@@ -8,11 +8,13 @@ namespace TransporteEscolar.Application.Recados.Commands.EnviarRecado;
 public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<Guid>>
 {
     private readonly IRecadoRepository _repo;
+    private readonly IResponsavelRepository _responsavelRepo;
+    private readonly IAlunoRepository _alunoRepo;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
 
-    public EnviarRecadoHandler(IRecadoRepository repo, IUnitOfWork uow, ICurrentTenantService tenant)
-        => (_repo, _uow, _tenant) = (repo, uow, tenant);
+    public EnviarRecadoHandler(IRecadoRepository repo, IResponsavelRepository responsavelRepo, IAlunoRepository alunoRepo, IUnitOfWork uow, ICurrentTenantService tenant)
+        => (_repo, _responsavelRepo, _alunoRepo, _uow, _tenant) = (repo, responsavelRepo, alunoRepo, uow, tenant);
 
     public async Task<Result<Guid>> Handle(EnviarRecadoCommand request, CancellationToken ct)
     {
@@ -22,15 +24,30 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
         var autorNome = _tenant.UsuarioNome ?? "Usuário";
         var perfil = _tenant.UsuarioPerfil;
         var tipo = request.Tipo;
+        string? alunoNomes = null;
 
         if (perfil == PerfilUsuario.Responsavel.ToString())
+        {
             tipo = TipoRecado.DoResponsavel;
+
+            var email = _tenant.UsuarioEmail;
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var responsavel = await _responsavelRepo.ObterPorEmailAsync(email, ct);
+                if (responsavel is not null)
+                {
+                    var alunos = await _alunoRepo.ListarPorResponsavelAsync(responsavel.Id, ct);
+                    if (alunos.Any())
+                        alunoNomes = string.Join(", ", alunos.Select(a => a.Nome));
+                }
+            }
+        }
 
         var transportadorId = _tenant.TenantId ?? Guid.Empty;
 
         var result = Recado.Criar(
             request.Conteudo, tipo, autorId.Value, autorNome, transportadorId,
-            request.DestinatarioUsuarioId, request.TurnoFiltro, request.EscolaFiltroId);
+            request.DestinatarioUsuarioId, request.TurnoFiltro, request.EscolaFiltroId, alunoNomes);
 
         if (!result.IsSuccess) return Result<Guid>.Failure(result.Error);
 

@@ -177,6 +177,11 @@ export function MuralPage() {
                         {r.euEnviei && (
                           <Badge variant="outline" className="text-xs">Você</Badge>
                         )}
+                        {r.tipo === "DoResponsavel" && r.alunoNomes && (
+                          <span className="text-xs text-muted-foreground">
+                            Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-foreground whitespace-pre-wrap">{r.conteudo}</p>
                       <p className="text-xs text-muted-foreground mt-2">

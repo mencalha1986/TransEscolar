@@ -14,6 +14,7 @@ public class Recado : Entity
     public TurnoAluno? TurnoFiltro { get; private set; }
     public Guid? EscolaFiltroId { get; private set; }
     public Guid TransportadorId { get; private set; }
+    public string? AlunoNomes { get; private set; }
 
     private Recado() { }
 
@@ -25,7 +26,8 @@ public class Recado : Entity
         Guid transportadorId,
         Guid? destinatarioUsuarioId = null,
         TurnoAluno? turnoFiltro = null,
-        Guid? escolaFiltroId = null)
+        Guid? escolaFiltroId = null,
+        string? alunoNomes = null)
     {
         if (string.IsNullOrWhiteSpace(conteudo))
             return Result<Recado>.Failure("Conteúdo do recado é obrigatório.");
@@ -40,6 +42,7 @@ public class Recado : Entity
             DestinatarioUsuarioId = destinatarioUsuarioId,
             TurnoFiltro = turnoFiltro,
             EscolaFiltroId = escolaFiltroId,
+            AlunoNomes = alunoNomes,
         });
     }
 }

@@ -8,6 +8,7 @@ public record RecadoDto(
     string Conteudo,
     string Tipo,
     string AutorNome,
+    string? AlunoNomes,
     DateTime CriadoEm,
     bool EuEnviei);
 
