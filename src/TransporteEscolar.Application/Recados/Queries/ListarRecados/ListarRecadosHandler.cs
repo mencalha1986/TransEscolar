@@ -37,7 +37,7 @@ public class ListarRecadosHandler : IRequestHandler<ListarRecadosQuery, Result<I
 
         var dtos = filtrados
             .OrderByDescending(r => r.CriadoEm)
-            .Select(r => new RecadoDto(r.Id, r.Conteudo, r.Tipo.ToString(), r.AutorNome, r.AlunoNomes, r.CriadoEm, r.AutorId == usuarioId));
+            .Select(r => new RecadoDto(r.Id, r.Conteudo, r.Tipo.ToString(), r.AutorNome, r.AlunoNomes, r.CriadoEm, r.AutorId == usuarioId, r.CienciaAdmin, r.CienciaAdminDadaEm));
 
         return Result<IEnumerable<RecadoDto>>.Success(dtos);
     }

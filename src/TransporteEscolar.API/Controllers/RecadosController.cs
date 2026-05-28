@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
+using TransporteEscolar.Application.Recados.Commands.DarCienciaRecado;
 using TransporteEscolar.Application.Recados.Commands.DeletarRecado;
 using TransporteEscolar.Application.Recados.Commands.EnviarRecado;
 using TransporteEscolar.Application.Recados.Queries.ListarRecados;
@@ -38,6 +39,14 @@ public class RecadosController : BaseController
     public async Task<IActionResult> Deletar(Guid id, CancellationToken ct)
     {
         var result = await _mediator.Send(new DeletarRecadoCommand(id), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpPost("{id:guid}/ciencia")]
+    public async Task<IActionResult> DarCiencia(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DarCienciaRecadoCommand(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }

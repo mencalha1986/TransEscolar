@@ -9,6 +9,8 @@ export interface RecadoDto {
   alunoNomes?: string | null
   criadoEm: string
   euEnviei: boolean
+  cienciaAdmin: boolean
+  cienciaAdminDadaEm?: string | null
 }
 
 export interface EnviarRecadoRequest {

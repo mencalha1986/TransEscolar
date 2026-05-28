@@ -15,8 +15,16 @@ public class Recado : Entity
     public Guid? EscolaFiltroId { get; private set; }
     public Guid TransportadorId { get; private set; }
     public string? AlunoNomes { get; private set; }
+    public bool CienciaAdmin { get; private set; }
+    public DateTime? CienciaAdminDadaEm { get; private set; }
 
     private Recado() { }
+
+    public void DarCiencia()
+    {
+        CienciaAdmin = true;
+        CienciaAdminDadaEm = DateTime.UtcNow;
+    }
 
     public static Result<Recado> Criar(
         string conteudo,

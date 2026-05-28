@@ -3,8 +3,8 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { MessageSquare, Plus, Trash2, X, Send } from "lucide-react"
-import { useRecados, useEnviarRecado, useDeletarRecado } from "@/hooks/useRecados"
+import { MessageSquare, Plus, Trash2, X, Send, ThumbsUp } from "lucide-react"
+import { useRecados, useEnviarRecado, useDeletarRecado, useDarCienciaRecado } from "@/hooks/useRecados"
 import { useEscolas } from "@/hooks/useEscolas"
 import { useAuth } from "@/contexts/AuthContext"
 import type { TipoRecado, TurnoRecado } from "@/types/recado"
@@ -53,6 +53,7 @@ export function MuralPage() {
   const { data: escolas } = useEscolas()
   const { mutateAsync: enviar, isPending: enviando } = useEnviarRecado()
   const { mutateAsync: deletar } = useDeletarRecado()
+  const { mutateAsync: darCiencia, isPending: darCienciaPending } = useDarCienciaRecado()
   const [showForm, setShowForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
@@ -93,6 +94,15 @@ export function MuralPage() {
       setConfirmDelete(null)
     } catch (err) {
       toast.error((err as Error).message || "Erro ao remover recado")
+    }
+  }
+
+  async function handleDarCiencia(id: string) {
+    try {
+      await darCiencia(id)
+      toast.success("Ciência registrada!")
+    } catch (err) {
+      toast.error((err as Error).message || "Erro ao dar ciência")
     }
   }
 
@@ -229,6 +239,11 @@ export function MuralPage() {
                         Você
                       </span>
                     )}
+                    {isResponsavel && recado.euEnviei && recado.cienciaAdmin && (
+                      <span className="text-[10px] bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <ThumbsUp className="h-2.5 w-2.5" /> Visto pelo transportador
+                      </span>
+                    )}
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
                       {TIPO_LABELS[recado.tipo]}
                     </span>
@@ -242,33 +257,56 @@ export function MuralPage() {
                   <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
                 </div>
 
-                {(recado.euEnviei || isAdmin) && (
-                  <div>
-                    {confirmDelete === recado.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setConfirmDelete(null)}
-                          className="text-xs text-slate-500 active:opacity-70"
-                        >
-                          Não
-                        </button>
-                        <button
-                          onClick={() => handleDelete(recado.id)}
-                          className="text-xs text-red-600 font-semibold active:opacity-70"
-                        >
-                          Sim
-                        </button>
-                      </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Recado recebido de responsável: Admin dá ciência (sem lixeira) */}
+                  {isAdmin && recado.tipo === "DoResponsavel" && !recado.euEnviei && (
+                    recado.cienciaAdmin ? (
+                      <span
+                        title={`Ciência dada em ${new Date(recado.cienciaAdminDadaEm!).toLocaleString("pt-BR")}`}
+                        className="p-1 text-green-500"
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </span>
                     ) : (
                       <button
-                        onClick={() => setConfirmDelete(recado.id)}
-                        className="text-slate-400 active:opacity-70 p-1"
+                        onClick={() => handleDarCiencia(recado.id)}
+                        disabled={darCienciaPending}
+                        className="text-slate-400 active:opacity-70 p-1 disabled:opacity-40"
+                        aria-label="Dar ciência"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <ThumbsUp className="h-4 w-4" />
                       </button>
-                    )}
-                  </div>
-                )}
+                    )
+                  )}
+                  {/* Botão de deletar: apenas para recados enviados pelo próprio usuário, ou Admin em recados não-DoResponsavel */}
+                  {(recado.euEnviei || (isAdmin && recado.tipo !== "DoResponsavel")) && (
+                    <div>
+                      {confirmDelete === recado.id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setConfirmDelete(null)}
+                            className="text-xs text-slate-500 active:opacity-70"
+                          >
+                            Não
+                          </button>
+                          <button
+                            onClick={() => handleDelete(recado.id)}
+                            className="text-xs text-red-600 font-semibold active:opacity-70"
+                          >
+                            Sim
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDelete(recado.id)}
+                          className="text-slate-400 active:opacity-70 p-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}

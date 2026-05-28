@@ -10,6 +10,8 @@ public record RecadoDto(
     string AutorNome,
     string? AlunoNomes,
     DateTime CriadoEm,
-    bool EuEnviei);
+    bool EuEnviei,
+    bool CienciaAdmin,
+    DateTime? CienciaAdminDadaEm);
 
 public record ListarRecadosQuery : IRequest<Result<IEnumerable<RecadoDto>>>;

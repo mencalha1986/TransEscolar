@@ -18,3 +18,8 @@ export async function deletarRecado(id: string): Promise<void> {
   const res = await api.delete<ApiResponse<boolean>>(`/recados/${id}`)
   if (!res.data.success) throw new Error(res.data.error ?? "Erro ao remover recado")
 }
+
+export async function darCienciaRecado(id: string): Promise<void> {
+  const res = await api.post<ApiResponse<boolean>>(`/recados/${id}/ciencia`)
+  if (!res.data.success) throw new Error(res.data.error ?? "Erro ao dar ciência")
+}

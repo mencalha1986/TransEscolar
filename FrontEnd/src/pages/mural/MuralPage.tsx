@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import { Trash2, MessageSquare } from "lucide-react"
+import { Trash2, MessageSquare, ThumbsUp } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useRecados, useEnviarRecado, useDeletarRecado } from "@/hooks/useRecados"
+import { useRecados, useEnviarRecado, useDeletarRecado, useDarCienciaRecado } from "@/hooks/useRecados"
 import { useEscolas } from "@/hooks/useEscolas"
 import { useAuth } from "@/contexts/AuthContext"
 import type { TipoRecado, TurnoRecado } from "@/types/recado"
@@ -43,6 +43,7 @@ export function MuralPage() {
   const { data: escolas } = useEscolas()
   const { mutateAsync: enviar, isPending } = useEnviarRecado()
   const { mutateAsync: deletar } = useDeletarRecado()
+  const { mutateAsync: darCiencia, isPending: isDarCienciaPending } = useDarCienciaRecado()
 
   async function onEnviar() {
     if (!conteudo.trim()) { toast.error("Digite o conteúdo do recado"); return }
@@ -69,6 +70,15 @@ export function MuralPage() {
       toast.success("Recado removido!")
     } catch (err) {
       toast.error("Não foi possível remover o recado. Tente novamente.")
+    }
+  }
+
+  async function onDarCiencia(id: string) {
+    try {
+      await darCiencia(id)
+      toast.success("Ciência registrada!")
+    } catch {
+      toast.error("Não foi possível registrar a ciência.")
     }
   }
 
@@ -177,6 +187,11 @@ export function MuralPage() {
                         {r.euEnviei && (
                           <Badge variant="outline" className="text-xs">Você</Badge>
                         )}
+                        {isResponsavel && r.euEnviei && r.cienciaAdmin && (
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-300 gap-1">
+                            <ThumbsUp className="h-3 w-3" /> Visto pelo transportador
+                          </Badge>
+                        )}
                         {!isResponsavel && r.tipo === "DoResponsavel" && r.alunoNomes && (
                           <span className="text-xs text-muted-foreground">
                             Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
@@ -188,17 +203,42 @@ export function MuralPage() {
                         {new Date(r.criadoEm).toLocaleString("pt-BR")}
                       </p>
                     </div>
-                    {(r.euEnviei || isAdmin) && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive flex-shrink-0"
-                        onClick={() => onDeletar(r.id)}
-                        aria-label="Remover recado"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex-shrink-0 flex items-center gap-1">
+                      {/* Recado recebido de responsável: Admin dá ciência (sem botão de deletar) */}
+                      {isAdmin && r.tipo === "DoResponsavel" && !r.euEnviei && (
+                        r.cienciaAdmin ? (
+                          <span
+                            title={`Ciência dada em ${new Date(r.cienciaAdminDadaEm!).toLocaleString("pt-BR")}`}
+                            className="p-2 text-green-500"
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                          </span>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-green-600"
+                            onClick={() => onDarCiencia(r.id)}
+                            disabled={isDarCienciaPending}
+                            aria-label="Dar ciência"
+                          >
+                            <ThumbsUp className="h-4 w-4" />
+                          </Button>
+                        )
+                      )}
+                      {/* Botão de deletar: apenas para recados enviados pelo próprio usuário, ou Admin em recados não-DoResponsavel */}
+                      {(r.euEnviei || (isAdmin && r.tipo !== "DoResponsavel")) && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => onDeletar(r.id)}
+                          aria-label="Remover recado"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

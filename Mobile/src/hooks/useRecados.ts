@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
-import { deletarRecado, enviarRecado, listarRecados } from "@/services/recados.service"
+import { darCienciaRecado, deletarRecado, enviarRecado, listarRecados } from "@/services/recados.service"
 import type { EnviarRecadoRequest } from "@/types/recado"
 
 export const RECADO_KEYS = {
@@ -27,6 +27,15 @@ export function useEnviarRecado() {
 export function useDeletarRecado() {
   return useMutation({
     mutationFn: (id: string) => deletarRecado(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RECADO_KEYS.all })
+    },
+  })
+}
+
+export function useDarCienciaRecado() {
+  return useMutation({
+    mutationFn: (id: string) => darCienciaRecado(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RECADO_KEYS.all })
     },
