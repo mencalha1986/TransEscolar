@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Faltas.Commands.CancelarFalta;
+using TransporteEscolar.Application.Faltas.Commands.DarCienciaFalta;
 using TransporteEscolar.Application.Faltas.Commands.RegistrarFalta;
 using TransporteEscolar.Application.Faltas.Queries.ListarFaltas;
 
@@ -27,6 +28,14 @@ public class FaltasController : BaseController
     public async Task<IActionResult> Registrar([FromBody] RegistrarFaltaRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(new RegistrarFaltaCommand(req.AlunoId, req.Data, req.Motivo), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpPut("{id:guid}/ciencia")]
+    public async Task<IActionResult> DarCiencia(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DarCienciaFaltaCommand(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }

@@ -8,6 +8,8 @@ export interface FaltaDto {
   data: string
   motivo?: string
   criadoEm: string
+  cienciaTransportador: boolean
+  cienciaDadaEm?: string
 }
 
 export interface RegistrarFaltaRequest {
@@ -33,4 +35,10 @@ export async function registrarFalta(req: RegistrarFaltaRequest): Promise<FaltaD
 export async function cancelarFalta(id: string): Promise<void> {
   const res = await api.delete<ApiResponse<boolean>>(`/faltas/${id}`)
   if (!res.data.success) throw new Error(res.data.error ?? "Erro ao cancelar falta")
+}
+
+export async function darCienciaFalta(id: string): Promise<FaltaDto> {
+  const res = await api.put<ApiResponse<FaltaDto>>(`/faltas/${id}/ciencia`)
+  if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Erro ao dar ciência da falta")
+  return res.data.data
 }

@@ -11,6 +11,8 @@ public class RegistrarFaltaHandler : IRequestHandler<RegistrarFaltaCommand, Resu
     private readonly IFaltaRepository _repo;
     private readonly IAlunoRepository _alunoRepo;
     private readonly IResponsavelRepository _responsavelRepo;
+    private readonly ITransportadorRepository _transportadorRepo;
+    private readonly IEmailService _emailService;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
 
@@ -18,9 +20,12 @@ public class RegistrarFaltaHandler : IRequestHandler<RegistrarFaltaCommand, Resu
         IFaltaRepository repo,
         IAlunoRepository alunoRepo,
         IResponsavelRepository responsavelRepo,
+        ITransportadorRepository transportadorRepo,
+        IEmailService emailService,
         IUnitOfWork uow,
         ICurrentTenantService tenant)
-        => (_repo, _alunoRepo, _responsavelRepo, _uow, _tenant) = (repo, alunoRepo, responsavelRepo, uow, tenant);
+        => (_repo, _alunoRepo, _responsavelRepo, _transportadorRepo, _emailService, _uow, _tenant)
+            = (repo, alunoRepo, responsavelRepo, transportadorRepo, emailService, uow, tenant);
 
     public async Task<Result<FaltaDto>> Handle(RegistrarFaltaCommand request, CancellationToken ct)
     {
@@ -31,12 +36,13 @@ public class RegistrarFaltaHandler : IRequestHandler<RegistrarFaltaCommand, Resu
         if (aluno is null) return Result<FaltaDto>.Failure("Aluno não encontrado.");
 
         var perfil = _tenant.UsuarioPerfil;
+        Responsavel? responsavel = null;
         if (perfil == "Responsavel")
         {
             var email = _tenant.UsuarioEmail;
             if (string.IsNullOrWhiteSpace(email))
                 return Result<FaltaDto>.Failure("Email do usuário não disponível.");
-            var responsavel = await _responsavelRepo.ObterPorEmailAsync(email, ct);
+            responsavel = await _responsavelRepo.ObterPorEmailAsync(email, ct);
             if (responsavel is null)
                 return Result<FaltaDto>.Failure("Perfil de responsável não encontrado.");
             var alunos = await _alunoRepo.ListarPorResponsavelAsync(responsavel.Id, ct);
@@ -53,6 +59,19 @@ public class RegistrarFaltaHandler : IRequestHandler<RegistrarFaltaCommand, Resu
         await _repo.AdicionarAsync(falta, ct);
         await _uow.CommitAsync(ct);
 
-        return Result<FaltaDto>.Success(new FaltaDto(falta.Id, falta.AlunoId, falta.AlunoNome, falta.Data, falta.Motivo, falta.CriadoEm));
+        _ = NotificarTransportadorAsync(transportadorId, aluno.Nome, responsavel?.Nome ?? "Responsável", request.Data, request.Motivo, ct);
+
+        return Result<FaltaDto>.Success(new FaltaDto(falta.Id, falta.AlunoId, falta.AlunoNome, falta.Data, falta.Motivo, falta.CriadoEm, falta.CienciaTransportador, falta.CienciaDadaEm));
+    }
+
+    private async Task NotificarTransportadorAsync(Guid transportadorId, string nomeAluno, string nomeResponsavel, DateOnly data, string? motivo, CancellationToken ct)
+    {
+        try
+        {
+            var transportador = await _transportadorRepo.ObterPorIdAsync(transportadorId, ct);
+            if (transportador is not null)
+                await _emailService.EnviarAvisoFaltaAsync(transportador.Email, transportador.NomeContato, nomeAluno, nomeResponsavel, data, motivo, ct);
+        }
+        catch { /* fire-and-forget: não bloqueia o registro da falta */ }
     }
 }

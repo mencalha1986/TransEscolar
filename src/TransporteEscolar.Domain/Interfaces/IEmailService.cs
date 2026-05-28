@@ -7,4 +7,5 @@ public interface IEmailService
     Task EnviarTransporteACaminhoAsync(string email, string nomeResponsavel, string turno, CancellationToken ct = default);
     Task EnviarCheckInAsync(string email, string nomeResponsavel, string nomeAluno, string tipoCheckIn, string hora, string? endereco, CancellationToken ct = default);
     Task EnviarTrajretoConcluidoAsync(string email, string nomeResponsavel, string turno, CancellationToken ct = default);
+    Task EnviarAvisoFaltaAsync(string email, string nomeContato, string nomeAluno, string nomeResponsavel, DateOnly data, string? motivo, CancellationToken ct = default);
 }

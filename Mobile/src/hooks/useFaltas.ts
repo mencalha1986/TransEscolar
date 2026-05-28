@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
-import { cancelarFalta, listarFaltas, registrarFalta } from "@/services/faltas.service"
+import { cancelarFalta, darCienciaFalta, listarFaltas, registrarFalta } from "@/services/faltas.service"
 import type { RegistrarFaltaRequest } from "@/services/faltas.service"
 
 export function useFaltas(data?: string, alunoId?: string) {
@@ -20,6 +20,13 @@ export function useRegistrarFalta() {
 export function useCancelarFalta() {
   return useMutation({
     mutationFn: (id: string) => cancelarFalta(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["faltas"] }),
+  })
+}
+
+export function useDarCienciaFalta() {
+  return useMutation({
+    mutationFn: (id: string) => darCienciaFalta(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["faltas"] }),
   })
 }

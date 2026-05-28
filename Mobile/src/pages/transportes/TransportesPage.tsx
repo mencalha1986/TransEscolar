@@ -3,11 +3,12 @@ import { useAlunos } from "@/hooks/useAlunos"
 import { useRegistrarCheckIn, useCheckIns } from "@/hooks/useTransportes"
 import { useViagemAtual, useIniciarViagem, useAtualizarPosicao, useEncerrarViagem, useViagensHistorico, usePercursoViagem } from "@/hooks/useViagens"
 import { usePerfilResponsavel } from "@/hooks/useResponsaveis"
+import { useFaltas, useDarCienciaFalta } from "@/hooks/useFaltas"
 import { useGeolocation } from "@/hooks/useGeolocation"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   Bus, Loader2, Map as MapIcon, UserPlus, UserMinus, List,
-  Navigation, CheckCircle, LogOut, MapPin, ChevronRight, X
+  Navigation, CheckCircle, LogOut, MapPin, ChevronRight, X, AlertTriangle
 } from "lucide-react"
 import { toast } from "sonner"
 import { MapaViagem } from "./MapaViagem"
@@ -198,6 +199,10 @@ export function TransportesPage() {
   const { getCurrentPosition, getPositionSilent, loading: isGettingLocation } = useGeolocation()
   const { data: viagensHistorico, isLoading: loadingHistorico } = useViagensHistorico(dataFiltro || undefined)
   const { data: percursoSelecionado, isLoading: loadingPercurso } = usePercursoViagem(viagemSelecionada?.id ?? null)
+  const today = new Date().toISOString().split("T")[0]
+  const { data: faltasHoje } = useFaltas(today)
+  const { mutate: darCiencia, isPending: isDandoCiencia } = useDarCienciaFalta()
+  const ausentesHoje = new Set(faltasHoje?.map(f => f.alunoId) ?? [])
 
   const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -258,7 +263,8 @@ export function TransportesPage() {
   }
 
   const checkinsHoje = checkins ?? []
-  const alunosDoTurno = viagemAtual ? alunos?.filter(a => a.turno === viagemAtual.turno) ?? [] : alunos ?? []
+  const alunosDoTurno = (viagemAtual ? alunos?.filter(a => a.turno === viagemAtual.turno) ?? [] : alunos ?? [])
+    .filter(a => !ausentesHoje.has(a.id))
   const todosDesembarcados = alunosDoTurno.length === 0 ||
     alunosDoTurno.every(a => checkinsHoje.some(c => c.alunoId === a.id && c.tipo === "Desembarque"))
   const posicaoMotorista = viagemAtual?.latitudeAtual && viagemAtual?.longitudeAtual
@@ -423,10 +429,29 @@ export function TransportesPage() {
                 </button>
               </div>
             )}
+            {faltasHoje && faltasHoje.some(f => !f.cienciaTransportador) && (
+              <div className="space-y-2">
+                {faltasHoje.filter(f => !f.cienciaTransportador).map(f => (
+                  <div key={f.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-3">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-amber-900">{f.alunoNome} — Ausente hoje</p>
+                      {f.motivo && <p className="text-xs text-amber-700 truncate">{f.motivo}</p>}
+                    </div>
+                    <button
+                      onClick={() => darCiencia(f.id)}
+                      disabled={isDandoCiencia}
+                      className="text-[10px] font-bold px-3 py-1.5 rounded-xl bg-amber-500 text-white flex-shrink-0 disabled:opacity-50">
+                      Ciente
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             {loadingAlunos ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary h-8 w-8" /></div>
             ) : (
-              (viagemAtual ? alunosDoTurno : alunos ?? []).map(aluno => {
+              alunosDoTurno.map(aluno => {
                 const status = statusAluno(aluno.id, checkinsHoje)
                 const ultimoCheckin = checkinsHoje
                   .filter(c => c.alunoId === aluno.id)

@@ -37,7 +37,7 @@ public class ListarFaltasHandler : IRequestHandler<ListarFaltasQuery, Result<IEn
 
         var dtos = faltas
             .OrderBy(f => f.Data)
-            .Select(f => new FaltaDto(f.Id, f.AlunoId, f.AlunoNome, f.Data, f.Motivo, f.CriadoEm));
+            .Select(f => new FaltaDto(f.Id, f.AlunoId, f.AlunoNome, f.Data, f.Motivo, f.CriadoEm, f.CienciaTransportador, f.CienciaDadaEm));
 
         return Result<IEnumerable<FaltaDto>>.Success(dtos);
     }

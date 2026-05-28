@@ -127,6 +127,38 @@ public class EmailService : IEmailService
         _logger.LogInformation("Email de contato enviado por {Nome} ({Email})", nome, email);
     }
 
+    public async Task EnviarAvisoFaltaAsync(string email, string nomeContato, string nomeAluno, string nomeResponsavel, DateOnly data, string? motivo, CancellationToken ct = default)
+    {
+        var dataFormatada = data.ToString("dd/MM/yyyy");
+        var motivoHtml = string.IsNullOrWhiteSpace(motivo)
+            ? "<p>Nenhum motivo informado.</p>"
+            : $"<p><strong>Motivo:</strong> {motivo}</p>";
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeContato, email));
+        message.Subject = $"⚠️ Ausência registrada — {nomeAluno}";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Aviso de Ausência</h2>
+                <p>Olá, <strong>{nomeContato}</strong>!</p>
+                <p>O responsável <strong>{nomeResponsavel}</strong> registrou uma ausência:</p>
+                <table cellpadding="8" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px">
+                  <tr><td><strong>Aluno:</strong></td><td>{nomeAluno}</td></tr>
+                  <tr><td><strong>Data:</strong></td><td>{dataFormatada}</td></tr>
+                </table>
+                {motivoHtml}
+                <p>Abra o aplicativo para confirmar o recebimento deste aviso.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email de aviso de falta enviado para {Email} — aluno {Aluno}", email, nomeAluno);
+    }
+
     private string Host => _config["Email:Host"] ?? "smtp.gmail.com";
     private int Port => int.TryParse(_config["Email:Port"], out var p) ? p : 587;
     private string Username => _config["Email:Username"]!;

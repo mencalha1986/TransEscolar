@@ -13,6 +13,9 @@ public class Falta : Entity
 
     private Falta() { }
 
+    public bool CienciaTransportador { get; private set; }
+    public DateTime? CienciaDadaEm { get; private set; }
+
     public static Falta Criar(Guid alunoId, string alunoNome, Guid responsavelId, DateOnly data, string? motivo, Guid transportadorId)
         => new()
         {
@@ -23,4 +26,11 @@ public class Falta : Entity
             Motivo = motivo,
             TransportadorId = transportadorId,
         };
+
+    public void DarCiencia()
+    {
+        CienciaTransportador = true;
+        CienciaDadaEm = DateTime.UtcNow;
+        MarcarAtualizado();
+    }
 }
