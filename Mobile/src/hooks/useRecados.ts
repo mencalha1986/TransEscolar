@@ -11,6 +11,7 @@ export function useRecados() {
   return useQuery({
     queryKey: RECADO_KEYS.all,
     queryFn: listarRecados,
+    refetchInterval: 30_000,
   })
 }
 

@@ -6,6 +6,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRecadosNotificacao } from "@/hooks/useRecadosNotificacao"
 
 const transportadorTabs = [
   { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
@@ -37,6 +38,7 @@ const maisRoutes = [
 ]
 
 export function MobileLayout() {
+  useRecadosNotificacao()
   const navigate = useNavigate()
   const location = useLocation()
   const { user, isImpersonating, voltarParaBackoffice } = useAuth()

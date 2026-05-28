@@ -3,8 +3,10 @@ import { Outlet } from "react-router-dom"
 import { Sidebar } from "./Sidebar"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
+import { useRecadosNotificacao } from "@/hooks/useRecadosNotificacao"
 
 export function AppLayout() {
+  useRecadosNotificacao()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (

@@ -6,6 +6,7 @@ export interface RecadoDto {
   conteudo: string
   tipo: TipoRecado
   autorNome: string
+  alunoNomes?: string | null
   criadoEm: string
   euEnviei: boolean
 }

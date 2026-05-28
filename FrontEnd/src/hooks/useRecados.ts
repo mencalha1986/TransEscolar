@@ -6,7 +6,7 @@ import type { EnviarRecadoRequest } from "@/types/recado"
 const KEYS = { all: ["recados"] as const }
 
 export function useRecados() {
-  return useQuery({ queryKey: KEYS.all, queryFn: listarRecados })
+  return useQuery({ queryKey: KEYS.all, queryFn: listarRecados, refetchInterval: 30_000 })
 }
 
 export function useEnviarRecado() {
