@@ -177,7 +177,7 @@ export function MuralPage() {
                         {r.euEnviei && (
                           <Badge variant="outline" className="text-xs">Você</Badge>
                         )}
-                        {r.tipo === "DoResponsavel" && r.alunoNomes && (
+                        {!isResponsavel && r.tipo === "DoResponsavel" && r.alunoNomes && (
                           <span className="text-xs text-muted-foreground">
                             Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
                           </span>

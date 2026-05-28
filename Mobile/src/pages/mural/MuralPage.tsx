@@ -232,7 +232,7 @@ export function MuralPage() {
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
                       {TIPO_LABELS[recado.tipo]}
                     </span>
-                    {recado.tipo === "DoResponsavel" && recado.alunoNomes && (
+                    {!isResponsavel && recado.tipo === "DoResponsavel" && recado.alunoNomes && (
                       <span className="text-[10px] text-slate-500">
                         Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
                       </span>
