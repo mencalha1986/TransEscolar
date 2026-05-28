@@ -56,6 +56,8 @@ export function MuralPage() {
   const { mutateAsync: darCiencia, isPending: darCienciaPending } = useDarCienciaRecado()
   const [showForm, setShowForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [aba, setAba] = useState<"mural" | "historico">("mural")
+  const [filtroData, setFiltroData] = useState("")
 
   const isResponsavel = user?.perfil === "Responsavel"
   const isAdmin = user?.perfil === "Admin" || user?.perfil === "SuperAdmin"
@@ -70,6 +72,16 @@ export function MuralPage() {
 
   const tipo = watch("tipo")
   const conteudo = watch("conteudo")
+
+  const recadosAtivos = (recados ?? []).filter(
+    r => !(r.tipo === "DoResponsavel" && r.cienciaAdmin)
+  )
+  const recadosHistorico = (recados ?? []).filter(
+    r => r.tipo === "DoResponsavel" && r.cienciaAdmin
+  )
+  const recadosHistoricoFiltrados = filtroData
+    ? recadosHistorico.filter(r => r.cienciaAdminDadaEm?.startsWith(filtroData))
+    : recadosHistorico
 
   async function onSubmit(values: FormValues) {
     try {
@@ -108,12 +120,13 @@ export function MuralPage() {
 
   return (
     <div className="p-4 space-y-4 pb-8">
+      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Mural</h2>
           <p className="text-slate-500 text-sm">Recados e comunicados</p>
         </div>
-        {!showForm && (
+        {!showForm && aba === "mural" && (
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 bg-primary text-white text-sm font-semibold px-4 py-2.5 rounded-xl active:opacity-80"
@@ -124,8 +137,33 @@ export function MuralPage() {
         )}
       </div>
 
-      {/* Formulário novo recado */}
-      {showForm && (
+      {/* Tabs */}
+      <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+        <button
+          className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
+            aba === "mural" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+          }`}
+          onClick={() => { setAba("mural"); setShowForm(false) }}
+        >
+          Mural
+        </button>
+        <button
+          className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+            aba === "historico" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
+          }`}
+          onClick={() => { setAba("historico"); setShowForm(false) }}
+        >
+          Histórico
+          {recadosHistorico.length > 0 && (
+            <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-bold">
+              {recadosHistorico.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Formulário novo recado (só na aba mural) */}
+      {aba === "mural" && showForm && (
         <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-slate-800">Novo Recado</h3>
@@ -218,56 +256,64 @@ export function MuralPage() {
         </div>
       )}
 
-      {/* Lista de recados */}
+      {/* Filtro de data — só no histórico */}
+      {aba === "historico" && (
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-slate-500 whitespace-nowrap">Filtrar por data:</p>
+          <input
+            type="date"
+            value={filtroData}
+            onChange={e => setFiltroData(e.target.value)}
+            className="flex-1 h-9 px-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900"
+          />
+          {filtroData && (
+            <button
+              onClick={() => setFiltroData("")}
+              className="text-xs text-slate-500 active:opacity-70 whitespace-nowrap"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Lista */}
       {isLoading ? (
         <div className="py-10 text-center text-slate-500">Carregando recados...</div>
-      ) : recados?.length === 0 ? (
-        <div className="py-10 text-center text-slate-500">
-          <MessageSquare className="h-10 w-10 mx-auto mb-2 text-slate-300" />
-          <p>Nenhum recado ainda.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {recados?.map(recado => (
-            <div key={recado.id} className="bg-white rounded-2xl border border-slate-100 p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-slate-800">{recado.autorNome}</span>
-                    {recado.euEnviei && (
-                      <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
-                        Você
+      ) : aba === "mural" ? (
+        recadosAtivos.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">
+            <MessageSquare className="h-10 w-10 mx-auto mb-2 text-slate-300" />
+            <p>Nenhum recado ainda.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recadosAtivos.map(recado => (
+              <div key={recado.id} className="bg-white rounded-2xl border border-slate-100 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm text-slate-800">{recado.autorNome}</span>
+                      {recado.euEnviei && (
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
+                          Você
+                        </span>
+                      )}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
+                        {TIPO_LABELS[recado.tipo]}
                       </span>
-                    )}
-                    {isResponsavel && recado.euEnviei && recado.cienciaAdmin && (
-                      <span className="text-[10px] bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <ThumbsUp className="h-2.5 w-2.5" /> Visto pelo transportador
-                      </span>
-                    )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
-                      {TIPO_LABELS[recado.tipo]}
-                    </span>
-                    {!isResponsavel && recado.tipo === "DoResponsavel" && recado.alunoNomes && (
-                      <span className="text-[10px] text-slate-500">
-                        Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
-                      </span>
-                    )}
+                      {!isResponsavel && recado.tipo === "DoResponsavel" && recado.alunoNomes && (
+                        <span className="text-[10px] text-slate-500">
+                          Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{recado.conteudo}</p>
+                    <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
                   </div>
-                  <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{recado.conteudo}</p>
-                  <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
-                </div>
 
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Recado recebido de responsável: Admin dá ciência (sem lixeira) */}
-                  {isAdmin && recado.tipo === "DoResponsavel" && !recado.euEnviei && (
-                    recado.cienciaAdmin ? (
-                      <span
-                        title={`Ciência dada em ${new Date(recado.cienciaAdminDadaEm!).toLocaleString("pt-BR")}`}
-                        className="p-1 text-green-500"
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                      </span>
-                    ) : (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {isAdmin && recado.tipo === "DoResponsavel" && !recado.euEnviei && (
                       <button
                         onClick={() => handleDarCiencia(recado.id)}
                         disabled={darCienciaPending}
@@ -276,41 +322,81 @@ export function MuralPage() {
                       >
                         <ThumbsUp className="h-4 w-4" />
                       </button>
-                    )
-                  )}
-                  {/* Botão de deletar: apenas para recados enviados pelo próprio usuário, ou Admin em recados não-DoResponsavel */}
-                  {(recado.euEnviei || (isAdmin && recado.tipo !== "DoResponsavel")) && (
-                    <div>
-                      {confirmDelete === recado.id ? (
-                        <div className="flex gap-2">
+                    )}
+                    {(recado.euEnviei || (isAdmin && recado.tipo !== "DoResponsavel")) && (
+                      <div>
+                        {confirmDelete === recado.id ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setConfirmDelete(null)}
+                              className="text-xs text-slate-500 active:opacity-70"
+                            >
+                              Não
+                            </button>
+                            <button
+                              onClick={() => handleDelete(recado.id)}
+                              className="text-xs text-red-600 font-semibold active:opacity-70"
+                            >
+                              Sim
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={() => setConfirmDelete(null)}
-                            className="text-xs text-slate-500 active:opacity-70"
+                            onClick={() => setConfirmDelete(recado.id)}
+                            className="text-slate-400 active:opacity-70 p-1"
                           >
-                            Não
+                            <Trash2 className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleDelete(recado.id)}
-                            className="text-xs text-red-600 font-semibold active:opacity-70"
-                          >
-                            Sim
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmDelete(recado.id)}
-                          className="text-slate-400 active:opacity-70 p-1"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
+      ) : (
+        // Aba histórico
+        recadosHistoricoFiltrados.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">
+            <ThumbsUp className="h-10 w-10 mx-auto mb-2 text-slate-300" />
+            <p>{filtroData ? "Nenhum recado nesta data." : "Nenhum recado no histórico."}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recadosHistoricoFiltrados.map(recado => (
+              <div key={recado.id} className="bg-white rounded-2xl border border-slate-100 p-4 opacity-90">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-sm text-slate-800">{recado.autorNome}</span>
+                      {recado.euEnviei && (
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
+                          Você
+                        </span>
+                      )}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
+                        {TIPO_LABELS[recado.tipo]}
+                      </span>
+                      {recado.alunoNomes && !isResponsavel && (
+                        <span className="text-[10px] text-slate-500">
+                          Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
+                        </span>
+                      )}
+                      <span className="text-[10px] bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                        <ThumbsUp className="h-2.5 w-2.5" />
+                        Ciência: {formatDateTime(recado.cienciaAdminDadaEm!)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{recado.conteudo}</p>
+                    <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
     </div>
   )

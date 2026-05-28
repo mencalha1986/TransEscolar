@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
-import { Trash2, MessageSquare, ThumbsUp } from "lucide-react"
+import { Trash2, MessageSquare, ThumbsUp, History } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -38,12 +38,24 @@ export function MuralPage() {
   const [tipo, setTipo] = useState<TipoRecado>(isResponsavel ? "DoResponsavel" : "Geral")
   const [turnoFiltro, setTurnoFiltro] = useState<TurnoRecado | "">("")
   const [escolaFiltroId, setEscolaFiltroId] = useState("")
+  const [aba, setAba] = useState<"mural" | "historico">("mural")
+  const [filtroData, setFiltroData] = useState("")
 
   const { data: recados, isLoading } = useRecados()
   const { data: escolas } = useEscolas()
   const { mutateAsync: enviar, isPending } = useEnviarRecado()
   const { mutateAsync: deletar } = useDeletarRecado()
   const { mutateAsync: darCiencia, isPending: isDarCienciaPending } = useDarCienciaRecado()
+
+  const recadosAtivos = (recados ?? []).filter(
+    r => !(r.tipo === "DoResponsavel" && r.cienciaAdmin)
+  )
+  const recadosHistorico = (recados ?? []).filter(
+    r => r.tipo === "DoResponsavel" && r.cienciaAdmin
+  )
+  const recadosHistoricoFiltrados = filtroData
+    ? recadosHistorico.filter(r => r.cienciaAdminDadaEm?.startsWith(filtroData))
+    : recadosHistorico
 
   async function onEnviar() {
     if (!conteudo.trim()) { toast.error("Digite o conteúdo do recado"); return }
@@ -166,54 +178,81 @@ export function MuralPage() {
 
         {/* Lista de recados */}
         <div className="lg:col-span-2 space-y-3">
+          {/* Tabs */}
+          <div className="flex gap-2">
+            <Button
+              variant={aba === "mural" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAba("mural")}
+            >
+              <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
+              Mural
+            </Button>
+            <Button
+              variant={aba === "historico" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAba("historico")}
+            >
+              <History className="h-3.5 w-3.5 mr-1.5" />
+              Histórico
+              {recadosHistorico.length > 0 && (
+                <Badge variant="secondary" className="ml-1.5 px-1.5 text-xs">{recadosHistorico.length}</Badge>
+              )}
+            </Button>
+          </div>
+
+          {/* Filtro de data — só no histórico */}
+          {aba === "historico" && (
+            <div className="flex items-center gap-2">
+              <Label className="text-sm whitespace-nowrap">Filtrar por data:</Label>
+              <input
+                type="date"
+                value={filtroData}
+                onChange={e => setFiltroData(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+              />
+              {filtroData && (
+                <Button variant="ghost" size="sm" onClick={() => setFiltroData("")}>Limpar</Button>
+              )}
+            </div>
+          )}
+
+          {/* Conteúdo */}
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
-          ) : (recados ?? []).length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <MessageSquare className="h-10 w-10 mb-2 opacity-30" />
-              <p className="text-sm">Nenhum recado ainda.</p>
-            </div>
-          ) : (
-            (recados ?? []).map((r) => (
-              <Card key={r.id} className={r.euEnviei ? "border-primary/30" : ""}>
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="text-sm font-medium">{r.autorNome}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[r.tipo]}`}>
-                          {TIPO_LABELS[r.tipo]}
-                        </span>
-                        {r.euEnviei && (
-                          <Badge variant="outline" className="text-xs">Você</Badge>
-                        )}
-                        {isResponsavel && r.euEnviei && r.cienciaAdmin && (
-                          <Badge variant="outline" className="text-xs text-green-600 border-green-300 gap-1">
-                            <ThumbsUp className="h-3 w-3" /> Visto pelo transportador
-                          </Badge>
-                        )}
-                        {!isResponsavel && r.tipo === "DoResponsavel" && r.alunoNomes && (
-                          <span className="text-xs text-muted-foreground">
-                            Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
+          ) : aba === "mural" ? (
+            recadosAtivos.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <MessageSquare className="h-10 w-10 mb-2 opacity-30" />
+                <p className="text-sm">Nenhum recado ainda.</p>
+              </div>
+            ) : (
+              recadosAtivos.map((r) => (
+                <Card key={r.id} className={r.euEnviei ? "border-primary/30" : ""}>
+                  <CardContent className="pt-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-sm font-medium">{r.autorNome}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[r.tipo]}`}>
+                            {TIPO_LABELS[r.tipo]}
                           </span>
-                        )}
+                          {r.euEnviei && (
+                            <Badge variant="outline" className="text-xs">Você</Badge>
+                          )}
+                          {!isResponsavel && r.tipo === "DoResponsavel" && r.alunoNomes && (
+                            <span className="text-xs text-muted-foreground">
+                              Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{r.conteudo}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(r.criadoEm).toLocaleString("pt-BR")}
+                        </p>
                       </div>
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{r.conteudo}</p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        {new Date(r.criadoEm).toLocaleString("pt-BR")}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 flex items-center gap-1">
-                      {/* Recado recebido de responsável: Admin dá ciência (sem botão de deletar) */}
-                      {isAdmin && r.tipo === "DoResponsavel" && !r.euEnviei && (
-                        r.cienciaAdmin ? (
-                          <span
-                            title={`Ciência dada em ${new Date(r.cienciaAdminDadaEm!).toLocaleString("pt-BR")}`}
-                            className="p-2 text-green-500"
-                          >
-                            <ThumbsUp className="h-4 w-4" />
-                          </span>
-                        ) : (
+                      <div className="flex-shrink-0 flex items-center gap-1">
+                        {isAdmin && r.tipo === "DoResponsavel" && !r.euEnviei && (
                           <Button
                             size="icon"
                             variant="ghost"
@@ -224,25 +263,67 @@ export function MuralPage() {
                           >
                             <ThumbsUp className="h-4 w-4" />
                           </Button>
-                        )
-                      )}
-                      {/* Botão de deletar: apenas para recados enviados pelo próprio usuário, ou Admin em recados não-DoResponsavel */}
-                      {(r.euEnviei || (isAdmin && r.tipo !== "DoResponsavel")) && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => onDeletar(r.id)}
-                          aria-label="Remover recado"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                        )}
+                        {(r.euEnviei || (isAdmin && r.tipo !== "DoResponsavel")) && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => onDeletar(r.id)}
+                            aria-label="Remover recado"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))
+            )
+          ) : (
+            // Aba histórico
+            recadosHistoricoFiltrados.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <History className="h-10 w-10 mb-2 opacity-30" />
+                <p className="text-sm">
+                  {filtroData ? "Nenhum recado nesta data." : "Nenhum recado no histórico."}
+                </p>
+              </div>
+            ) : (
+              recadosHistoricoFiltrados.map((r) => (
+                <Card key={r.id} className="opacity-90">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className="text-sm font-medium">{r.autorNome}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[r.tipo]}`}>
+                            {TIPO_LABELS[r.tipo]}
+                          </span>
+                          {r.euEnviei && (
+                            <Badge variant="outline" className="text-xs">Você</Badge>
+                          )}
+                          {r.alunoNomes && !isResponsavel && (
+                            <span className="text-xs text-muted-foreground">
+                              Aluno(s): <span className="font-medium text-foreground">{r.alunoNomes}</span>
+                            </span>
+                          )}
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-300 gap-1">
+                            <ThumbsUp className="h-3 w-3" />
+                            Ciência: {new Date(r.cienciaAdminDadaEm!).toLocaleString("pt-BR")}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{r.conteudo}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(r.criadoEm).toLocaleString("pt-BR")}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )
           )}
         </div>
       </div>
