@@ -85,7 +85,8 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
             await push.EnviarParaUsuariosAsync(
                 usuarios.Select(u => u.Id),
                 "🚌 Transporte a caminho!",
-                $"O transporte do turno {turnoLabel} está saindo agora.");
+                $"O transporte do turno {turnoLabel} está saindo agora.",
+                dados: new Dictionary<string, string> { { "tipo", "viagem" } });
         }
         catch (Exception ex)
         {

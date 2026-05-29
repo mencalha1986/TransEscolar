@@ -92,7 +92,9 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
 
             var emoji = tipo == TipoCheckIn.Embarque ? "✅" : "🏠";
             var titulo = tipo == TipoCheckIn.Embarque ? $"{emoji} {aluno.Nome} embarcou!" : $"{emoji} {aluno.Nome} desembarcou!";
-            await push.EnviarParaUsuariosAsync(usuarioIds, titulo, $"Às {horaLocal}");
+            await push.EnviarParaUsuariosAsync(
+                usuarioIds, titulo, $"Às {horaLocal}",
+                dados: new Dictionary<string, string> { { "tipo", "checkin" } });
         }
         catch (Exception ex)
         {

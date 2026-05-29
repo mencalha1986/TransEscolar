@@ -1,14 +1,23 @@
 import { useEffect, useRef } from "react"
+import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useAuth } from "@/contexts/AuthContext"
-import { useRecados } from "./useRecados"
+import { listarRecados } from "@/services/recados.service"
+import { RECADO_KEYS } from "./useRecados"
 
 export function useRecadosNotificacao() {
   const { user } = useAuth()
   const isTransportador = user?.perfil === "Admin" || user?.perfil === "Motorista" || user?.perfil === "SuperAdmin"
   const isResponsavel = user?.perfil === "Responsavel"
 
-  const { data: recados } = useRecados()
+  const { data: recados } = useQuery({
+    queryKey: RECADO_KEYS.all,
+    queryFn: listarRecados,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+  })
 
   // Notificação para transportador: novo recado do responsável
   const lastSeenTsRef = useRef<number | null>(null)

@@ -86,7 +86,8 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
             await push.EnviarParaUsuariosAsync(
                 usuarios.Select(u => u.Id),
                 "🏁 Trajeto concluído!",
-                $"O transporte do turno {turnoLabel} foi concluído.");
+                $"O transporte do turno {turnoLabel} foi concluído.",
+                dados: new Dictionary<string, string> { { "tipo", "viagem" } });
         }
         catch (Exception ex)
         {

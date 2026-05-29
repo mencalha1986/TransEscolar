@@ -95,20 +95,24 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
         {
             var preview = conteudo.Length > 60 ? conteudo[..60] + "…" : conteudo;
 
+            var dadosRecado = new Dictionary<string, string> { { "tipo", "recado" } };
+
             if (tipo == TipoRecado.DoResponsavel)
             {
                 var usuariosTransportador = await usuarioRepo.ListarPorTransportadorAsync(transportadorId);
                 await push.EnviarParaUsuariosAsync(
                     usuariosTransportador.Select(u => u.Id),
                     $"💬 Mensagem de {autorNome}",
-                    preview);
+                    preview,
+                    dados: dadosRecado);
             }
             else if (tipo == TipoRecado.ParaResponsavel && destinatarioUsuarioId.HasValue)
             {
                 await push.EnviarParaUsuariosAsync(
                     [destinatarioUsuarioId.Value],
                     $"💬 Nova mensagem de {autorNome}",
-                    preview);
+                    preview,
+                    dados: dadosRecado);
             }
             else if (tipo == TipoRecado.Geral || tipo == TipoRecado.ParaTurno)
             {
@@ -125,7 +129,8 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
                 await push.EnviarParaUsuariosAsync(
                     usuarios.Select(u => u.Id),
                     $"💬 Nova mensagem de {autorNome}",
-                    preview);
+                    preview,
+                    dados: dadosRecado);
             }
             else if (tipo == TipoRecado.ParaEscola)
             {
@@ -142,7 +147,8 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
                 await push.EnviarParaUsuariosAsync(
                     usuarios.Select(u => u.Id),
                     $"💬 Nova mensagem de {autorNome}",
-                    preview);
+                    preview,
+                    dados: dadosRecado);
             }
         }
         catch (Exception ex)

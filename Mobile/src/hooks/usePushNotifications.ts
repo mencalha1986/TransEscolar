@@ -1,11 +1,15 @@
 import { useEffect, useRef } from "react"
+import { NavigateFunction } from "react-router-dom"
 import { Capacitor } from "@capacitor/core"
 import { PushNotifications } from "@capacitor/push-notifications"
 import { toast } from "sonner"
 import { api } from "@/lib/axios"
 import { useAuth } from "@/contexts/AuthContext"
+import { queryClient } from "@/lib/queryClient"
+import { RECADO_KEYS } from "./useRecados"
+import { VIAGEM_KEYS } from "./useViagens"
 
-export function usePushNotifications() {
+export function usePushNotifications(navigate: NavigateFunction) {
   const { isAuthenticated } = useAuth()
   const tokenSentRef = useRef(false)
 
@@ -40,13 +44,21 @@ export function usePushNotifications() {
       })
 
       PushNotifications.addListener("pushNotificationReceived", (notification) => {
-        const title = notification.title ?? "TransEscolar"
-        const body = notification.body ?? ""
-        toast(title, { description: body, duration: 6000 })
+        toast(notification.title ?? "TransEscolar", {
+          description: notification.body ?? "",
+          duration: 6000,
+        })
+        const tipo = notification.data?.tipo
+        if (tipo === "recado") queryClient.invalidateQueries({ queryKey: RECADO_KEYS.all })
+        if (tipo === "viagem") queryClient.invalidateQueries({ queryKey: VIAGEM_KEYS.atual })
+        if (tipo === "checkin") queryClient.invalidateQueries({ queryKey: ["checkins"] })
       })
 
-      PushNotifications.addListener("pushNotificationActionPerformed", () => {
-        // futuro: navegar para tela relevante via notification.notification.data
+      PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+        const tipo = action.notification.data?.tipo
+        if (tipo === "recado") navigate("/mural")
+        else if (tipo === "viagem" || tipo === "checkin") navigate("/transportes")
+        else navigate("/dashboard")
       })
     }
 
@@ -55,5 +67,5 @@ export function usePushNotifications() {
     return () => {
       PushNotifications.removeAllListeners()
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, navigate])
 }

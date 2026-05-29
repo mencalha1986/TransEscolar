@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom"
 import { MobileLayout } from "@/components/layout/MobileLayout"
 import { SplashScreen } from "@/components/SplashScreen"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
@@ -53,7 +53,8 @@ import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
 import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
 
 function PushNotificationInit() {
-  usePushNotifications()
+  const navigate = useNavigate()
+  usePushNotifications(navigate)
   return null
 }
 
@@ -75,7 +76,6 @@ export function App() {
   return (
     <>
       {!splashDone && <SplashScreen onFinish={() => setSplashDone(true)} />}
-      <PushNotificationInit />
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -118,6 +118,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Route>
       </Routes>
+      <PushNotificationInit />
       <Toaster richColors position="top-center" />
       <LoadingOverlay />
     </BrowserRouter>
