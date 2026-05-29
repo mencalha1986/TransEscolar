@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TransporteEscolar.Application.Common;
 using TransporteEscolar.Domain.Entities;
@@ -9,23 +10,18 @@ namespace TransporteEscolar.Application.Viagens.Commands.EncerrarViagem;
 public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Result<bool>>
 {
     private readonly IViagemRepository _viagemRepo;
-    private readonly IAlunoRepository _alunoRepo;
-    private readonly IResponsavelRepository _responsavelRepo;
-    private readonly IUsuarioRepository _usuarioRepo;
-    private readonly IEmailService _email;
-    private readonly INotificacaoPushService _push;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
     private readonly ILogger<EncerrarViagemHandler> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public EncerrarViagemHandler(
-        IViagemRepository viagemRepo, IAlunoRepository alunoRepo,
-        IResponsavelRepository responsavelRepo, IUsuarioRepository usuarioRepo,
-        IEmailService email, INotificacaoPushService push,
+        IViagemRepository viagemRepo,
         IUnitOfWork uow, ICurrentTenantService tenant,
-        ILogger<EncerrarViagemHandler> logger)
-        => (_viagemRepo, _alunoRepo, _responsavelRepo, _usuarioRepo, _email, _push, _uow, _tenant, _logger)
-            = (viagemRepo, alunoRepo, responsavelRepo, usuarioRepo, email, push, uow, tenant, logger);
+        ILogger<EncerrarViagemHandler> logger,
+        IServiceScopeFactory scopeFactory)
+        => (_viagemRepo, _uow, _tenant, _logger, _scopeFactory)
+            = (viagemRepo, uow, tenant, logger, scopeFactory);
 
     public async Task<Result<bool>> Handle(EncerrarViagemCommand request, CancellationToken ct)
     {
@@ -42,42 +38,59 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
         _viagemRepo.Atualizar(viagem);
         await _uow.CommitAsync(ct);
 
-        await NotificarConcluidoAsync(viagem.Turno, _tenant.TenantId.Value, ct);
+        var turno = viagem.Turno;
+        var transportadorId = _tenant.TenantId.Value;
+
+        _ = Task.Run(async () =>
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var sp = scope.ServiceProvider;
+            await NotificarConcluidoAsync(
+                sp.GetRequiredService<IAlunoRepository>(),
+                sp.GetRequiredService<IResponsavelRepository>(),
+                sp.GetRequiredService<IUsuarioRepository>(),
+                sp.GetRequiredService<IEmailService>(),
+                sp.GetRequiredService<INotificacaoPushService>(),
+                sp.GetRequiredService<ILogger<EncerrarViagemHandler>>(),
+                turno, transportadorId);
+        });
 
         return Result<bool>.Success(true);
     }
 
-    private async Task NotificarConcluidoAsync(TurnoAluno turno, Guid transportadorId, CancellationToken ct)
+    private static async Task NotificarConcluidoAsync(
+        IAlunoRepository alunoRepo, IResponsavelRepository responsavelRepo,
+        IUsuarioRepository usuarioRepo, IEmailService email,
+        INotificacaoPushService push, ILogger logger,
+        TurnoAluno turno, Guid transportadorId)
     {
         try
         {
-            var alunos = (await _alunoRepo.ListarTodosAsync(ct))
+            var alunos = (await alunoRepo.ListarTodosAsync())
                 .Where(a => a.Turno == turno && a.TransportadorId == transportadorId)
                 .ToList();
 
             var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
             if (!responsavelIds.Any()) return;
 
-            var responsaveis = (await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct)).ToList();
+            var responsaveis = (await responsavelRepo.ListarPorIdsAsync(responsavelIds)).ToList();
             var turnoLabel = turno.ToString();
 
             foreach (var resp in responsaveis)
             {
-                try { await _email.EnviarTrajretoConcluidoAsync(resp.Email, resp.Nome, turnoLabel, ct); }
-                catch (Exception ex) { _logger.LogWarning(ex, "Falha ao notificar responsável {Id}", resp.Id); }
+                try { await email.EnviarTrajretoConcluidoAsync(resp.Email, resp.Nome, turnoLabel); }
+                catch (Exception ex) { logger.LogWarning(ex, "Falha ao notificar responsável {Id}", resp.Id); }
             }
 
-            var emails = responsaveis.Select(r => r.Email).ToList();
-            var usuarios = await _usuarioRepo.ListarPorEmailsAsync(emails, ct);
-            await _push.EnviarParaUsuariosAsync(
+            var usuarios = await usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email));
+            await push.EnviarParaUsuariosAsync(
                 usuarios.Select(u => u.Id),
                 "🏁 Trajeto concluído!",
-                $"O transporte do turno {turnoLabel} foi concluído.",
-                ct: ct);
+                $"O transporte do turno {turnoLabel} foi concluído.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao notificar responsáveis no encerramento da viagem");
+            logger.LogError(ex, "Erro ao notificar responsáveis no encerramento da viagem");
         }
     }
 }

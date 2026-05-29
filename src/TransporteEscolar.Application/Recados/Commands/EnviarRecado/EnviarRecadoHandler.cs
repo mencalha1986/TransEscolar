@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TransporteEscolar.Application.Common;
 using TransporteEscolar.Domain.Entities;
@@ -11,20 +12,19 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
     private readonly IRecadoRepository _repo;
     private readonly IResponsavelRepository _responsavelRepo;
     private readonly IAlunoRepository _alunoRepo;
-    private readonly IUsuarioRepository _usuarioRepo;
-    private readonly INotificacaoPushService _push;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
     private readonly ILogger<EnviarRecadoHandler> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public EnviarRecadoHandler(
         IRecadoRepository repo, IResponsavelRepository responsavelRepo,
-        IAlunoRepository alunoRepo, IUsuarioRepository usuarioRepo,
-        INotificacaoPushService push,
+        IAlunoRepository alunoRepo,
         IUnitOfWork uow, ICurrentTenantService tenant,
-        ILogger<EnviarRecadoHandler> logger)
-        => (_repo, _responsavelRepo, _alunoRepo, _usuarioRepo, _push, _uow, _tenant, _logger)
-            = (repo, responsavelRepo, alunoRepo, usuarioRepo, push, uow, tenant, logger);
+        ILogger<EnviarRecadoHandler> logger,
+        IServiceScopeFactory scopeFactory)
+        => (_repo, _responsavelRepo, _alunoRepo, _uow, _tenant, _logger, _scopeFactory)
+            = (repo, responsavelRepo, alunoRepo, uow, tenant, logger, scopeFactory);
 
     public async Task<Result<Guid>> Handle(EnviarRecadoCommand request, CancellationToken ct)
     {
@@ -64,39 +64,55 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
         await _repo.AdicionarAsync(result.Value, ct);
         await _uow.CommitAsync(ct);
 
-        await NotificarAsync(result.Value, tipo, autorNome, transportadorId, request, ct);
+        var recadoId = result.Value.Id;
+        var conteudo = result.Value.Conteudo;
+        var destinatarioId = result.Value.DestinatarioUsuarioId;
 
-        return Result<Guid>.Success(result.Value.Id);
+        _ = Task.Run(async () =>
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var sp = scope.ServiceProvider;
+            await NotificarAsync(
+                sp.GetRequiredService<IAlunoRepository>(),
+                sp.GetRequiredService<IResponsavelRepository>(),
+                sp.GetRequiredService<IUsuarioRepository>(),
+                sp.GetRequiredService<INotificacaoPushService>(),
+                sp.GetRequiredService<ILogger<EnviarRecadoHandler>>(),
+                tipo, autorNome, transportadorId, conteudo, destinatarioId, request);
+        });
+
+        return Result<Guid>.Success(recadoId);
     }
 
-    private async Task NotificarAsync(Recado recado, TipoRecado tipo, string autorNome, Guid transportadorId, EnviarRecadoCommand request, CancellationToken ct)
+    private static async Task NotificarAsync(
+        IAlunoRepository alunoRepo, IResponsavelRepository responsavelRepo,
+        IUsuarioRepository usuarioRepo, INotificacaoPushService push,
+        ILogger logger,
+        TipoRecado tipo, string autorNome, Guid transportadorId,
+        string conteudo, Guid? destinatarioUsuarioId, EnviarRecadoCommand request)
     {
         try
         {
-            var preview = recado.Conteudo.Length > 60 ? recado.Conteudo[..60] + "…" : recado.Conteudo;
+            var preview = conteudo.Length > 60 ? conteudo[..60] + "…" : conteudo;
 
             if (tipo == TipoRecado.DoResponsavel)
             {
-                // Notifica o transportador (motorista/admin)
-                var usuariosTransportador = await _usuarioRepo.ListarPorTransportadorAsync(transportadorId, ct);
-                await _push.EnviarParaUsuariosAsync(
+                var usuariosTransportador = await usuarioRepo.ListarPorTransportadorAsync(transportadorId);
+                await push.EnviarParaUsuariosAsync(
                     usuariosTransportador.Select(u => u.Id),
                     $"💬 Mensagem de {autorNome}",
-                    preview,
-                    ct: ct);
+                    preview);
             }
-            else if (tipo == TipoRecado.ParaResponsavel && recado.DestinatarioUsuarioId.HasValue)
+            else if (tipo == TipoRecado.ParaResponsavel && destinatarioUsuarioId.HasValue)
             {
-                // Notifica o responsável destinatário específico
-                await _push.EnviarParaUsuariosAsync(
-                    [recado.DestinatarioUsuarioId.Value],
+                await push.EnviarParaUsuariosAsync(
+                    [destinatarioUsuarioId.Value],
                     $"💬 Nova mensagem de {autorNome}",
-                    preview,
-                    ct: ct);
+                    preview);
             }
             else if (tipo == TipoRecado.Geral || tipo == TipoRecado.ParaTurno)
             {
-                var alunos = (await _alunoRepo.ListarTodosAsync(ct))
+                var alunos = (await alunoRepo.ListarTodosAsync())
                     .Where(a => a.TransportadorId == transportadorId &&
                                 (request.TurnoFiltro == null || a.Turno == request.TurnoFiltro))
                     .ToList();
@@ -104,17 +120,16 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
                 var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
                 if (!responsavelIds.Any()) return;
 
-                var responsaveis = await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct);
-                var usuarios = await _usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email), ct);
-                await _push.EnviarParaUsuariosAsync(
+                var responsaveis = await responsavelRepo.ListarPorIdsAsync(responsavelIds);
+                var usuarios = await usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email));
+                await push.EnviarParaUsuariosAsync(
                     usuarios.Select(u => u.Id),
                     $"💬 Nova mensagem de {autorNome}",
-                    preview,
-                    ct: ct);
+                    preview);
             }
             else if (tipo == TipoRecado.ParaEscola)
             {
-                var alunos = (await _alunoRepo.ListarTodosAsync(ct))
+                var alunos = (await alunoRepo.ListarTodosAsync())
                     .Where(a => a.TransportadorId == transportadorId &&
                                 a.EscolaId == request.EscolaFiltroId)
                     .ToList();
@@ -122,18 +137,17 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
                 var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
                 if (!responsavelIds.Any()) return;
 
-                var responsaveis = await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct);
-                var usuarios = await _usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email), ct);
-                await _push.EnviarParaUsuariosAsync(
+                var responsaveis = await responsavelRepo.ListarPorIdsAsync(responsavelIds);
+                var usuarios = await usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email));
+                await push.EnviarParaUsuariosAsync(
                     usuarios.Select(u => u.Id),
                     $"💬 Nova mensagem de {autorNome}",
-                    preview,
-                    ct: ct);
+                    preview);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao enviar push notification de recado");
+            logger.LogError(ex, "Erro ao enviar push notification de recado");
         }
     }
 }
