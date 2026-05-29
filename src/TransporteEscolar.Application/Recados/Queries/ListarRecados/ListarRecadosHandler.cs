@@ -9,9 +9,15 @@ public class ListarRecadosHandler : IRequestHandler<ListarRecadosQuery, Result<I
 {
     private readonly IRecadoRepository _repo;
     private readonly ICurrentTenantService _tenant;
+    private readonly IResponsavelRepository _responsavelRepo;
+    private readonly IAlunoRepository _alunoRepo;
 
-    public ListarRecadosHandler(IRecadoRepository repo, ICurrentTenantService tenant)
-        => (_repo, _tenant) = (repo, tenant);
+    public ListarRecadosHandler(
+        IRecadoRepository repo,
+        ICurrentTenantService tenant,
+        IResponsavelRepository responsavelRepo,
+        IAlunoRepository alunoRepo)
+        => (_repo, _tenant, _responsavelRepo, _alunoRepo) = (repo, tenant, responsavelRepo, alunoRepo);
 
     public async Task<Result<IEnumerable<RecadoDto>>> Handle(ListarRecadosQuery request, CancellationToken ct)
     {
@@ -28,11 +34,23 @@ public class ListarRecadosHandler : IRequestHandler<ListarRecadosQuery, Result<I
         }
         else
         {
+            var email = _tenant.UsuarioEmail;
+            var responsavel = email is not null
+                ? await _responsavelRepo.ObterPorEmailAsync(email, ct)
+                : null;
+            var alunos = responsavel is not null
+                ? (await _alunoRepo.ListarPorResponsavelAsync(responsavel.Id, ct)).ToList()
+                : [];
+            var turnos = alunos.Select(a => a.Turno).ToHashSet();
+            var escolaIds = alunos.Select(a => a.EscolaId).ToHashSet();
+
             filtrados = todos.Where(r =>
                 r.Tipo == TipoRecado.Geral ||
                 r.Tipo == TipoRecado.DoResponsavel ||
                 r.DestinatarioUsuarioId == usuarioId ||
-                r.AutorId == usuarioId);
+                r.AutorId == usuarioId ||
+                (r.Tipo == TipoRecado.ParaTurno && r.TurnoFiltro.HasValue && turnos.Contains(r.TurnoFiltro.Value)) ||
+                (r.Tipo == TipoRecado.ParaEscola && r.EscolaFiltroId.HasValue && escolaIds.Contains(r.EscolaFiltroId.Value)));
         }
 
         var dtos = filtrados

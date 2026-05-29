@@ -96,10 +96,27 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
             }
             else if (tipo == TipoRecado.Geral || tipo == TipoRecado.ParaTurno)
             {
-                // Notifica todos os responsáveis (do turno se aplicável)
                 var alunos = (await _alunoRepo.ListarTodosAsync(ct))
                     .Where(a => a.TransportadorId == transportadorId &&
                                 (request.TurnoFiltro == null || a.Turno == request.TurnoFiltro))
+                    .ToList();
+
+                var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
+                if (!responsavelIds.Any()) return;
+
+                var responsaveis = await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct);
+                var usuarios = await _usuarioRepo.ListarPorEmailsAsync(responsaveis.Select(r => r.Email), ct);
+                await _push.EnviarParaUsuariosAsync(
+                    usuarios.Select(u => u.Id),
+                    $"💬 Nova mensagem de {autorNome}",
+                    preview,
+                    ct: ct);
+            }
+            else if (tipo == TipoRecado.ParaEscola)
+            {
+                var alunos = (await _alunoRepo.ListarTodosAsync(ct))
+                    .Where(a => a.TransportadorId == transportadorId &&
+                                a.EscolaId == request.EscolaFiltroId)
                     .ToList();
 
                 var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();

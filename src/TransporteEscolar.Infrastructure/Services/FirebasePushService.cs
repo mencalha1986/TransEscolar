@@ -21,10 +21,23 @@ public class FirebasePushService : INotificacaoPushService
         _tokenRepo = tokenRepo;
         _logger = logger;
 
+        // Prioridade 1: JSON embutido como variável de ambiente (ideal para produção/Render)
+        var jsonContent = config["Firebase:ServiceAccountJson"];
+        if (!string.IsNullOrWhiteSpace(jsonContent))
+        {
+            if (FirebaseApp.DefaultInstance is null)
+#pragma warning disable CS0618
+                FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromJson(jsonContent) });
+#pragma warning restore CS0618
+            _enabled = true;
+            return;
+        }
+
+        // Prioridade 2: arquivo físico (desenvolvimento local)
         var path = config["Firebase:ServiceAccountPath"];
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
-            _logger.LogWarning("Firebase não configurado: serviceAccountKey.json não encontrado em '{Path}'. Push notifications desabilitado.", path);
+            _logger.LogWarning("Firebase não configurado: serviceAccountKey.json não encontrado em '{Path}' e Firebase:ServiceAccountJson não definido. Push notifications desabilitado.", path);
             _enabled = false;
             return;
         }

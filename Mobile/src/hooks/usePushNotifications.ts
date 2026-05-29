@@ -23,13 +23,15 @@ export function usePushNotifications() {
       PushNotifications.addListener("registration", async ({ value: token }) => {
         if (tokenSentRef.current) return
         tokenSentRef.current = true
+        console.log("[Push] Token FCM recebido:", token)
         try {
           await api.post("/dispositivos/token", {
             token,
             plataforma: Capacitor.getPlatform(),
           })
-        } catch {
-          // será re-enviado no próximo login
+          console.log("[Push] Token registrado no backend com sucesso")
+        } catch (err) {
+          console.error("[Push] Erro ao registrar token no backend:", err)
         }
       })
 
