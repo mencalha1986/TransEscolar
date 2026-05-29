@@ -178,7 +178,7 @@ public class EmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Falha ao enviar email via Gmail SMTP para {To}", message.To);
+            _logger.LogError(ex, "Falha ao enviar email via Brevo SMTP para {To}", message.To);
             throw;
         }
     }
