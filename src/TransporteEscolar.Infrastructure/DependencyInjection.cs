@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +14,31 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
+        // Firebase inicializado uma única vez no startup — evita crash em cascata por instância Scoped
+        try
+        {
+            var jsonBase64 = config["Firebase:ServiceAccountJsonBase64"];
+            if (!string.IsNullOrWhiteSpace(jsonBase64))
+            {
+                var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(jsonBase64));
+#pragma warning disable CS0618
+                FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromJson(json) });
+#pragma warning restore CS0618
+            }
+            else
+            {
+                var path = config["Firebase:ServiceAccountPath"];
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+#pragma warning disable CS0618
+                    FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromFile(path) });
+#pragma warning restore CS0618
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Firebase] Falha ao inicializar: {ex.Message}");
+        }
+
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentTenantService, CurrentTenantService>();
 

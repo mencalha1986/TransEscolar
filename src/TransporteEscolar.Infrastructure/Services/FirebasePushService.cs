@@ -1,7 +1,5 @@
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
-using Google.Apis.Auth.OAuth2;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TransporteEscolar.Domain.Interfaces;
 
@@ -13,56 +11,13 @@ public class FirebasePushService : INotificacaoPushService
     private readonly ILogger<FirebasePushService> _logger;
     private readonly bool _enabled;
 
-    public FirebasePushService(
-        IDispositivoTokenRepository tokenRepo,
-        IConfiguration config,
-        ILogger<FirebasePushService> logger)
+    public FirebasePushService(IDispositivoTokenRepository tokenRepo, ILogger<FirebasePushService> logger)
     {
         _tokenRepo = tokenRepo;
         _logger = logger;
-
-        // Prioridade 1: JSON em base64 como variável de ambiente (evita corrupção de \n da chave RSA)
-        var jsonBase64 = config["Firebase:ServiceAccountJsonBase64"];
-        if (!string.IsNullOrWhiteSpace(jsonBase64))
-        {
-            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(jsonBase64));
-            if (FirebaseApp.DefaultInstance is null)
-#pragma warning disable CS0618
-                FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromJson(json) });
-#pragma warning restore CS0618
-            _enabled = true;
-            return;
-        }
-
-        // Prioridade 2: JSON puro como variável de ambiente
-        var jsonContent = config["Firebase:ServiceAccountJson"];
-        if (!string.IsNullOrWhiteSpace(jsonContent))
-        {
-            if (FirebaseApp.DefaultInstance is null)
-#pragma warning disable CS0618
-                FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromJson(jsonContent) });
-#pragma warning restore CS0618
-            _enabled = true;
-            return;
-        }
-
-        // Prioridade 3: arquivo físico (desenvolvimento local)
-        var path = config["Firebase:ServiceAccountPath"];
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
-        {
-            _logger.LogWarning("Firebase não configurado: serviceAccountKey.json não encontrado em '{Path}' e Firebase:ServiceAccountJson não definido. Push notifications desabilitado.", path);
-            _enabled = false;
-            return;
-        }
-
-        if (FirebaseApp.DefaultInstance is null)
-        {
-#pragma warning disable CS0618
-            FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromFile(path) });
-#pragma warning restore CS0618
-        }
-
-        _enabled = true;
+        _enabled = FirebaseApp.DefaultInstance is not null;
+        if (!_enabled)
+            _logger.LogWarning("Firebase não inicializado. Push notifications desabilitado.");
     }
 
     public async Task EnviarParaUsuariosAsync(
