@@ -29,6 +29,7 @@ export interface CheckInDto {
   latitude?: number | null
   longitude?: number | null
   endereco?: string | null
+  viagemId?: string | null
 }
 
 export interface RegistrarCheckInRequest {

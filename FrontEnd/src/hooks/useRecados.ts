@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, keepPreviousData } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { darCienciaRecado, deletarRecado, enviarRecado, listarRecados } from "@/services/recados.service"
 import type { EnviarRecadoRequest } from "@/types/recado"
@@ -6,7 +6,7 @@ import type { EnviarRecadoRequest } from "@/types/recado"
 const KEYS = { all: ["recados"] as const }
 
 export function useRecados() {
-  return useQuery({ queryKey: KEYS.all, queryFn: listarRecados, refetchInterval: 30_000 })
+  return useQuery({ queryKey: KEYS.all, queryFn: listarRecados, refetchInterval: 30_000, placeholderData: keepPreviousData })
 }
 
 export function useEnviarRecado() {

@@ -11,18 +11,21 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
     private readonly IViagemRepository _viagemRepo;
     private readonly IAlunoRepository _alunoRepo;
     private readonly IResponsavelRepository _responsavelRepo;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly IEmailService _email;
+    private readonly INotificacaoPushService _push;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
     private readonly ILogger<IniciarViagemHandler> _logger;
 
     public IniciarViagemHandler(
         IViagemRepository viagemRepo, IAlunoRepository alunoRepo,
-        IResponsavelRepository responsavelRepo, IEmailService email,
+        IResponsavelRepository responsavelRepo, IUsuarioRepository usuarioRepo,
+        IEmailService email, INotificacaoPushService push,
         IUnitOfWork uow, ICurrentTenantService tenant,
         ILogger<IniciarViagemHandler> logger)
-        => (_viagemRepo, _alunoRepo, _responsavelRepo, _email, _uow, _tenant, _logger)
-            = (viagemRepo, alunoRepo, responsavelRepo, email, uow, tenant, logger);
+        => (_viagemRepo, _alunoRepo, _responsavelRepo, _usuarioRepo, _email, _push, _uow, _tenant, _logger)
+            = (viagemRepo, alunoRepo, responsavelRepo, usuarioRepo, email, push, uow, tenant, logger);
 
     public async Task<Result<Guid>> Handle(IniciarViagemCommand request, CancellationToken ct)
     {
@@ -54,7 +57,7 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
             var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
             if (!responsavelIds.Any()) return;
 
-            var responsaveis = await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct);
+            var responsaveis = (await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct)).ToList();
             var turnoLabel = turno.ToString();
 
             foreach (var resp in responsaveis)
@@ -62,6 +65,14 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
                 try { await _email.EnviarTransporteACaminhoAsync(resp.Email, resp.Nome, turnoLabel, ct); }
                 catch (Exception ex) { _logger.LogWarning(ex, "Falha ao notificar responsável {Id}", resp.Id); }
             }
+
+            var emails = responsaveis.Select(r => r.Email).ToList();
+            var usuarios = await _usuarioRepo.ListarPorEmailsAsync(emails, ct);
+            await _push.EnviarParaUsuariosAsync(
+                usuarios.Select(u => u.Id),
+                "🚌 Transporte a caminho!",
+                $"O transporte do turno {turnoLabel} está saindo agora.",
+                ct: ct);
         }
         catch (Exception ex)
         {

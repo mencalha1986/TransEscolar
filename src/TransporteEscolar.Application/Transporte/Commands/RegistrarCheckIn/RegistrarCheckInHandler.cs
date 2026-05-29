@@ -11,21 +11,25 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
     private readonly ITransporteRepository _repo;
     private readonly IAlunoRepository _alunoRepo;
     private readonly IResponsavelRepository _responsavelRepo;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly IViagemRepository _viagemRepo;
     private readonly IGeocodingService _geocoding;
     private readonly IEmailService _email;
+    private readonly INotificacaoPushService _push;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
     private readonly ILogger<RegistrarCheckInHandler> _logger;
 
     public RegistrarCheckInHandler(
         ITransporteRepository repo, IAlunoRepository alunoRepo,
-        IResponsavelRepository responsavelRepo, IViagemRepository viagemRepo,
+        IResponsavelRepository responsavelRepo, IUsuarioRepository usuarioRepo,
+        IViagemRepository viagemRepo,
         IGeocodingService geocoding, IEmailService email,
+        INotificacaoPushService push,
         IUnitOfWork uow, ICurrentTenantService tenant,
         ILogger<RegistrarCheckInHandler> logger)
-        => (_repo, _alunoRepo, _responsavelRepo, _viagemRepo, _geocoding, _email, _uow, _tenant, _logger)
-            = (repo, alunoRepo, responsavelRepo, viagemRepo, geocoding, email, uow, tenant, logger);
+        => (_repo, _alunoRepo, _responsavelRepo, _usuarioRepo, _viagemRepo, _geocoding, _email, _push, _uow, _tenant, _logger)
+            = (repo, alunoRepo, responsavelRepo, usuarioRepo, viagemRepo, geocoding, email, push, uow, tenant, logger);
 
     public async Task<Result<RegistrarCheckInResultDto>> Handle(RegistrarCheckInCommand request, CancellationToken ct)
     {
@@ -61,7 +65,7 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
             var aluno = await _alunoRepo.ObterPorIdAsync(alunoId, ct);
             if (aluno == null || !aluno.ResponsavelIds.Any()) return;
 
-            var responsaveis = await _responsavelRepo.ListarPorIdsAsync(aluno.ResponsavelIds, ct);
+            var responsaveis = (await _responsavelRepo.ListarPorIdsAsync(aluno.ResponsavelIds, ct)).ToList();
             var horaLocal = hora.ToLocalTime().ToString("HH:mm");
             var tipoLabel = tipo.ToString();
 
@@ -70,6 +74,14 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
                 try { await _email.EnviarCheckInAsync(resp.Email, resp.Nome, aluno.Nome, tipoLabel, horaLocal, endereco, ct); }
                 catch (Exception ex) { _logger.LogWarning(ex, "Falha ao notificar responsável {Id} no check-in", resp.Id); }
             }
+
+            var emails = responsaveis.Select(r => r.Email).ToList();
+            var usuarios = await _usuarioRepo.ListarPorEmailsAsync(emails, ct);
+            var usuarioIds = usuarios.Select(u => u.Id).ToList();
+
+            var emoji = tipo == TipoCheckIn.Embarque ? "✅" : "🏠";
+            var titulo = tipo == TipoCheckIn.Embarque ? $"{emoji} {aluno.Nome} embarcou!" : $"{emoji} {aluno.Nome} desembarcou!";
+            await _push.EnviarParaUsuariosAsync(usuarioIds, titulo, $"Às {horaLocal}", ct: ct);
         }
         catch (Exception ex)
         {

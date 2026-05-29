@@ -30,6 +30,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Viagem> Viagens => Set<Viagem>();
     public DbSet<ViagemPercurso> ViagemPercursos => Set<ViagemPercurso>();
     public DbSet<Falta> Faltas => Set<Falta>();
+    public DbSet<DispositivoToken> DispositivoTokens => Set<DispositivoToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

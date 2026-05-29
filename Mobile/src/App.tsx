@@ -5,6 +5,7 @@ import { SplashScreen } from "@/components/SplashScreen"
 import { LoadingOverlay } from "@/components/LoadingOverlay"
 import { useAuth } from "@/contexts/AuthContext"
 import { Toaster } from "sonner"
+import { usePushNotifications } from "@/hooks/usePushNotifications"
 
 // Auth
 import { LoginPage } from "@/pages/auth/LoginPage"
@@ -51,6 +52,11 @@ import { PlanosPage } from "@/pages/backoffice/PlanosPage"
 import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
 import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
 
+function PushNotificationInit() {
+  usePushNotifications()
+  return null
+}
+
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth()
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
@@ -69,6 +75,7 @@ export function App() {
   return (
     <>
       {!splashDone && <SplashScreen onFinish={() => setSplashDone(true)} />}
+      <PushNotificationInit />
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />

@@ -11,3 +11,7 @@ appsettings.Development.json
 
 # Claude Code
 .claude/
+
+# Chaves sensíveis — nunca commitar
+serviceAccountKey.json
+google-services.json

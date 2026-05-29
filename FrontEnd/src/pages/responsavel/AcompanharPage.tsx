@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet"
+import { useRef, useEffect } from "react"
 import L from "leaflet"
 import "@/lib/leaflet-config"
 import { PageHeader } from "@/components/layout/PageHeader"
@@ -25,7 +26,18 @@ const carIcon = L.divIcon({ className: "", html: CAR_SVG, iconSize: [28, 28], ic
 
 function FlyTo({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap()
-  map.flyTo([lat, lng], 14, { duration: 1 })
+  const prevRef = useRef<[number, number] | null>(null)
+
+  useEffect(() => {
+    const prev = prevRef.current
+    prevRef.current = [lat, lng]
+    if (!prev) {
+      map.flyTo([lat, lng], 14, { duration: 1 })
+    } else if (prev[0] !== lat || prev[1] !== lng) {
+      map.panTo([lat, lng], { animate: true, duration: 1 })
+    }
+  }, [lat, lng, map])
+
   return null
 }
 
@@ -48,6 +60,7 @@ export function AcompanharPage() {
     queryFn: () => listarCheckIns(hoje),
     refetchInterval: 15_000,
     enabled: viagem?.status === "EmRota",
+    placeholderData: keepPreviousData,
   })
 
   const checkInsFilhos = checkIns.filter(c => alunoIds.has(c.alunoId))

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, keepPreviousData } from "@tanstack/react-query"
 import { obterMeuPerfil } from "@/services/responsaveis.service"
 import { obterViagemAtual, obterPercurso } from "@/services/viagens.service"
 
@@ -14,6 +14,7 @@ export function useViagemAtual() {
     queryKey: ["viagem", "atual"],
     queryFn: obterViagemAtual,
     refetchInterval: 15_000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -23,5 +24,6 @@ export function usePercurso(viagemId: string | undefined) {
     queryFn: () => obterPercurso(viagemId!),
     enabled: !!viagemId,
     refetchInterval: 15_000,
+    placeholderData: keepPreviousData,
   })
 }

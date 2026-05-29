@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { obterViagemAtual, iniciarViagem, atualizarPosicao, encerrarViagem, listarViagens, obterPercurso } from "@/services/viagens.service"
 import type { IniciarViagemRequest, AtualizarPosicaoRequest } from "@/types/viagem"
@@ -14,8 +14,9 @@ export function useViagemAtual() {
     queryKey: VIAGEM_KEYS.atual,
     queryFn: obterViagemAtual,
     refetchInterval: 10_000,
-    staleTime: 8_000,       // evita refetch imediato ao montar o componente
-    refetchOnWindowFocus: false, // não refaz ao voltar o foco para a janela
+    staleTime: 8_000,
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   })
 }
 

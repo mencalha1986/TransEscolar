@@ -11,18 +11,21 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
     private readonly IViagemRepository _viagemRepo;
     private readonly IAlunoRepository _alunoRepo;
     private readonly IResponsavelRepository _responsavelRepo;
+    private readonly IUsuarioRepository _usuarioRepo;
     private readonly IEmailService _email;
+    private readonly INotificacaoPushService _push;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
     private readonly ILogger<EncerrarViagemHandler> _logger;
 
     public EncerrarViagemHandler(
         IViagemRepository viagemRepo, IAlunoRepository alunoRepo,
-        IResponsavelRepository responsavelRepo, IEmailService email,
+        IResponsavelRepository responsavelRepo, IUsuarioRepository usuarioRepo,
+        IEmailService email, INotificacaoPushService push,
         IUnitOfWork uow, ICurrentTenantService tenant,
         ILogger<EncerrarViagemHandler> logger)
-        => (_viagemRepo, _alunoRepo, _responsavelRepo, _email, _uow, _tenant, _logger)
-            = (viagemRepo, alunoRepo, responsavelRepo, email, uow, tenant, logger);
+        => (_viagemRepo, _alunoRepo, _responsavelRepo, _usuarioRepo, _email, _push, _uow, _tenant, _logger)
+            = (viagemRepo, alunoRepo, responsavelRepo, usuarioRepo, email, push, uow, tenant, logger);
 
     public async Task<Result<bool>> Handle(EncerrarViagemCommand request, CancellationToken ct)
     {
@@ -55,7 +58,7 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
             var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
             if (!responsavelIds.Any()) return;
 
-            var responsaveis = await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct);
+            var responsaveis = (await _responsavelRepo.ListarPorIdsAsync(responsavelIds, ct)).ToList();
             var turnoLabel = turno.ToString();
 
             foreach (var resp in responsaveis)
@@ -63,6 +66,14 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
                 try { await _email.EnviarTrajretoConcluidoAsync(resp.Email, resp.Nome, turnoLabel, ct); }
                 catch (Exception ex) { _logger.LogWarning(ex, "Falha ao notificar responsável {Id}", resp.Id); }
             }
+
+            var emails = responsaveis.Select(r => r.Email).ToList();
+            var usuarios = await _usuarioRepo.ListarPorEmailsAsync(emails, ct);
+            await _push.EnviarParaUsuariosAsync(
+                usuarios.Select(u => u.Id),
+                "🏁 Trajeto concluído!",
+                $"O transporte do turno {turnoLabel} foi concluído.",
+                ct: ct);
         }
         catch (Exception ex)
         {
