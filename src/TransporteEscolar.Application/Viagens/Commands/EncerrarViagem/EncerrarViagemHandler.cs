@@ -42,7 +42,7 @@ public class EncerrarViagemHandler : IRequestHandler<EncerrarViagemCommand, Resu
         _viagemRepo.Atualizar(viagem);
         await _uow.CommitAsync(ct);
 
-        _ = NotificarConcluidoAsync(viagem.Turno, _tenant.TenantId.Value, CancellationToken.None);
+        await NotificarConcluidoAsync(viagem.Turno, _tenant.TenantId.Value, ct);
 
         return Result<bool>.Success(true);
     }

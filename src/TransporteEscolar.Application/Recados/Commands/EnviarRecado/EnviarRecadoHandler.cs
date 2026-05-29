@@ -64,7 +64,7 @@ public class EnviarRecadoHandler : IRequestHandler<EnviarRecadoCommand, Result<G
         await _repo.AdicionarAsync(result.Value, ct);
         await _uow.CommitAsync(ct);
 
-        _ = NotificarAsync(result.Value, tipo, autorNome, transportadorId, request, CancellationToken.None);
+        await NotificarAsync(result.Value, tipo, autorNome, transportadorId, request, ct);
 
         return Result<Guid>.Success(result.Value.Id);
     }
