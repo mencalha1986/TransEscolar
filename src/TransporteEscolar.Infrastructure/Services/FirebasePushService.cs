@@ -21,7 +21,20 @@ public class FirebasePushService : INotificacaoPushService
         _tokenRepo = tokenRepo;
         _logger = logger;
 
-        // Prioridade 1: JSON embutido como variável de ambiente (ideal para produção/Render)
+        // Prioridade 1: JSON em base64 como variável de ambiente (evita corrupção de \n da chave RSA)
+        var jsonBase64 = config["Firebase:ServiceAccountJsonBase64"];
+        if (!string.IsNullOrWhiteSpace(jsonBase64))
+        {
+            var json = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(jsonBase64));
+            if (FirebaseApp.DefaultInstance is null)
+#pragma warning disable CS0618
+                FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromJson(json) });
+#pragma warning restore CS0618
+            _enabled = true;
+            return;
+        }
+
+        // Prioridade 2: JSON puro como variável de ambiente
         var jsonContent = config["Firebase:ServiceAccountJson"];
         if (!string.IsNullOrWhiteSpace(jsonContent))
         {
@@ -33,7 +46,7 @@ public class FirebasePushService : INotificacaoPushService
             return;
         }
 
-        // Prioridade 2: arquivo físico (desenvolvimento local)
+        // Prioridade 3: arquivo físico (desenvolvimento local)
         var path = config["Firebase:ServiceAccountPath"];
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
         {
