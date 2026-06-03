@@ -29,10 +29,10 @@ services:
       Jwt__Issuer: "TransporteEscolar"
       Jwt__Audience: "TransporteEscolar"
       Jwt__ExpiresHours: "8"
-      Email__Host: "smtp.gmail.com"
+      Email__Host: "smtp-relay.brevo.com"
       Email__Port: "587"
-      Email__Username: "noreplytransescolar@gmail.com"
-      Email__Password: ""
+      Email__Username: "ac40a3001@smtp-brevo.com"
+      Email__Password: "xsmtpsib-88df404d08b10a306488b1bea625917f6cb1d3072c1eec3980327d727fb2bdd5-rqmYmDSK9IN8XseK"
       Email__From: "noreplytransescolar@gmail.com"
       Email__FromName: "TransporteEscolar"
 
