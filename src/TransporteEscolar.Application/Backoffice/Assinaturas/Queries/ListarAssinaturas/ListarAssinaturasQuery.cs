@@ -6,7 +6,9 @@ namespace TransporteEscolar.Application.Backoffice.Assinaturas.Queries.ListarAss
 public record AssinaturaDto(
     Guid Id,
     Guid TransportadorId,
+    string NomeTransportador,
     Guid PlanoId,
+    string NomePlano,
     decimal ValorContratado,
     StatusAssinatura Status,
     DateTime DataProximoVencimento

@@ -40,7 +40,9 @@ export interface Plano {
 export interface Assinatura {
   id: string
   transportadorId: string
+  nomeTransportador: string
   planoId: string
+  nomePlano: string
   valorContratado: number
   status: StatusAssinatura
   dataProximoVencimento: string

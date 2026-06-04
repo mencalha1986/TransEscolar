@@ -29,6 +29,7 @@ export function AssinaturasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Transportador</TableHead>
+              <TableHead>Plano</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Próximo Vencimento</TableHead>
               <TableHead>Status</TableHead>
@@ -37,7 +38,8 @@ export function AssinaturasPage() {
           <TableBody>
             {(data ?? []).map((a) => (
               <TableRow key={a.id}>
-                <TableCell className="font-mono text-xs">{a.transportadorId}</TableCell>
+                <TableCell className="font-medium">{a.nomeTransportador}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{a.nomePlano}</TableCell>
                 <TableCell>R$ {a.valorContratado.toFixed(2)}</TableCell>
                 <TableCell>{new Date(a.dataProximoVencimento).toLocaleDateString("pt-BR")}</TableCell>
                 <TableCell>
