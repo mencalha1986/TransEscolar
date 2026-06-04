@@ -24,9 +24,6 @@ public class CriarAssinaturaHandler : IRequestHandler<CriarAssinaturaCommand, Re
         if (!result.IsSuccess)
             return Result<Guid>.Failure(result.Error);
 
-        transportador.AssociarPlano(request.PlanoId);
-        _transportadorRepo.Atualizar(transportador);
-
         await _repo.AdicionarAsync(result.Value, ct);
         await _uow.CommitAsync(ct);
 

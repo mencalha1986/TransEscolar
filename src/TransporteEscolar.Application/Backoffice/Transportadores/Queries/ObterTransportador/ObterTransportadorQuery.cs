@@ -11,7 +11,6 @@ public record TransportadorDetalheDto(
     string Email,
     string? Telefone,
     StatusTransportador Status,
-    Guid? PlanoId,
     int TotalAlunos,
     DateTime CriadoEm,
     bool Vitalicio

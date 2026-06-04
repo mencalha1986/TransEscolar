@@ -55,9 +55,6 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
 
         var transportador = result.Value;
 
-        if (request.PlanoId.HasValue)
-            transportador.AssociarPlano(request.PlanoId.Value);
-
         await _repo.AdicionarAsync(transportador, ct);
 
         var senhaTemp = SenhaPadrao;

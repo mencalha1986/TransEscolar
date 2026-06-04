@@ -18,7 +18,6 @@ export interface TransportadorDetalhe {
   email: string
   telefone?: string
   status: StatusTransportador
-  planoId?: string
   totalAlunos: number
   criadoEm: string
   vitalicio: boolean
@@ -67,7 +66,6 @@ export interface CadastrarTransportadorRequest {
   cpfCnpj: string
   email: string
   telefone?: string
-  planoId?: string
 }
 
 export interface CriarPlanoRequest {

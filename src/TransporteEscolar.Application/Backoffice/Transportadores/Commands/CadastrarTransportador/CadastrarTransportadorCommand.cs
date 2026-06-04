@@ -8,6 +8,5 @@ public record CadastrarTransportadorCommand(
     string NomeContato,
     string CpfCnpj,
     string Email,
-    string? Telefone,
-    Guid? PlanoId
+    string? Telefone
 ) : IRequest<Result<Guid>>;

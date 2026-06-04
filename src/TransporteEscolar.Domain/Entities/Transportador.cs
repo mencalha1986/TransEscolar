@@ -12,7 +12,6 @@ public class Transportador : Entity
     public string Email { get; private set; } = default!;
     public string? Telefone { get; private set; }
     public StatusTransportador Status { get; private set; }
-    public Guid? PlanoId { get; private set; }
     public bool Vitalicio { get; private set; }
 
     private Transportador() { }
@@ -49,8 +48,6 @@ public class Transportador : Entity
     }
 
     public void AlterarStatus(StatusTransportador status) { Status = status; MarcarAtualizado(); }
-
-    public void AssociarPlano(Guid planoId) { PlanoId = planoId; MarcarAtualizado(); }
 
     public void MarcarVitalicio() { Vitalicio = true; MarcarAtualizado(); }
     public void RevogarVitalicio() { Vitalicio = false; MarcarAtualizado(); }
