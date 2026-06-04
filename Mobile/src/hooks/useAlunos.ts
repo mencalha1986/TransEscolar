@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
-import { cadastrarAluno, editarAluno, listarAlunos, obterAluno } from "@/services/alunos.service"
+import { cadastrarAluno, deletarAluno, editarAluno, listarAlunos, obterAluno } from "@/services/alunos.service"
 
 export const ALUNO_KEYS = {
   all: ["alunos"] as const,
@@ -38,6 +38,15 @@ export function useEditarAluno(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.all })
       queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.detail(id) })
+    },
+  })
+}
+
+export function useDeletarAluno() {
+  return useMutation({
+    mutationFn: (id: string) => deletarAluno(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ALUNO_KEYS.all })
     },
   })
 }

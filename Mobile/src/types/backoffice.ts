@@ -41,6 +41,29 @@ export interface Assinatura {
   dataProximoVencimento: string
 }
 
+export interface PagamentoAssinatura {
+  id: string
+  valorPago: number
+  competenciaMes: number
+  competenciaAno: number
+  dataPagamento: string
+  observacao?: string
+}
+
+export interface CriarAssinaturaRequest {
+  transportadorId: string
+  planoId: string
+  valorContratado: number
+}
+
+export interface RegistrarPagamentoAssinaturaRequest {
+  assinaturaId: string
+  valorPago: number
+  competenciaMes: number
+  competenciaAno: number
+  observacao?: string
+}
+
 export interface DashboardBackoffice {
   totalTransportadores: number
   transportadoresAtivos: number
@@ -76,4 +99,40 @@ export interface EmailLog {
   erroMensagem?: string
   enviadoEm?: string
   criadoEm: string
+}
+
+export interface ViagemAtiva {
+  id: string
+  transportadorId: string
+  transportadorNome: string
+  turno: string
+  latitude?: number
+  longitude?: number
+  iniciadaEm?: string
+  embarcados: number
+  desembarcados: number
+}
+
+export interface CheckInHistorico {
+  alunoNome: string
+  tipo: string
+  horaRegistro: string
+  latitude?: number
+  longitude?: number
+  endereco?: string
+}
+
+export interface ViagemHistorico {
+  id: string
+  turno: string
+  status: string
+  iniciadaEm?: string
+  concluidaEm?: string
+  checkIns: CheckInHistorico[]
+}
+
+export interface HistoricoRota {
+  transportadorId: string
+  transportadorNome: string
+  viagens: ViagemHistorico[]
 }

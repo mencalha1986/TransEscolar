@@ -1,7 +1,8 @@
+import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { ArrowLeft, LogIn, GraduationCap, Mail, Phone } from "lucide-react"
-import { useTransportador, useAlterarStatusTransportador } from "@/hooks/useBackoffice"
+import { ArrowLeft, LogIn, GraduationCap, Mail, Phone, Plus } from "lucide-react"
+import { useTransportador, useAlterarStatusTransportador, useCriarAssinatura, usePlanos } from "@/hooks/useBackoffice"
 import { useAuth } from "@/contexts/AuthContext"
 import type { StatusTransportador } from "@/types/backoffice"
 
@@ -30,6 +31,27 @@ export function TransportadorDetailPage() {
   const { impersonar } = useAuth()
   const { data: transportador, isLoading, error } = useTransportador(id!)
   const { mutateAsync: alterarStatus, isPending: alterando } = useAlterarStatusTransportador()
+  const { mutateAsync: criarAssinatura, isPending: criandoAssinatura } = useCriarAssinatura()
+  const { data: planos } = usePlanos()
+  const [showAssinaturaForm, setShowAssinaturaForm] = useState(false)
+  const [planoId, setPlanoId] = useState("")
+  const [valorContratado, setValorContratado] = useState("")
+
+  async function handleCriarAssinatura() {
+    if (!planoId || !valorContratado) {
+      toast.error("Preencha todos os campos")
+      return
+    }
+    try {
+      await criarAssinatura({ transportadorId: id!, planoId, valorContratado: parseFloat(valorContratado) })
+      toast.success("Assinatura criada com sucesso")
+      setShowAssinaturaForm(false)
+      setPlanoId("")
+      setValorContratado("")
+    } catch (err) {
+      toast.error((err as Error).message || "Erro ao criar assinatura")
+    }
+  }
 
   async function handleAcessar() {
     if (!transportador) return
@@ -138,6 +160,68 @@ export function TransportadorDetailPage() {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Assinatura */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wide">Assinatura</h3>
+              {!showAssinaturaForm && (
+                <button
+                  onClick={() => setShowAssinaturaForm(true)}
+                  className="flex items-center gap-1 text-primary text-sm font-semibold active:opacity-70"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nova
+                </button>
+              )}
+            </div>
+            {showAssinaturaForm ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Plano</label>
+                  <select
+                    value={planoId}
+                    onChange={e => setPlanoId(e.target.value)}
+                    className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm bg-white"
+                  >
+                    <option value="">Selecione um plano</option>
+                    {planos?.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.nome} — R$ {p.precoMensal.toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">Valor contratado (R$)</label>
+                  <input
+                    type="number"
+                    value={valorContratado}
+                    onChange={e => setValorContratado(e.target.value)}
+                    placeholder="0,00"
+                    className="w-full h-10 border border-slate-200 rounded-lg px-3 text-sm"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowAssinaturaForm(false)}
+                    className="flex-1 h-10 bg-slate-100 text-slate-700 font-semibold text-sm rounded-xl active:opacity-70"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCriarAssinatura}
+                    disabled={criandoAssinatura}
+                    className="flex-1 h-10 bg-primary text-white font-semibold text-sm rounded-xl active:opacity-80 disabled:opacity-50"
+                  >
+                    {criandoAssinatura ? "Criando..." : "Criar"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">Nenhuma assinatura ativa. Clique em "Nova" para criar.</p>
+            )}
           </div>
 
           {/* Acessar */}

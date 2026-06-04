@@ -1,6 +1,8 @@
+import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { ArrowLeft, Edit, User } from "lucide-react"
-import { useAluno } from "@/hooks/useAlunos"
+import { ArrowLeft, Edit, Trash2, User } from "lucide-react"
+import { toast } from "sonner"
+import { useAluno, useDeletarAluno } from "@/hooks/useAlunos"
 
 function formatDate(dateStr: string) {
   if (!dateStr) return ""
@@ -42,6 +44,18 @@ export function AlunoDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: aluno, isLoading, error } = useAluno(id!)
+  const { mutateAsync: deletar, isPending: deletando } = useDeletarAluno()
+  const [confirmando, setConfirmando] = useState(false)
+
+  async function handleDeletar() {
+    try {
+      await deletar(id!)
+      toast.success("Aluno removido com sucesso")
+      navigate("/alunos")
+    } catch (err) {
+      toast.error((err as Error).message || "Erro ao remover aluno")
+    }
+  }
 
   return (
     <div className="pb-6">
@@ -55,15 +69,50 @@ export function AlunoDetailPage() {
           <span className="font-medium">Alunos</span>
         </button>
         {aluno && (
-          <button
-            onClick={() => navigate(`/alunos/${id}/editar`)}
-            className="flex items-center gap-1.5 text-primary font-semibold active:opacity-70"
-          >
-            <Edit className="h-4 w-4" />
-            Editar
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setConfirmando(true)}
+              className="text-red-500 active:opacity-70"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => navigate(`/alunos/${id}/editar`)}
+              className="flex items-center gap-1.5 text-primary font-semibold active:opacity-70"
+            >
+              <Edit className="h-4 w-4" />
+              Editar
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Modal de confirmação de exclusão */}
+      {confirmando && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-6 space-y-4">
+            <h3 className="text-lg font-bold text-slate-900">Remover aluno?</h3>
+            <p className="text-sm text-slate-500">
+              Esta ação não pode ser desfeita. O aluno e todos os seus dados serão removidos permanentemente.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmando(false)}
+                className="flex-1 h-12 bg-slate-100 text-slate-700 font-semibold rounded-xl active:opacity-70"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeletar}
+                disabled={deletando}
+                className="flex-1 h-12 bg-red-600 text-white font-semibold rounded-xl active:opacity-80 disabled:opacity-50"
+              >
+                {deletando ? "Removendo..." : "Remover"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <p className="m-4 text-red-600 text-sm">{(error as Error).message}</p>

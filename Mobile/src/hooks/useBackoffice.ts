@@ -1,7 +1,13 @@
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { backofficeService } from "@/services/backoffice.service"
-import type { CadastrarTransportadorRequest, CriarPlanoRequest, StatusTransportador } from "@/types/backoffice"
+import type {
+  CadastrarTransportadorRequest,
+  CriarAssinaturaRequest,
+  CriarPlanoRequest,
+  RegistrarPagamentoAssinaturaRequest,
+  StatusTransportador,
+} from "@/types/backoffice"
 
 export const BACKOFFICE_KEYS = {
   dashboard: ["backoffice", "dashboard"] as const,
@@ -9,7 +15,11 @@ export const BACKOFFICE_KEYS = {
   transportador: (id: string) => ["backoffice", "transportadores", id] as const,
   planos: ["backoffice", "planos"] as const,
   assinaturas: ["backoffice", "assinaturas"] as const,
+  pagamentosAssinatura: (id: string) => ["backoffice", "assinaturas", id, "pagamentos"] as const,
   emailLogs: ["backoffice", "email-logs"] as const,
+  viagensAtivas: ["backoffice", "monitoramento", "ativas"] as const,
+  historicoRota: (transportadorId: string, data: string) =>
+    ["backoffice", "monitoramento", "historico", transportadorId, data] as const,
 }
 
 export function useBackofficeDashboard() {
@@ -100,5 +110,49 @@ export function useReenviarEmail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.emailLogs })
     },
+  })
+}
+
+export function useCriarAssinatura() {
+  return useMutation({
+    mutationFn: (data: CriarAssinaturaRequest) => backofficeService.criarAssinatura(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.assinaturas })
+    },
+  })
+}
+
+export function usePagamentosAssinatura(assinaturaId: string) {
+  return useQuery({
+    queryKey: BACKOFFICE_KEYS.pagamentosAssinatura(assinaturaId),
+    queryFn: () => backofficeService.listarPagamentosAssinatura(assinaturaId),
+    enabled: !!assinaturaId,
+  })
+}
+
+export function useRegistrarPagamentoAssinatura() {
+  return useMutation({
+    mutationFn: (data: RegistrarPagamentoAssinaturaRequest) =>
+      backofficeService.registrarPagamentoAssinatura(data),
+    onSuccess: (_data, { assinaturaId }) => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.pagamentosAssinatura(assinaturaId) })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.assinaturas })
+    },
+  })
+}
+
+export function useViagensAtivas() {
+  return useQuery({
+    queryKey: BACKOFFICE_KEYS.viagensAtivas,
+    queryFn: backofficeService.listarViagensAtivas,
+    refetchInterval: 30_000,
+  })
+}
+
+export function useHistoricoRota(transportadorId: string, data: string) {
+  return useQuery({
+    queryKey: BACKOFFICE_KEYS.historicoRota(transportadorId, data),
+    queryFn: () => backofficeService.obterHistoricoRota(transportadorId, data),
+    enabled: !!transportadorId && !!data,
   })
 }

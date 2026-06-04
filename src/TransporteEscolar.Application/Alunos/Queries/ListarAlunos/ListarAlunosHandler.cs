@@ -8,11 +8,15 @@ public class ListarAlunosHandler : IRequestHandler<ListarAlunosQuery, Result<IEn
 {
     private readonly IAlunoRepository _repo;
     private readonly IEscolaRepository _escolaRepo;
+    private readonly IFaltaRepository _faltaRepo;
+    private readonly ICurrentTenantService _tenant;
 
-    public ListarAlunosHandler(IAlunoRepository repo, IEscolaRepository escolaRepo)
+    public ListarAlunosHandler(IAlunoRepository repo, IEscolaRepository escolaRepo, IFaltaRepository faltaRepo, ICurrentTenantService tenant)
     {
         _repo = repo;
         _escolaRepo = escolaRepo;
+        _faltaRepo = faltaRepo;
+        _tenant = tenant;
     }
 
     public async Task<Result<IEnumerable<AlunoDto>>> Handle(ListarAlunosQuery request, CancellationToken ct)
@@ -20,6 +24,13 @@ public class ListarAlunosHandler : IRequestHandler<ListarAlunosQuery, Result<IEn
         var alunos = request.EscolaId.HasValue
             ? await _repo.ListarPorEscolaAsync(request.EscolaId.Value, ct)
             : await _repo.ListarTodosAsync(ct);
+
+        if (request.ExcluirFaltasData.HasValue && _tenant.TenantId.HasValue)
+        {
+            var ausentes = (await _faltaRepo.ListarAlunoIdsFaltantesPorDataAsync(
+                request.ExcluirFaltasData.Value, _tenant.TenantId.Value, ct)).ToHashSet();
+            alunos = alunos.Where(a => !ausentes.Contains(a.Id));
+        }
 
         var escolas = await _escolaRepo.ListarTodosAsync(ct);
         var escolaMap = escolas.ToDictionary(e => e.Id, e => e.Nome);

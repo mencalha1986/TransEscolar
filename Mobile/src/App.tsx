@@ -51,6 +51,7 @@ import { TransportadorDetailPage } from "@/pages/backoffice/TransportadorDetailP
 import { PlanosPage } from "@/pages/backoffice/PlanosPage"
 import { AssinaturasPage } from "@/pages/backoffice/AssinaturasPage"
 import { EmailLogsPage } from "@/pages/backoffice/EmailLogsPage"
+import { MonitoramentoPage } from "@/pages/backoffice/MonitoramentoPage"
 
 function PushNotificationInit() {
   const navigate = useNavigate()
@@ -114,6 +115,7 @@ export function App() {
           <Route path="/backoffice/planos" element={<SuperAdminRoute><PlanosPage /></SuperAdminRoute>} />
           <Route path="/backoffice/assinaturas" element={<SuperAdminRoute><AssinaturasPage /></SuperAdminRoute>} />
           <Route path="/backoffice/email-logs" element={<SuperAdminRoute><EmailLogsPage /></SuperAdminRoute>} />
+          <Route path="/backoffice/monitoramento" element={<SuperAdminRoute><MonitoramentoPage /></SuperAdminRoute>} />
 
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Route>

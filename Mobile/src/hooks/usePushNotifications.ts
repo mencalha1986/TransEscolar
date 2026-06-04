@@ -22,6 +22,17 @@ export function usePushNotifications(navigate: NavigateFunction) {
       const permission = await PushNotifications.requestPermissions()
       if (permission.receive !== "granted") return
 
+      if (Capacitor.getPlatform() === "android") {
+        await PushNotifications.createChannel({
+          id: "transescolar_default",
+          name: "Notificações TransEscolar",
+          importance: 5,
+          sound: "default",
+          vibration: true,
+          visibility: 1,
+        })
+      }
+
       await PushNotifications.register()
 
       PushNotifications.addListener("registration", async ({ value: token }) => {

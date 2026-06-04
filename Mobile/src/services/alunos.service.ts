@@ -30,3 +30,8 @@ export async function editarAluno(id: string, formData: FormData): Promise<strin
   if (!res.data.success) throw new Error(res.data.error ?? "Erro ao editar aluno")
   return id
 }
+
+export async function deletarAluno(id: string): Promise<void> {
+  const res = await api.delete<ApiResponse<boolean>>(`/alunos/${id}`)
+  if (!res.data.success) throw new Error(res.data.error ?? "Erro ao deletar aluno")
+}

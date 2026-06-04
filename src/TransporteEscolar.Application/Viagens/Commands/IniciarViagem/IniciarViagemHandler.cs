@@ -48,6 +48,7 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
                 sp.GetRequiredService<IAlunoRepository>(),
                 sp.GetRequiredService<IResponsavelRepository>(),
                 sp.GetRequiredService<IUsuarioRepository>(),
+                sp.GetRequiredService<IFaltaRepository>(),
                 sp.GetRequiredService<IEmailService>(),
                 sp.GetRequiredService<INotificacaoPushService>(),
                 sp.GetRequiredService<ILogger<IniciarViagemHandler>>(),
@@ -59,8 +60,8 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
 
     private static async Task NotificarResponsaveisAsync(
         IAlunoRepository alunoRepo, IResponsavelRepository responsavelRepo,
-        IUsuarioRepository usuarioRepo, IEmailService email,
-        INotificacaoPushService push, ILogger logger,
+        IUsuarioRepository usuarioRepo, IFaltaRepository faltaRepo,
+        IEmailService email, INotificacaoPushService push, ILogger logger,
         TurnoAluno turno, Guid transportadorId)
     {
         try
@@ -68,6 +69,10 @@ public class IniciarViagemHandler : IRequestHandler<IniciarViagemCommand, Result
             var alunos = (await alunoRepo.ListarTodosAsync())
                 .Where(a => a.Turno == turno && a.TransportadorId == transportadorId)
                 .ToList();
+
+            var hoje = DateOnly.FromDateTime(DateTime.UtcNow);
+            var ausentes = (await faltaRepo.ListarAlunoIdsFaltantesPorDataAsync(hoje, transportadorId)).ToHashSet();
+            alunos = alunos.Where(a => !ausentes.Contains(a.Id)).ToList();
 
             var responsavelIds = alunos.SelectMany(a => a.ResponsavelIds).Distinct().ToList();
             if (!responsavelIds.Any()) return;

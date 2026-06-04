@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { useBackofficeDashboard } from "@/hooks/useBackoffice"
-import { Building2, Users, AlertTriangle, GraduationCap, DollarSign, Mail, ChevronRight } from "lucide-react"
+import { Building2, Users, AlertTriangle, GraduationCap, DollarSign, Mail, Bus, ChevronRight } from "lucide-react"
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
@@ -76,6 +76,19 @@ export function BackofficeDashboardPage() {
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Ferramentas</h3>
+        <button
+          onClick={() => navigate("/backoffice/monitoramento")}
+          className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100 active:bg-slate-50 transition-colors"
+        >
+          <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+            <Bus className="h-5 w-5" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-slate-800 text-sm">Monitoramento</p>
+            <p className="text-xs text-slate-500 mt-0.5">Viagens ativas e histórico de rotas</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-slate-400" />
+        </button>
         <button
           onClick={() => navigate("/backoffice/email-logs")}
           className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100 active:bg-slate-50 transition-colors"

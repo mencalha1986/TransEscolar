@@ -19,4 +19,11 @@ public class FaltaRepository : BaseRepository<Falta>, IFaltaRepository
 
     public async Task<Falta?> ObterPorAlunoEDataAsync(Guid alunoId, DateOnly data, CancellationToken ct = default) =>
         await DbSet.FirstOrDefaultAsync(f => f.AlunoId == alunoId && f.Data == data, ct);
+
+    public async Task<IEnumerable<Guid>> ListarAlunoIdsFaltantesPorDataAsync(DateOnly data, Guid transportadorId, CancellationToken ct = default) =>
+        await DbSet
+            .Where(f => f.Data == data && f.TransportadorId == transportadorId)
+            .Select(f => f.AlunoId)
+            .Distinct()
+            .ToListAsync(ct);
 }

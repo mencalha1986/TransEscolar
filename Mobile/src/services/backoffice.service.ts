@@ -3,13 +3,18 @@ import type { ApiResponse } from "@/types/api"
 import type {
   Assinatura,
   CadastrarTransportadorRequest,
+  CriarAssinaturaRequest,
   CriarPlanoRequest,
   DashboardBackoffice,
   EmailLog,
+  PagamentoAssinatura,
   Plano,
+  RegistrarPagamentoAssinaturaRequest,
   StatusTransportador,
   TransportadorDetalhe,
   TransportadorResumo,
+  ViagemAtiva,
+  HistoricoRota,
 } from "@/types/backoffice"
 
 const BASE = "/backoffice"
@@ -62,4 +67,29 @@ export const backofficeService = {
 
   reenviarEmail: (id: string) =>
     api.post<ApiResponse<boolean>>(`${BASE}/email-logs/${id}/reenviar`).then(unwrap),
+
+  criarAssinatura: (data: CriarAssinaturaRequest) =>
+    api.post<ApiResponse<string>>(`${BASE}/transportadores/${data.transportadorId}/assinatura`, {
+      planoId: data.planoId,
+      valorContratado: data.valorContratado,
+    }).then(unwrap),
+
+  listarPagamentosAssinatura: (assinaturaId: string) =>
+    api.get<ApiResponse<PagamentoAssinatura[]>>(`${BASE}/assinaturas/${assinaturaId}/pagamentos`).then(unwrapList),
+
+  registrarPagamentoAssinatura: (data: RegistrarPagamentoAssinaturaRequest) =>
+    api.post<ApiResponse<string>>(`${BASE}/assinaturas/${data.assinaturaId}/pagamentos`, {
+      valorPago: data.valorPago,
+      competenciaMes: data.competenciaMes,
+      competenciaAno: data.competenciaAno,
+      observacao: data.observacao,
+    }).then(unwrap),
+
+  listarViagensAtivas: () =>
+    api.get<ApiResponse<ViagemAtiva[]>>(`${BASE}/monitoramento/ativas`).then(unwrapList),
+
+  obterHistoricoRota: (transportadorId: string, data: string) =>
+    api.get<ApiResponse<HistoricoRota>>(`${BASE}/monitoramento/historico`, {
+      params: { transportadorId, data },
+    }).then(unwrap),
 }

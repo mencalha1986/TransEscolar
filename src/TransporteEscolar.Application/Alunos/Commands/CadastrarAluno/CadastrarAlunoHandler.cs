@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using TransporteEscolar.Application.Common;
 using TransporteEscolar.Domain.Entities;
 using TransporteEscolar.Domain.Interfaces;
@@ -13,8 +14,10 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
     private readonly IUsuarioRepository _usuarioRepo;
     private readonly IPasswordHasher _hasher;
     private readonly IEmailService _emailService;
+    private readonly IEmailLogRepository _emailLogRepo;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
+    private readonly ILogger<CadastrarAlunoHandler> _logger;
 
     public CadastrarAlunoHandler(
         IAlunoRepository repo,
@@ -22,10 +25,15 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
         IUsuarioRepository usuarioRepo,
         IPasswordHasher hasher,
         IEmailService emailService,
+        IEmailLogRepository emailLogRepo,
         IUnitOfWork uow,
-        ICurrentTenantService tenant)
-        => (_repo, _responsavelRepo, _usuarioRepo, _hasher, _emailService, _uow, _tenant)
-           = (repo, responsavelRepo, usuarioRepo, hasher, emailService, uow, tenant);
+        ICurrentTenantService tenant,
+        ILogger<CadastrarAlunoHandler> logger)
+    {
+        (_repo, _responsavelRepo, _usuarioRepo, _hasher, _emailService, _emailLogRepo, _uow, _tenant)
+           = (repo, responsavelRepo, usuarioRepo, hasher, emailService, emailLogRepo, uow, tenant);
+        _logger = logger;
+    }
 
     public async Task<Result<Guid>> Handle(CadastrarAlunoCommand request, CancellationToken ct)
     {
@@ -91,9 +99,20 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
                 if (usuarioResult.IsSuccess)
                 {
                     await _usuarioRepo.AdicionarAsync(usuarioResult.Value, ct);
+                    var emailLog = EmailLog.Criar(emailNormalizado, request.NomeResponsavel, transportadorId);
+                    await _emailLogRepo.AdicionarAsync(emailLog, ct);
                     await _uow.CommitAsync(ct);
-                    try { await _emailService.EnviarAcessoResponsavelAsync(emailNormalizado, request.NomeResponsavel, senhaTemporaria, ct); }
-                    catch { /* email falhou, mas o cadastro já foi salvo */ }
+                    try
+                    {
+                        await _emailService.EnviarAcessoResponsavelAsync(emailNormalizado, request.NomeResponsavel, senhaTemporaria, ct);
+                        emailLog.MarcarEnviado();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Falha ao enviar email de acesso para responsável {Email}", emailNormalizado);
+                        emailLog.MarcarFalha(ex.Message);
+                    }
+                    await _uow.CommitAsync(ct);
                 }
                 else
                 {

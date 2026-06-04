@@ -21,9 +21,9 @@ public class AlunosController : BaseController
     public AlunosController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
-    public async Task<IActionResult> Listar([FromQuery] Guid? escolaId, CancellationToken ct)
+    public async Task<IActionResult> Listar([FromQuery] Guid? escolaId, [FromQuery] DateOnly? excluirFaltasData, CancellationToken ct)
     {
-        var result = await _mediator.Send(new ListarAlunosQuery(escolaId), ct);
+        var result = await _mediator.Send(new ListarAlunosQuery(escolaId, excluirFaltasData), ct);
         return OkResponse(result.Value);
     }
 
