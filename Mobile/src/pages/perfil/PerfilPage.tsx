@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -126,6 +127,7 @@ function AlterarSenhaView({ onBack }: { onBack: () => void }) {
 }
 
 export function PerfilPage() {
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [view, setView] = useState<"perfil" | "senha">("perfil")
   const [biometricAvailable, setBiometricAvailable] = useState(false)
@@ -153,7 +155,14 @@ export function PerfilPage() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="pb-8">
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-lg font-bold text-slate-900">Meu Perfil</h1>
+      </div>
+      <div className="p-4 space-y-6">
       <div className="flex flex-col items-center py-6 space-y-3">
         <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-white shadow-sm">
           <User className="h-12 w-12 text-primary" />
@@ -216,6 +225,7 @@ export function PerfilPage() {
       <p className="text-center text-[10px] text-slate-400 uppercase tracking-widest pt-4">
         TransEscolar v1.0.0
       </p>
+      </div>
     </div>
   )
 }

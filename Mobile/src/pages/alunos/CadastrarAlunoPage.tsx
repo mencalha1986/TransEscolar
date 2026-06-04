@@ -141,7 +141,7 @@ export function CadastrarAlunoPage() {
   return (
     <div className="pb-8">
       <div className="flex items-center gap-3 px-4 py-3 bg-white border-b sticky top-0 z-10">
-        <button onClick={() => navigate("/alunos")} className="text-slate-600 active:opacity-70">
+        <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="text-lg font-bold text-slate-900">Cadastrar Aluno</h1>

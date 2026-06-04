@@ -1,9 +1,10 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { Plus, School, MapPin, Phone, Pencil, Trash2, X, Check } from "lucide-react"
+import { ArrowLeft, Plus, School, MapPin, Phone, Pencil, Trash2, X, Check } from "lucide-react"
 import { useEscolas, useCadastrarEscola, useAtualizarEscola, useDeletarEscola } from "@/hooks/useEscolas"
 import type { EscolaDto } from "@/types/escola"
 import { formatPhone, formatCEP } from "@/lib/masks"
@@ -143,6 +144,7 @@ function EscolaForm({
 }
 
 export function EscolasPage() {
+  const navigate = useNavigate()
   const { data: escolas, isLoading } = useEscolas()
   const { mutateAsync: cadastrar, isPending: cadastrando } = useCadastrarEscola()
   const { mutateAsync: atualizar, isPending: atualizando } = useAtualizarEscola()
@@ -192,11 +194,13 @@ export function EscolasPage() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Escolas</h2>
-          <p className="text-slate-500 text-sm">Escolas atendidas</p>
+    <div className="pb-8">
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-lg font-bold text-slate-900">Escolas</h1>
         </div>
         {!showForm && !editando && (
           <button
@@ -208,6 +212,7 @@ export function EscolasPage() {
           </button>
         )}
       </div>
+      <div className="p-4 space-y-4">
 
       {/* Formulário de cadastro */}
       {showForm && (
@@ -320,6 +325,7 @@ export function EscolasPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }

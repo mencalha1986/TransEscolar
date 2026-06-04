@@ -138,7 +138,7 @@ export function TransportadorDetailPage() {
     <div className="pb-8">
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/backoffice/transportadores")} className="text-slate-600 active:opacity-70">
+          <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="text-lg font-bold text-slate-900">Detalhe do Cliente</h1>

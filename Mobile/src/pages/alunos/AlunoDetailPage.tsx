@@ -62,11 +62,11 @@ export function AlunoDetailPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
         <button
-          onClick={() => navigate("/alunos")}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-slate-600 active:opacity-70"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span className="font-medium">Alunos</span>
+          <span className="font-medium">Voltar</span>
         </button>
         {aluno && (
           <div className="flex items-center gap-3">
