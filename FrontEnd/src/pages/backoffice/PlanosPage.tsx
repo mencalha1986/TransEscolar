@@ -53,7 +53,7 @@ export function PlanosPage() {
       />
 
       {showForm && (
-        <Card>
+        <Card className="max-w-2xl mx-auto">
           <CardContent className="pt-6 grid grid-cols-2 gap-4">
             <div className="space-y-1 col-span-2">
               <Label>Nome</Label>
