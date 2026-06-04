@@ -18,7 +18,7 @@ export function TransportadorDetailPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [editOpen, setEditOpen] = useState(false)
-  const [editForm, setEditForm] = useState({ nomeEmpresa: "", nomeContato: "", email: "", telefone: "" })
+  const [editForm, setEditForm] = useState({ nomeEmpresa: "", nomeContato: "", email: "", telefone: "", planoId: "" })
 
   const { data, isLoading } = useQuery({
     queryKey: ["backoffice", "transportadores", id],
@@ -44,23 +44,32 @@ export function TransportadorDetailPage() {
   })
 
   const atualizar = useMutation({
-    mutationFn: () => backofficeService.atualizarTransportador(id!, {
-      nomeEmpresa: editForm.nomeEmpresa,
-      nomeContato: editForm.nomeContato,
-      email: editForm.email,
-      telefone: editForm.telefone || undefined,
-    }),
+    mutationFn: async () => {
+      await backofficeService.atualizarTransportador(id!, {
+        nomeEmpresa: editForm.nomeEmpresa,
+        nomeContato: editForm.nomeContato,
+        email: editForm.email,
+        telefone: editForm.telefone || undefined,
+      })
+      if (editForm.planoId) {
+        await backofficeService.vincularPlano(id!, editForm.planoId)
+      }
+    },
     onSuccess: () => {
       toast.success("Dados atualizados!")
       qc.invalidateQueries({ queryKey: ["backoffice", "transportadores", id] })
+      qc.invalidateQueries({ queryKey: ["backoffice", "transportadores"] })
       setEditOpen(false)
     },
     onError: (err: Error) => toast.error(err.message || "Erro ao atualizar"),
   })
 
+  const { data: planos } = useQuery({ queryKey: ["backoffice", "planos"], queryFn: backofficeService.listarPlanos })
+
   function abrirEdicao() {
     if (!data) return
-    setEditForm({ nomeEmpresa: data.nomeEmpresa, nomeContato: data.nomeContato, email: data.email, telefone: data.telefone ?? "" })
+    const planoAtual = planos?.find(p => p.nome === data.nomePlano)
+    setEditForm({ nomeEmpresa: data.nomeEmpresa, nomeContato: data.nomeContato, email: data.email, telefone: data.telefone ?? "", planoId: planoAtual?.id ?? "" })
     setEditOpen(true)
   }
 
@@ -113,6 +122,19 @@ export function TransportadorDetailPage() {
             <div className="space-y-1">
               <Label>Telefone</Label>
               <Input value={editForm.telefone} onChange={e => setEditForm(f => ({ ...f, telefone: e.target.value }))} placeholder="(11) 99999-0000" />
+            </div>
+            <div className="space-y-1">
+              <Label>Plano</Label>
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={editForm.planoId}
+                onChange={e => setEditForm(f => ({ ...f, planoId: e.target.value }))}
+              >
+                <option value="">Sem plano</option>
+                {(planos ?? []).filter(p => p.ativo).map(p => (
+                  <option key={p.id} value={p.id}>{p.nome} — R$ {p.precoMensal.toFixed(2)}</option>
+                ))}
+              </select>
             </div>
           </div>
           <DialogFooter>

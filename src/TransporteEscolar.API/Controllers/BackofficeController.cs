@@ -14,6 +14,7 @@ using TransporteEscolar.Application.Backoffice.Transportadores.Commands.Atualiza
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.CadastrarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.DeletarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.MarcarVitalicio;
+using TransporteEscolar.Application.Backoffice.Transportadores.Commands.VincularPlano;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ImpersonarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ListarTransportadores;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ObterTransportador;
@@ -122,6 +123,14 @@ public class BackofficeController : BaseController
         return OkResponse(result.Value);
     }
 
+    [HttpPut("transportadores/{id:guid}/plano")]
+    public async Task<IActionResult> VincularPlano(Guid id, [FromBody] VincularPlanoRequest req, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new VincularPlanoTransportadorCommand(id, req.PlanoId), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
     [HttpPost("transportadores/{id:guid}/impersonate")]
     public async Task<IActionResult> Impersonar(Guid id, CancellationToken ct)
     {
@@ -208,6 +217,7 @@ public class BackofficeController : BaseController
 
 public record CadastrarTransportadorRequest(string NomeEmpresa, string NomeContato, string CpfCnpj, string Email, string? Telefone);
 public record AtualizarTransportadorRequest(string NomeEmpresa, string NomeContato, string Email, string? Telefone);
+public record VincularPlanoRequest(Guid PlanoId);
 public record MarcarVitalicioRequest(bool Vitalicio);
 public record AlterarStatusRequest(StatusTransportador Status);
 public record CriarPlanoRequest(string Nome, decimal PrecoMensal, int? LimiteAlunos, string? Descricao, int? LimiteRotas = null, int? RetencaoHistoricoDias = null);
