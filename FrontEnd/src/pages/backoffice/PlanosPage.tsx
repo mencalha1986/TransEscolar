@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { backofficeService } from "@/services/backoffice.service"
 
@@ -52,9 +52,12 @@ export function PlanosPage() {
         actions={<Button onClick={() => setShowForm(!showForm)}>+ Novo Plano</Button>}
       />
 
-      {showForm && (
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="pt-6 grid grid-cols-2 gap-4">
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Plano</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1 col-span-2">
               <Label>Nome</Label>
               <Input value={form.nome} onChange={set("nome")} placeholder="Básico, Profissional..." />
@@ -64,28 +67,30 @@ export function PlanosPage() {
               <Input type="number" value={form.precoMensal} onChange={set("precoMensal")} />
             </div>
             <div className="space-y-1">
-              <Label>Limite de Alunos (vazio = ilimitado)</Label>
-              <Input type="number" value={form.limiteAlunos} onChange={set("limiteAlunos")} />
+              <Label>Limite de Alunos</Label>
+              <Input type="number" value={form.limiteAlunos} onChange={set("limiteAlunos")} placeholder="Ilimitado" />
             </div>
             <div className="space-y-1">
-              <Label>Limite de Rotas (vazio = ilimitado)</Label>
-              <Input type="number" value={form.limiteRotas} onChange={set("limiteRotas")} />
+              <Label>Limite de Rotas</Label>
+              <Input type="number" value={form.limiteRotas} onChange={set("limiteRotas")} placeholder="Ilimitado" />
             </div>
             <div className="space-y-1">
-              <Label>Retenção de Histórico em dias (vazio = ilimitado)</Label>
-              <Input type="number" value={form.retencaoHistoricoDias} onChange={set("retencaoHistoricoDias")} />
+              <Label>Retenção de Histórico (dias)</Label>
+              <Input type="number" value={form.retencaoHistoricoDias} onChange={set("retencaoHistoricoDias")} placeholder="Ilimitado" />
             </div>
             <div className="space-y-1 col-span-2">
               <Label>Descrição</Label>
               <Input value={form.descricao} onChange={set("descricao")} />
             </div>
-            <div className="col-span-2 flex gap-2">
-              <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>Salvar</Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Table>
         <TableHeader>
