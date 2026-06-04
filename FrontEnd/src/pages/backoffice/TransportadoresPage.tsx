@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { Trash2 } from "lucide-react"
+import { Trash2, Star } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -72,7 +72,12 @@ export function TransportadoresPage() {
           <TableBody>
             {(data ?? []).map((t) => (
               <TableRow key={t.id}>
-                <TableCell className="font-medium">{t.nomeEmpresa}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="flex items-center gap-1.5">
+                    {t.nomeEmpresa}
+                    {t.vitalicio && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />}
+                  </span>
+                </TableCell>
                 <TableCell>{t.nomeContato}</TableCell>
                 <TableCell>{t.email}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{t.nomePlano ?? "—"}</TableCell>

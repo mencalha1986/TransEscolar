@@ -9,6 +9,7 @@ export interface TransportadorResumo {
   status: StatusTransportador
   criadoEm: string
   nomePlano?: string
+  vitalicio: boolean
 }
 
 export interface TransportadorDetalhe {
