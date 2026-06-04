@@ -28,7 +28,7 @@ export function AssinaturasPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Transportador</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Plano</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Próximo Vencimento</TableHead>
