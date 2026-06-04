@@ -10,6 +10,7 @@ using TransporteEscolar.Application.Backoffice.Planos.Commands.CriarPlano;
 using TransporteEscolar.Application.Backoffice.Planos.Commands.RemoverPlano;
 using TransporteEscolar.Application.Backoffice.Planos.Queries.ListarPlanos;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.AlterarStatusTransportador;
+using TransporteEscolar.Application.Backoffice.Transportadores.Commands.AtualizarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.CadastrarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.DeletarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.MarcarVitalicio;
@@ -79,6 +80,14 @@ public class BackofficeController : BaseController
             return ErrorResponse(result.Error);
 
         return CreatedResponse(nameof(ObterTransportador), new { id = result.Value }, result.Value);
+    }
+
+    [HttpPut("transportadores/{id:guid}")]
+    public async Task<IActionResult> AtualizarTransportador(Guid id, [FromBody] AtualizarTransportadorRequest req, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AtualizarTransportadorCommand(id, req.NomeEmpresa, req.NomeContato, req.Email, req.Telefone), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
     }
 
     [HttpGet("transportadores/{id:guid}")]
@@ -198,6 +207,7 @@ public class BackofficeController : BaseController
 }
 
 public record CadastrarTransportadorRequest(string NomeEmpresa, string NomeContato, string CpfCnpj, string Email, string? Telefone);
+public record AtualizarTransportadorRequest(string NomeEmpresa, string NomeContato, string Email, string? Telefone);
 public record MarcarVitalicioRequest(bool Vitalicio);
 public record AlterarStatusRequest(StatusTransportador Status);
 public record CriarPlanoRequest(string Nome, decimal PrecoMensal, int? LimiteAlunos, string? Descricao, int? LimiteRotas = null, int? RetencaoHistoricoDias = null);

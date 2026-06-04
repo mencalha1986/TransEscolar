@@ -41,6 +41,9 @@ export const backofficeService = {
   cadastrarTransportador: (data: CadastrarTransportadorRequest) =>
     api.post<ApiResponse<string>>(`${BASE}/transportadores`, data).then(unwrap),
 
+  atualizarTransportador: (id: string, data: { nomeEmpresa: string; nomeContato: string; email: string; telefone?: string }) =>
+    api.put<ApiResponse<boolean>>(`${BASE}/transportadores/${id}`, data).then(unwrap),
+
   alterarStatus: (id: string, status: StatusTransportador) =>
     api.patch<ApiResponse<boolean>>(`${BASE}/transportadores/${id}/status`, { status }),
 

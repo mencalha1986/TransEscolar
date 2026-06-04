@@ -1,11 +1,15 @@
 import { useParams, useNavigate } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 import { toast } from "sonner"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { backofficeService } from "@/services/backoffice.service"
 import type { StatusTransportador } from "@/types/backoffice"
 
@@ -13,6 +17,8 @@ export function TransportadorDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [editOpen, setEditOpen] = useState(false)
+  const [editForm, setEditForm] = useState({ nomeEmpresa: "", nomeContato: "", email: "", telefone: "" })
 
   const { data, isLoading } = useQuery({
     queryKey: ["backoffice", "transportadores", id],
@@ -37,6 +43,27 @@ export function TransportadorDetailPage() {
     onError: () => toast.error("Erro ao alterar status vitalício"),
   })
 
+  const atualizar = useMutation({
+    mutationFn: () => backofficeService.atualizarTransportador(id!, {
+      nomeEmpresa: editForm.nomeEmpresa,
+      nomeContato: editForm.nomeContato,
+      email: editForm.email,
+      telefone: editForm.telefone || undefined,
+    }),
+    onSuccess: () => {
+      toast.success("Dados atualizados!")
+      qc.invalidateQueries({ queryKey: ["backoffice", "transportadores", id] })
+      setEditOpen(false)
+    },
+    onError: (err: Error) => toast.error(err.message || "Erro ao atualizar"),
+  })
+
+  function abrirEdicao() {
+    if (!data) return
+    setEditForm({ nomeEmpresa: data.nomeEmpresa, nomeContato: data.nomeContato, email: data.email, telefone: data.telefone ?? "" })
+    setEditOpen(true)
+  }
+
   const impersonar = useMutation({
     mutationFn: () => backofficeService.impersonar(id!),
     onSuccess: (token) => {
@@ -57,12 +84,45 @@ export function TransportadorDetailPage() {
         actions={
           <>
             <Button variant="outline" onClick={() => navigate(-1)}>Voltar</Button>
+            <Button variant="outline" onClick={abrirEdicao}>Editar</Button>
             <Button onClick={() => impersonar.mutate()} disabled={impersonar.isPending}>
               Acessar como este cliente
             </Button>
           </>
         }
       />
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Nome da Empresa</Label>
+              <Input value={editForm.nomeEmpresa} onChange={e => setEditForm(f => ({ ...f, nomeEmpresa: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Nome do Contato</Label>
+              <Input value={editForm.nomeContato} onChange={e => setEditForm(f => ({ ...f, nomeContato: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Email</Label>
+              <Input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label>Telefone</Label>
+              <Input value={editForm.telefone} onChange={e => setEditForm(f => ({ ...f, telefone: e.target.value }))} placeholder="(11) 99999-0000" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button onClick={() => atualizar.mutate()} disabled={atualizar.isPending}>
+              {atualizar.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
         <Card>
