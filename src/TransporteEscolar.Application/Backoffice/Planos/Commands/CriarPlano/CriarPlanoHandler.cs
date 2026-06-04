@@ -14,7 +14,7 @@ public class CriarPlanoHandler : IRequestHandler<CriarPlanoCommand, Result<Guid>
 
     public async Task<Result<Guid>> Handle(CriarPlanoCommand request, CancellationToken ct)
     {
-        var result = Plano.Criar(request.Nome, request.PrecoMensal, request.LimiteAlunos, request.Descricao);
+        var result = Plano.Criar(request.Nome, request.PrecoMensal, request.LimiteAlunos, request.Descricao, request.LimiteRotas, request.RetencaoHistoricoDias);
         if (!result.IsSuccess)
             return Result<Guid>.Failure(result.Error);
 

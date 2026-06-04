@@ -446,6 +446,12 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.Property<int?>("LimiteAlunos")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("LimiteRotas")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("RetencaoHistoricoDias")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -588,6 +594,10 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
                     b.Property<string>("Telefone")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("Vitalicio")
+                        .HasDefaultValue(false)
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 

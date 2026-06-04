@@ -18,6 +18,9 @@ public class TransportadorRepository : BaseRepository<Transportador>, ITransport
     public async Task<int> ContarAlunosAsync(Guid transportadorId, CancellationToken ct = default) =>
         await Ctx.Alunos.IgnoreQueryFilters().CountAsync(a => a.TransportadorId == transportadorId, ct);
 
+    public async Task<int> ContarTransportesAsync(Guid transportadorId, CancellationToken ct = default) =>
+        await Ctx.Transportes.IgnoreQueryFilters().CountAsync(t => t.TransportadorId == transportadorId, ct);
+
     public async Task DeletarEmCascataAsync(Guid id, CancellationToken ct = default)
     {
         var assinaturaIds = await Ctx.Assinaturas

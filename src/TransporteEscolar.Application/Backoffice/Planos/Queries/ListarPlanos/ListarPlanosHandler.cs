@@ -12,6 +12,6 @@ public class ListarPlanosHandler : IRequestHandler<ListarPlanosQuery, IEnumerabl
     public async Task<IEnumerable<PlanoDto>> Handle(ListarPlanosQuery request, CancellationToken ct)
     {
         var planos = await _repo.ListarTodosAsync(ct);
-        return planos.Select(p => new PlanoDto(p.Id, p.Nome, p.Descricao, p.PrecoMensal, p.LimiteAlunos, p.Ativo));
+        return planos.Select(p => new PlanoDto(p.Id, p.Nome, p.Descricao, p.PrecoMensal, p.LimiteAlunos, p.LimiteRotas, p.RetencaoHistoricoDias, p.Ativo));
     }
 }

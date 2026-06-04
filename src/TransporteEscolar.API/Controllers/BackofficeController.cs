@@ -11,6 +11,7 @@ using TransporteEscolar.Application.Backoffice.Planos.Queries.ListarPlanos;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.AlterarStatusTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.CadastrarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.DeletarTransportador;
+using TransporteEscolar.Application.Backoffice.Transportadores.Commands.MarcarVitalicio;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ImpersonarTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ListarTransportadores;
 using TransporteEscolar.Application.Backoffice.Transportadores.Queries.ObterTransportador;
@@ -95,6 +96,14 @@ public class BackofficeController : BaseController
         return OkResponse(result.Value);
     }
 
+    [HttpPatch("transportadores/{id:guid}/vitalicio")]
+    public async Task<IActionResult> MarcarVitalicio(Guid id, [FromBody] MarcarVitalicioRequest req, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new MarcarVitalicioCommand(id, req.Vitalicio), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
     [HttpDelete("transportadores/{id:guid}")]
     public async Task<IActionResult> DeletarTransportador(Guid id, CancellationToken ct)
     {
@@ -140,7 +149,7 @@ public class BackofficeController : BaseController
     [HttpPost("planos")]
     public async Task<IActionResult> CriarPlano([FromBody] CriarPlanoRequest req, CancellationToken ct)
     {
-        var result = await _mediator.Send(new CriarPlanoCommand(req.Nome, req.PrecoMensal, req.LimiteAlunos, req.Descricao), ct);
+        var result = await _mediator.Send(new CriarPlanoCommand(req.Nome, req.PrecoMensal, req.LimiteAlunos, req.Descricao, req.LimiteRotas, req.RetencaoHistoricoDias), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }
@@ -180,7 +189,8 @@ public class BackofficeController : BaseController
 }
 
 public record CadastrarTransportadorRequest(string NomeEmpresa, string NomeContato, string CpfCnpj, string Email, string? Telefone, Guid? PlanoId);
+public record MarcarVitalicioRequest(bool Vitalicio);
 public record AlterarStatusRequest(StatusTransportador Status);
-public record CriarPlanoRequest(string Nome, decimal PrecoMensal, int? LimiteAlunos, string? Descricao);
+public record CriarPlanoRequest(string Nome, decimal PrecoMensal, int? LimiteAlunos, string? Descricao, int? LimiteRotas = null, int? RetencaoHistoricoDias = null);
 public record CriarAssinaturaRequest(Guid PlanoId, decimal ValorContratado);
 public record RegistrarPagamentoRequest(decimal ValorPago, int CompetenciaMes, int CompetenciaAno, string? Observacao);

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Transporte.Commands.RegistrarCheckIn;
 using TransporteEscolar.Application.Transporte.Queries.ListarCheckIns;
+using TransporteEscolar.Application.Transportes.Commands.CadastrarTransporte;
 using TransporteEscolar.Application.Transportes.Queries.ListarTransportes;
 using TransporteEscolar.Domain.Entities;
 
@@ -22,6 +23,14 @@ public class TransportesController : BaseController
     {
         var result = await _mediator.Send(new ListarTransportesQuery(), ct);
         return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Cadastrar([FromBody] CadastrarTransporteRequest req, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CadastrarTransporteCommand(req.Placa, req.NomeMotorista, req.CapacidadeMaxima), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
     }
 
     [HttpGet("checkins")]
@@ -44,4 +53,5 @@ public class TransportesController : BaseController
     }
 }
 
+public record CadastrarTransporteRequest(string Placa, string NomeMotorista, int CapacidadeMaxima);
 public record RegistrarCheckInRequest(Guid AlunoId, TipoCheckIn Tipo, double? Latitude, double? Longitude);

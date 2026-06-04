@@ -18,6 +18,6 @@ public class ObterTransportadorHandler : IRequestHandler<ObterTransportadorQuery
 
         return new TransportadorDetalheDto(
             t.Id, t.NomeEmpresa, t.NomeContato, t.CpfCnpj, t.Email, t.Telefone,
-            t.Status, t.PlanoId, totalAlunos, t.CriadoEm);
+            t.Status, t.PlanoId, totalAlunos, t.CriadoEm, t.Vitalicio);
     }
 }

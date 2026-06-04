@@ -13,6 +13,8 @@ public class PlanoConfiguration : IEntityTypeConfiguration<Plano>
         builder.Property(p => p.Descricao).HasMaxLength(500);
         builder.Property(p => p.PrecoMensal).IsRequired().HasColumnType("numeric(10,2)");
         builder.Property(p => p.LimiteAlunos);
+        builder.Property(p => p.LimiteRotas);
+        builder.Property(p => p.RetencaoHistoricoDias);
         builder.Property(p => p.Ativo).IsRequired();
     }
 }

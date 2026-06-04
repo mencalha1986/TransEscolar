@@ -13,7 +13,8 @@ public record TransportadorDetalheDto(
     StatusTransportador Status,
     Guid? PlanoId,
     int TotalAlunos,
-    DateTime CriadoEm
+    DateTime CriadoEm,
+    bool Vitalicio
 );
 
 public record ObterTransportadorQuery(Guid Id) : IRequest<TransportadorDetalheDto?>;

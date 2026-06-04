@@ -50,6 +50,9 @@ export const backofficeService = {
   deletarTransportador: (id: string) =>
     api.delete<ApiResponse<boolean>>(`${BASE}/transportadores/${id}`).then(unwrap),
 
+  marcarVitalicio: (id: string, vitalicio: boolean) =>
+    api.patch<ApiResponse<boolean>>(`${BASE}/transportadores/${id}/vitalicio`, { vitalicio }).then(unwrap),
+
   listarPlanos: () =>
     api.get<ApiResponse<Plano[]>>(`${BASE}/planos`).then(unwrapList),
 

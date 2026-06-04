@@ -14,20 +14,29 @@ export function PlanosPage() {
   const qc = useQueryClient()
   const { data } = useQuery({ queryKey: ["backoffice", "planos"], queryFn: backofficeService.listarPlanos })
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ nome: "", precoMensal: "", limiteAlunos: "", descricao: "" })
+  const [form, setForm] = useState({
+    nome: "",
+    precoMensal: "",
+    limiteAlunos: "",
+    limiteRotas: "",
+    retencaoHistoricoDias: "",
+    descricao: "",
+  })
 
   const mutation = useMutation({
     mutationFn: () => backofficeService.criarPlano({
       nome: form.nome,
       precoMensal: Number(form.precoMensal),
       limiteAlunos: form.limiteAlunos ? Number(form.limiteAlunos) : undefined,
+      limiteRotas: form.limiteRotas ? Number(form.limiteRotas) : undefined,
+      retencaoHistoricoDias: form.retencaoHistoricoDias ? Number(form.retencaoHistoricoDias) : undefined,
       descricao: form.descricao || undefined,
     }),
     onSuccess: () => {
       toast.success("Plano criado!")
       qc.invalidateQueries({ queryKey: ["backoffice", "planos"] })
       setShowForm(false)
-      setForm({ nome: "", precoMensal: "", limiteAlunos: "", descricao: "" })
+      setForm({ nome: "", precoMensal: "", limiteAlunos: "", limiteRotas: "", retencaoHistoricoDias: "", descricao: "" })
     },
     onError: () => toast.error("Erro ao criar plano"),
   })
@@ -58,6 +67,14 @@ export function PlanosPage() {
               <Label>Limite de Alunos (vazio = ilimitado)</Label>
               <Input type="number" value={form.limiteAlunos} onChange={set("limiteAlunos")} />
             </div>
+            <div className="space-y-1">
+              <Label>Limite de Rotas (vazio = ilimitado)</Label>
+              <Input type="number" value={form.limiteRotas} onChange={set("limiteRotas")} />
+            </div>
+            <div className="space-y-1">
+              <Label>Retenção de Histórico em dias (vazio = ilimitado)</Label>
+              <Input type="number" value={form.retencaoHistoricoDias} onChange={set("retencaoHistoricoDias")} />
+            </div>
             <div className="space-y-1 col-span-2">
               <Label>Descrição</Label>
               <Input value={form.descricao} onChange={set("descricao")} />
@@ -75,7 +92,9 @@ export function PlanosPage() {
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Preço</TableHead>
-            <TableHead>Limite de Alunos</TableHead>
+            <TableHead>Alunos</TableHead>
+            <TableHead>Rotas</TableHead>
+            <TableHead>Histórico</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -85,6 +104,8 @@ export function PlanosPage() {
               <TableCell className="font-medium">{p.nome}</TableCell>
               <TableCell>R$ {p.precoMensal.toFixed(2)}</TableCell>
               <TableCell>{p.limiteAlunos ?? "Ilimitado"}</TableCell>
+              <TableCell>{p.limiteRotas ?? "Ilimitado"}</TableCell>
+              <TableCell>{p.retencaoHistoricoDias ? `${p.retencaoHistoricoDias} dias` : "Ilimitado"}</TableCell>
               <TableCell>
                 <Badge variant={p.ativo ? "default" : "secondary"}>{p.ativo ? "Ativo" : "Inativo"}</Badge>
               </TableCell>

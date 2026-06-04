@@ -28,6 +28,15 @@ export function TransportadorDetailPage() {
     },
   })
 
+  const toggleVitalicio = useMutation({
+    mutationFn: (vitalicio: boolean) => backofficeService.marcarVitalicio(id!, vitalicio),
+    onSuccess: () => {
+      toast.success(data?.vitalicio ? "Acesso vitalício revogado." : "Cliente marcado como vitalício!")
+      qc.invalidateQueries({ queryKey: ["backoffice", "transportadores", id] })
+    },
+    onError: () => toast.error("Erro ao alterar status vitalício"),
+  })
+
   const impersonar = useMutation({
     mutationFn: () => backofficeService.impersonar(id!),
     onSuccess: (token) => {
@@ -55,7 +64,7 @@ export function TransportadorDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground">Status</CardTitle></CardHeader>
           <CardContent>
@@ -75,10 +84,36 @@ export function TransportadorDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-sm text-muted-foreground">Acesso Vitalício</CardTitle></CardHeader>
+          <CardContent>
+            <Badge variant={data.vitalicio ? "default" : "secondary"}>
+              {data.vitalicio ? "Vitalício" : "Normal"}
+            </Badge>
+            <p className="text-xs text-muted-foreground mt-1">
+              {data.vitalicio
+                ? "Sem limites e sem cobrança. Cliente piloto."
+                : "Sujeito às regras do plano contratado."}
+            </p>
+            <div className="mt-3">
+              <Button
+                size="sm"
+                variant={data.vitalicio ? "destructive" : "outline"}
+                disabled={toggleVitalicio.isPending}
+                onClick={() => toggleVitalicio.mutate(!data.vitalicio)}
+              >
+                {data.vitalicio ? "Revogar vitalício" : "Conceder vitalício"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground">Total de Alunos</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{data.totalAlunos}</p></CardContent>
         </Card>
+
         <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground">Contato</CardTitle></CardHeader>
           <CardContent>

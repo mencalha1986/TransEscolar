@@ -21,6 +21,7 @@ export interface TransportadorDetalhe {
   planoId?: string
   totalAlunos: number
   criadoEm: string
+  vitalicio: boolean
 }
 
 export interface Plano {
@@ -29,6 +30,8 @@ export interface Plano {
   descricao?: string
   precoMensal: number
   limiteAlunos?: number
+  limiteRotas?: number
+  retencaoHistoricoDias?: number
   ativo: boolean
 }
 
@@ -72,6 +75,8 @@ export interface CriarPlanoRequest {
   precoMensal: number
   limiteAlunos?: number
   descricao?: string
+  limiteRotas?: number
+  retencaoHistoricoDias?: number
 }
 
 export interface CriarAssinaturaRequest {

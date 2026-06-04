@@ -145,6 +145,10 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
 
     private async Task<string?> VerificarLimitePlanAsync(Guid transportadorId, CancellationToken ct)
     {
+        var transportador = await _transportadorRepo.ObterPorIdAsync(transportadorId, ct);
+        if (transportador?.Vitalicio == true)
+            return null;
+
         var assinatura = await _assinaturaRepo.ObterPorTransportadorAsync(transportadorId, ct);
         if (assinatura is null)
             return null;
