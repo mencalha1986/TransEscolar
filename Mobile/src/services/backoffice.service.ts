@@ -2,6 +2,7 @@ import { api } from "@/lib/axios"
 import type { ApiResponse } from "@/types/api"
 import type {
   Assinatura,
+  AtualizarTransportadorRequest,
   CadastrarTransportadorRequest,
   CriarAssinaturaRequest,
   CriarPlanoRequest,
@@ -47,6 +48,15 @@ export const backofficeService = {
   alterarStatus: (id: string, status: StatusTransportador) =>
     api.patch<ApiResponse<boolean>>(`${BASE}/transportadores/${id}/status`, { status }),
 
+  atualizarTransportador: (id: string, data: AtualizarTransportadorRequest) =>
+    api.put<ApiResponse<boolean>>(`${BASE}/transportadores/${id}`, data).then(unwrap),
+
+  vincularPlano: (id: string, planoId: string) =>
+    api.put<ApiResponse<boolean>>(`${BASE}/transportadores/${id}/plano`, { planoId }).then(unwrap),
+
+  marcarVitalicio: (id: string, vitalicio: boolean) =>
+    api.patch<ApiResponse<boolean>>(`${BASE}/transportadores/${id}/vitalicio`, { vitalicio }).then(unwrap),
+
   impersonar: (id: string) =>
     api
       .post<ApiResponse<{ token: string }>>(`${BASE}/transportadores/${id}/impersonate`)
@@ -57,6 +67,9 @@ export const backofficeService = {
 
   criarPlano: (data: CriarPlanoRequest) =>
     api.post<ApiResponse<string>>(`${BASE}/planos`, data).then(unwrap),
+
+  removerPlano: (id: string) =>
+    api.delete<ApiResponse<boolean>>(`${BASE}/planos/${id}`).then(unwrap),
 
   listarAssinaturas: () =>
     api.get<ApiResponse<Assinatura[]>>(`${BASE}/assinaturas`).then(unwrapList),

@@ -8,6 +8,8 @@ export interface TransportadorResumo {
   email: string
   status: StatusTransportador
   criadoEm: string
+  nomePlano?: string
+  vitalicio: boolean
 }
 
 export interface TransportadorDetalhe {
@@ -18,9 +20,10 @@ export interface TransportadorDetalhe {
   email: string
   telefone?: string
   status: StatusTransportador
-  planoId?: string
   totalAlunos: number
   criadoEm: string
+  vitalicio: boolean
+  nomePlano?: string
 }
 
 export interface Plano {
@@ -29,13 +32,18 @@ export interface Plano {
   descricao?: string
   precoMensal: number
   limiteAlunos?: number
+  limiteRotas?: number
+  retencaoHistoricoDias?: number
   ativo: boolean
+  totalClientes: number
 }
 
 export interface Assinatura {
   id: string
   transportadorId: string
+  nomeTransportador: string
   planoId: string
+  nomePlano: string
   valorContratado: number
   status: StatusAssinatura
   dataProximoVencimento: string
@@ -78,13 +86,21 @@ export interface CadastrarTransportadorRequest {
   cpfCnpj: string
   email: string
   telefone?: string
-  planoId?: string
+}
+
+export interface AtualizarTransportadorRequest {
+  nomeEmpresa: string
+  nomeContato: string
+  email: string
+  telefone?: string
 }
 
 export interface CriarPlanoRequest {
   nome: string
   precoMensal: number
   limiteAlunos?: number
+  limiteRotas?: number
+  retencaoHistoricoDias?: number
   descricao?: string
 }
 

@@ -2,6 +2,7 @@ import { useQuery, useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import { backofficeService } from "@/services/backoffice.service"
 import type {
+  AtualizarTransportadorRequest,
   CadastrarTransportadorRequest,
   CriarAssinaturaRequest,
   CriarPlanoRequest,
@@ -61,6 +62,50 @@ export function useAlterarStatusTransportador() {
     onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportadores })
       queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportador(id) })
+    },
+  })
+}
+
+export function useAtualizarTransportador() {
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: AtualizarTransportadorRequest }) =>
+      backofficeService.atualizarTransportador(id, data),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportadores })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportador(id) })
+    },
+  })
+}
+
+export function useVincularPlano() {
+  return useMutation({
+    mutationFn: ({ id, planoId }: { id: string; planoId: string }) =>
+      backofficeService.vincularPlano(id, planoId),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportadores })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportador(id) })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.assinaturas })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.planos })
+    },
+  })
+}
+
+export function useMarcarVitalicio() {
+  return useMutation({
+    mutationFn: ({ id, vitalicio }: { id: string; vitalicio: boolean }) =>
+      backofficeService.marcarVitalicio(id, vitalicio),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportadores })
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.transportador(id) })
+    },
+  })
+}
+
+export function useRemoverPlano() {
+  return useMutation({
+    mutationFn: (id: string) => backofficeService.removerPlano(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: BACKOFFICE_KEYS.planos })
     },
   })
 }

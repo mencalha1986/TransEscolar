@@ -23,7 +23,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("pt-BR")
 }
 
-function AssinaturaCard({ assinatura }: { assinatura: { id: string; transportadorId: string; planoId: string; valorContratado: number; status: StatusAssinatura; dataProximoVencimento: string } }) {
+function AssinaturaCard({ assinatura }: { assinatura: { id: string; transportadorId: string; nomeTransportador: string; planoId: string; nomePlano: string; valorContratado: number; status: StatusAssinatura; dataProximoVencimento: string } }) {
   const [expanded, setExpanded] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const now = new Date()
@@ -67,14 +67,13 @@ function AssinaturaCard({ assinatura }: { assinatura: { id: string; transportado
         </div>
         <div className="flex-1 min-w-0 text-left">
           <div className="flex items-center gap-2">
-            <p className="font-mono text-xs text-slate-500 truncate">
-              {assinatura.transportadorId.slice(0, 8)}...
-            </p>
+            <p className="font-bold text-slate-900 truncate">{assinatura.nomeTransportador}</p>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[assinatura.status]}`}>
               {assinatura.status.toUpperCase()}
             </span>
           </div>
-          <p className="text-lg font-bold text-primary mt-1">{formatCurrency(assinatura.valorContratado)}/mês</p>
+          <p className="text-xs text-primary font-medium mt-0.5">{assinatura.nomePlano}</p>
+          <p className="text-lg font-bold text-slate-800 mt-1">{formatCurrency(assinatura.valorContratado)}/mês</p>
           <p className="text-xs text-slate-500 mt-0.5">
             Próximo vencimento: {formatDate(assinatura.dataProximoVencimento)}
           </p>

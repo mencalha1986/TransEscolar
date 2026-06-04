@@ -3,13 +3,15 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { Plus, ClipboardList, X } from "lucide-react"
-import { usePlanos, useCriarPlano } from "@/hooks/useBackoffice"
+import { Plus, ClipboardList, X, Trash2, Users } from "lucide-react"
+import { usePlanos, useCriarPlano, useRemoverPlano } from "@/hooks/useBackoffice"
 
 const schema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   precoMensal: z.string().min(1, "Preço é obrigatório"),
   limiteAlunos: z.string().optional(),
+  limiteRotas: z.string().optional(),
+  retencaoHistoricoDias: z.string().optional(),
   descricao: z.string().optional(),
 })
 
@@ -25,14 +27,12 @@ const inputClass =
 export function PlanosPage() {
   const { data: planos, isLoading } = usePlanos()
   const { mutateAsync: criarPlano, isPending: criando } = useCriarPlano()
+  const remover = useRemoverPlano()
   const [showForm, setShowForm] = useState(false)
+  const [confirmRemoverId, setConfirmRemoverId] = useState<string | null>(null)
+  const [confirmRemovedNome, setConfirmRemovedNome] = useState("")
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   async function onSubmit(values: FormValues) {
     try {
@@ -40,6 +40,8 @@ export function PlanosPage() {
         nome: values.nome,
         precoMensal: Number(values.precoMensal),
         limiteAlunos: values.limiteAlunos ? Number(values.limiteAlunos) : undefined,
+        limiteRotas: values.limiteRotas ? Number(values.limiteRotas) : undefined,
+        retencaoHistoricoDias: values.retencaoHistoricoDias ? Number(values.retencaoHistoricoDias) : undefined,
         descricao: values.descricao || undefined,
       })
       toast.success("Plano criado!")
@@ -47,6 +49,19 @@ export function PlanosPage() {
       setShowForm(false)
     } catch (err) {
       toast.error((err as Error).message || "Erro ao criar plano")
+    }
+  }
+
+  async function handleConfirmRemover() {
+    if (!confirmRemoverId) return
+    try {
+      await remover.mutateAsync(confirmRemoverId)
+      toast.success("Plano removido!")
+    } catch (err) {
+      toast.error((err as Error).message || "Erro ao remover plano")
+    } finally {
+      setConfirmRemoverId(null)
+      setConfirmRemovedNome("")
     }
   }
 
@@ -68,7 +83,6 @@ export function PlanosPage() {
         )}
       </div>
 
-      {/* Formulário */}
       {showForm && (
         <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
           <div className="flex items-center justify-between">
@@ -86,23 +100,20 @@ export function PlanosPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-1">Preço Mensal (R$) *</p>
-                <input
-                  type="number"
-                  step="0.01"
-                  className={inputClass}
-                  placeholder="99,90"
-                  {...register("precoMensal")}
-                />
+                <input type="number" step="0.01" className={inputClass} placeholder="99,90" {...register("precoMensal")} />
                 {errors.precoMensal && <p className="text-red-600 text-xs mt-1">{errors.precoMensal.message}</p>}
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-600 mb-1">Limite de Alunos</p>
-                <input
-                  type="number"
-                  className={inputClass}
-                  placeholder="Ilimitado"
-                  {...register("limiteAlunos")}
-                />
+                <input type="number" className={inputClass} placeholder="Ilimitado" {...register("limiteAlunos")} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-1">Limite de Rotas</p>
+                <input type="number" className={inputClass} placeholder="Ilimitado" {...register("limiteRotas")} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-600 mb-1">Histórico (dias)</p>
+                <input type="number" className={inputClass} placeholder="Ilimitado" {...register("retencaoHistoricoDias")} />
               </div>
             </div>
             <div>
@@ -110,18 +121,12 @@ export function PlanosPage() {
               <input className={inputClass} placeholder="Descrição opcional" {...register("descricao")} />
             </div>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => { setShowForm(false); reset() }}
-                className="flex-1 h-11 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm active:opacity-70"
-              >
+              <button type="button" onClick={() => { setShowForm(false); reset() }}
+                className="flex-1 h-11 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm active:opacity-70">
                 Cancelar
               </button>
-              <button
-                type="submit"
-                disabled={criando}
-                className="flex-1 h-11 rounded-xl bg-primary text-white font-semibold text-sm active:opacity-80 disabled:opacity-60"
-              >
+              <button type="submit" disabled={criando}
+                className="flex-1 h-11 rounded-xl bg-primary text-white font-semibold text-sm active:opacity-80 disabled:opacity-60">
                 {criando ? "Criando..." : "Criar"}
               </button>
             </div>
@@ -129,7 +134,6 @@ export function PlanosPage() {
         </div>
       )}
 
-      {/* Lista */}
       {isLoading ? (
         <div className="py-10 text-center text-slate-500">Carregando...</div>
       ) : planos?.length === 0 ? (
@@ -150,16 +154,60 @@ export function PlanosPage() {
                     </span>
                   </div>
                   <p className="text-sm font-bold text-primary mt-1">{formatCurrency(plano.precoMensal)}/mês</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {plano.limiteAlunos ? `Até ${plano.limiteAlunos} alunos` : "Alunos ilimitados"}
-                  </p>
-                  {plano.descricao && (
-                    <p className="text-xs text-slate-400 mt-0.5">{plano.descricao}</p>
-                  )}
+                  <div className="flex items-center gap-3 mt-1 flex-wrap">
+                    <p className="text-xs text-slate-500">
+                      {plano.limiteAlunos ? `Até ${plano.limiteAlunos} alunos` : "Alunos ilimitados"}
+                    </p>
+                    {plano.limiteRotas && (
+                      <p className="text-xs text-slate-500">{plano.limiteRotas} rotas</p>
+                    )}
+                    {plano.retencaoHistoricoDias && (
+                      <p className="text-xs text-slate-500">{plano.retencaoHistoricoDias}d histórico</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <Users className="h-3.5 w-3.5 text-slate-400" />
+                    <p className="text-xs text-slate-500">{plano.totalClientes} cliente{plano.totalClientes !== 1 ? "s" : ""}</p>
+                  </div>
+                  {plano.descricao && <p className="text-xs text-slate-400 mt-0.5">{plano.descricao}</p>}
                 </div>
+                <button
+                  onClick={() => { setConfirmRemoverId(plano.id); setConfirmRemovedNome(plano.nome) }}
+                  className="p-2 text-red-400 active:opacity-70 flex-shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {confirmRemoverId && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-8">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-xl">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">Remover plano</h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Remover <strong>{confirmRemovedNome}</strong>? Planos com clientes vinculados não podem ser removidos.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setConfirmRemoverId(null); setConfirmRemovedNome("") }}
+                className="flex-1 h-11 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 active:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmRemover}
+                disabled={remover.isPending}
+                className="flex-1 h-11 rounded-xl bg-red-500 text-sm font-semibold text-white active:opacity-80 disabled:opacity-50"
+              >
+                {remover.isPending ? "Removendo..." : "Remover"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

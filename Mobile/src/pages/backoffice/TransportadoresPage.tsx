@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useTransportadores, useDeletarTransportador } from "@/hooks/useBackoffice"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
-import { Plus, Building2, ChevronRight, LogIn, Trash2 } from "lucide-react"
+import { Plus, Building2, ChevronRight, LogIn, Trash2, Star } from "lucide-react"
 import type { StatusTransportador } from "@/types/backoffice"
 
 const STATUS_COLORS: Record<StatusTransportador, string> = {
@@ -81,11 +81,13 @@ export function TransportadoresPage() {
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-slate-900 truncate">{t.nomeEmpresa}</p>
+                    {t.vitalicio && <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[t.status]}`}>
                       {t.status.toUpperCase()}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5 truncate">{t.email}</p>
+                  {t.nomePlano && <p className="text-xs text-primary font-medium mt-0.5">{t.nomePlano}</p>}
                   <p className="text-xs text-slate-400">Desde {formatDate(t.criadoEm)}</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400 flex-shrink-0" />
