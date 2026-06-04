@@ -59,6 +59,9 @@ export const backofficeService = {
   criarPlano: (data: CriarPlanoRequest) =>
     api.post<ApiResponse<string>>(`${BASE}/planos`, data).then(unwrap),
 
+  removerPlano: (id: string) =>
+    api.delete<ApiResponse<boolean>>(`${BASE}/planos/${id}`).then(unwrap),
+
   listarAssinaturas: () =>
     api.get<ApiResponse<Assinatura[]>>(`${BASE}/assinaturas`).then(unwrapList),
 

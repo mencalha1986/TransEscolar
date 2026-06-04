@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TransporteEscolar.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+    [Microsoft.EntityFrameworkCore.Infrastructure.DbContext(typeof(TransporteEscolar.Infrastructure.Persistence.AppDbContext))]
+    [Microsoft.EntityFrameworkCore.Migrations.Migration("20260604120000_AddLimiteRotasRetencaoHistorico")]
     public partial class AddLimiteRotasRetencaoHistorico : Migration
     {
         /// <inheritdoc />
@@ -26,6 +27,7 @@ namespace TransporteEscolar.Infrastructure.Persistence.Migrations
             migrationBuilder.InsertData(
                 table: "Planos",
                 columns: new[] { "Id", "Ativo", "AtualizadoEm", "CriadoEm", "Descricao", "LimiteAlunos", "LimiteRotas", "Nome", "PrecoMensal", "RetencaoHistoricoDias" },
+                columnTypes: new[] { "uuid", "boolean", "timestamp with time zone", "timestamp with time zone", "character varying(500)", "integer", "integer", "character varying(100)", "numeric(10,2)", "integer" },
                 values: new object[,]
                 {
                     {

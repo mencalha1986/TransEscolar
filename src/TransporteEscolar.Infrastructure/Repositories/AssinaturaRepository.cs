@@ -39,4 +39,7 @@ public class AssinaturaRepository : BaseRepository<Assinatura>, IAssinaturaRepos
                 && a.DataProximoVencimento.Date >= referencia.Date
                 && a.DataProximoVencimento.Date <= referencia.AddDays(diasAviso).Date)
             .ToListAsync(ct);
+
+    public async Task<bool> ExistePorPlanoAsync(Guid planoId, CancellationToken ct = default) =>
+        await DbSet.IgnoreQueryFilters().AnyAsync(a => a.PlanoId == planoId, ct);
 }

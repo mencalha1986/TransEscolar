@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TransporteEscolar.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
+    [Microsoft.EntityFrameworkCore.Infrastructure.DbContext(typeof(TransporteEscolar.Infrastructure.Persistence.AppDbContext))]
+    [Microsoft.EntityFrameworkCore.Migrations.Migration("20260604140000_RemovePlanoIdFromTransportador")]
     public partial class RemovePlanoIdFromTransportador : Migration
     {
         /// <inheritdoc />

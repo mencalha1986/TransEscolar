@@ -23,6 +23,15 @@ export function PlanosPage() {
     descricao: "",
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => backofficeService.removerPlano(id),
+    onSuccess: () => {
+      toast.success("Plano removido!")
+      qc.invalidateQueries({ queryKey: ["backoffice", "planos"] })
+    },
+    onError: (err: Error) => toast.error(err.message || "Erro ao remover plano"),
+  })
+
   const mutation = useMutation({
     mutationFn: () => backofficeService.criarPlano({
       nome: form.nome,
@@ -101,6 +110,7 @@ export function PlanosPage() {
             <TableHead>Rotas</TableHead>
             <TableHead>Histórico</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -113,6 +123,19 @@ export function PlanosPage() {
               <TableCell>{p.retencaoHistoricoDias ? `${p.retencaoHistoricoDias} dias` : "Ilimitado"}</TableCell>
               <TableCell>
                 <Badge variant={p.ativo ? "default" : "secondary"}>{p.ativo ? "Ativo" : "Inativo"}</Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => {
+                    if (confirm(`Remover o plano "${p.nome}"?`)) deleteMutation.mutate(p.id)
+                  }}
+                >
+                  Remover
+                </Button>
               </TableCell>
             </TableRow>
           ))}

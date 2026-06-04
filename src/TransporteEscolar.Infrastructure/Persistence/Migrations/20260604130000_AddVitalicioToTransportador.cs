@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TransporteEscolar.Infrastructure.Persistence.Migrations
 {
-    /// <inheritdoc />
+    [Microsoft.EntityFrameworkCore.Infrastructure.DbContext(typeof(TransporteEscolar.Infrastructure.Persistence.AppDbContext))]
+    [Microsoft.EntityFrameworkCore.Migrations.Migration("20260604130000_AddVitalicioToTransportador")]
     public partial class AddVitalicioToTransportador : Migration
     {
         /// <inheritdoc />

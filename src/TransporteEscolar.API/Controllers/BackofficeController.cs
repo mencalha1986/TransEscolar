@@ -7,6 +7,7 @@ using TransporteEscolar.Application.Backoffice.Assinaturas.Commands.RegistrarPag
 using TransporteEscolar.Application.Backoffice.Assinaturas.Queries.ListarAssinaturas;
 using TransporteEscolar.Application.Backoffice.Dashboard.Queries.ObterDashboard;
 using TransporteEscolar.Application.Backoffice.Planos.Commands.CriarPlano;
+using TransporteEscolar.Application.Backoffice.Planos.Commands.RemoverPlano;
 using TransporteEscolar.Application.Backoffice.Planos.Queries.ListarPlanos;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.AlterarStatusTransportador;
 using TransporteEscolar.Application.Backoffice.Transportadores.Commands.CadastrarTransportador;
@@ -150,6 +151,14 @@ public class BackofficeController : BaseController
     public async Task<IActionResult> CriarPlano([FromBody] CriarPlanoRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(new CriarPlanoCommand(req.Nome, req.PrecoMensal, req.LimiteAlunos, req.Descricao, req.LimiteRotas, req.RetencaoHistoricoDias), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpDelete("planos/{id:guid}")]
+    public async Task<IActionResult> RemoverPlano(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new RemoverPlanoCommand(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }
