@@ -9,7 +9,8 @@ public record TransportadorResumoDto(
     string NomeContato,
     string Email,
     StatusTransportador Status,
-    DateTime CriadoEm
+    DateTime CriadoEm,
+    string? NomePlano
 );
 
 public record ListarTransportadoresQuery : IRequest<IEnumerable<TransportadorResumoDto>>;

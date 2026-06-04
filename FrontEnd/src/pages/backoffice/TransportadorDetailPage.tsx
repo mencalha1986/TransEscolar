@@ -64,7 +64,7 @@ export function TransportadorDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
         <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground">Status</CardTitle></CardHeader>
           <CardContent>
@@ -106,6 +106,15 @@ export function TransportadorDetailPage() {
                 {data.vitalicio ? "Revogar vitalício" : "Conceder vitalício"}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-sm text-muted-foreground">Plano</CardTitle></CardHeader>
+          <CardContent>
+            {data.nomePlano
+              ? <p className="font-medium">{data.nomePlano}</p>
+              : <p className="text-sm text-muted-foreground">Sem assinatura</p>}
           </CardContent>
         </Card>
 

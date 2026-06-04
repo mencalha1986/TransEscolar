@@ -8,6 +8,7 @@ export interface TransportadorResumo {
   email: string
   status: StatusTransportador
   criadoEm: string
+  nomePlano?: string
 }
 
 export interface TransportadorDetalhe {
@@ -21,6 +22,7 @@ export interface TransportadorDetalhe {
   totalAlunos: number
   criadoEm: string
   vitalicio: boolean
+  nomePlano?: string
 }
 
 export interface Plano {

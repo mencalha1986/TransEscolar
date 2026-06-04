@@ -63,6 +63,7 @@ export function TransportadoresPage() {
               <TableHead>Empresa</TableHead>
               <TableHead>Contato</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Plano</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Cadastro</TableHead>
               <TableHead></TableHead>
@@ -74,6 +75,7 @@ export function TransportadoresPage() {
                 <TableCell className="font-medium">{t.nomeEmpresa}</TableCell>
                 <TableCell>{t.nomeContato}</TableCell>
                 <TableCell>{t.email}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{t.nomePlano ?? "—"}</TableCell>
                 <TableCell>
                   <Badge variant={statusColor[t.status] as "default" | "secondary" | "destructive"}>{t.status}</Badge>
                 </TableCell>
