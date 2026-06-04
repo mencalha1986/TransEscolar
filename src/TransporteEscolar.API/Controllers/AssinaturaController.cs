@@ -14,9 +14,10 @@ public class AssinaturaController : BaseController
 {
     private readonly IMediator _mediator;
     private readonly ICurrentTenantService _tenant;
+    private readonly IAssinaturaRepository _assinaturaRepo;
 
-    public AssinaturaController(IMediator mediator, ICurrentTenantService tenant)
-        => (_mediator, _tenant) = (mediator, tenant);
+    public AssinaturaController(IMediator mediator, ICurrentTenantService tenant, IAssinaturaRepository assinaturaRepo)
+        => (_mediator, _tenant, _assinaturaRepo) = (mediator, tenant, assinaturaRepo);
 
     [HttpGet("minha")]
     public async Task<IActionResult> ObterMinha(CancellationToken ct)
@@ -42,5 +43,27 @@ public class AssinaturaController : BaseController
             return ErrorResponse(result.Error);
 
         return OkResponse(result.Value);
+    }
+
+    [HttpGet("minha/pagamentos")]
+    public async Task<IActionResult> ListarMeusPagamentos(CancellationToken ct)
+    {
+        if (_tenant.TenantId is not Guid transportadorId)
+            return ErrorResponse("Usuário sem transportador associado.");
+
+        var assinatura = await _assinaturaRepo.ObterPorTransportadorAsync(transportadorId, ct);
+        if (assinatura is null)
+            return ErrorResponse("Assinatura não encontrada.");
+
+        var pagamentos = await _assinaturaRepo.ListarPagamentosAsync(assinatura.Id, ct);
+        return OkResponse(pagamentos.Select(p => new
+        {
+            p.Id,
+            p.ValorPago,
+            p.CompetenciaMes,
+            p.CompetenciaAno,
+            DataPagamento = p.DataPagamento,
+            p.Observacao
+        }));
     }
 }

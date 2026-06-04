@@ -8,6 +8,7 @@ namespace TransporteEscolar.Application.Backoffice.Assinaturas.Queries.ObterMinh
 public record MinhaAssinaturaDto(
     Guid Id,
     StatusAssinatura Status,
+    string NomePlano,
     decimal ValorContratado,
     DateTime DataProximoVencimento,
     bool TemPixPendente,
@@ -18,14 +19,19 @@ public record ObterMinhaAssinaturaQuery(Guid TransportadorId) : IRequest<Result<
 public class ObterMinhaAssinaturaHandler : IRequestHandler<ObterMinhaAssinaturaQuery, Result<MinhaAssinaturaDto>>
 {
     private readonly IAssinaturaRepository _repo;
+    private readonly IPlanoRepository _planoRepo;
 
-    public ObterMinhaAssinaturaHandler(IAssinaturaRepository repo) => _repo = repo;
+    public ObterMinhaAssinaturaHandler(IAssinaturaRepository repo, IPlanoRepository planoRepo)
+        => (_repo, _planoRepo) = (repo, planoRepo);
 
     public async Task<Result<MinhaAssinaturaDto>> Handle(ObterMinhaAssinaturaQuery request, CancellationToken ct)
     {
         var assinatura = await _repo.ObterPorTransportadorAsync(request.TransportadorId, ct);
         if (assinatura is null)
             return Result<MinhaAssinaturaDto>.Failure("Nenhuma assinatura encontrada.");
+
+        var plano = await _planoRepo.ObterPorIdAsync(assinatura.PlanoId, ct);
+        var nomePlano = plano?.Nome ?? "—";
 
         var temPixPendente = assinatura.PixCobrancaId is not null &&
                              assinatura.PixExpiresAt.HasValue &&
@@ -34,6 +40,7 @@ public class ObterMinhaAssinaturaHandler : IRequestHandler<ObterMinhaAssinaturaQ
         return Result<MinhaAssinaturaDto>.Success(new MinhaAssinaturaDto(
             assinatura.Id,
             assinatura.Status,
+            nomePlano,
             assinatura.ValorContratado,
             assinatura.DataProximoVencimento,
             temPixPendente,

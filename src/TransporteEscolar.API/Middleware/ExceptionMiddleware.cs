@@ -1,6 +1,7 @@
 using FluentValidation;
 using System.Text.Json;
 using TransporteEscolar.API.Common;
+using TransporteEscolar.Application.Common;
 
 namespace TransporteEscolar.API.Middleware;
 
@@ -24,6 +25,13 @@ public class ExceptionMiddleware
             ctx.Response.ContentType = "application/json";
             var errors = ex.Errors.Select(e => e.ErrorMessage);
             var body = JsonSerializer.Serialize(new { success = false, errors });
+            await ctx.Response.WriteAsync(body);
+        }
+        catch (AssinaturaInadimplenteException ex)
+        {
+            ctx.Response.StatusCode = 402;
+            ctx.Response.ContentType = "application/json";
+            var body = JsonSerializer.Serialize(ApiResponse<object>.Fail(ex.Message));
             await ctx.Response.WriteAsync(body);
         }
         catch (Exception ex)

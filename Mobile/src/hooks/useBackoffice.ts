@@ -172,3 +172,10 @@ export function useGerarPixAssinatura() {
     },
   })
 }
+
+export function useMeusPagamentosAssinatura() {
+  return useQuery({
+    queryKey: ["assinatura", "minha", "pagamentos"],
+    queryFn: backofficeService.listarMeusPagamentos,
+  })
+}

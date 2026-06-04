@@ -1,10 +1,12 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, QrCode, Copy, Clock, CheckCircle2, AlertTriangle, XCircle } from "lucide-react"
+import { ArrowLeft, QrCode, Copy, Clock, CheckCircle2, AlertTriangle, XCircle, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
-import { useMinhaAssinatura, useGerarPixAssinatura } from "@/hooks/useBackoffice"
+import { useMinhaAssinatura, useGerarPixAssinatura, useMeusPagamentosAssinatura } from "@/hooks/useBackoffice"
 import type { PixDto } from "@/types/mensalidade"
 import type { StatusAssinatura } from "@/types/backoffice"
+
+const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 const STATUS_STYLE: Record<StatusAssinatura, { label: string; color: string; icon: React.ElementType }> = {
   Ativa: { label: "Ativa", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
@@ -23,8 +25,10 @@ function formatDate(d: string) {
 export function MinhaAssinaturaPage() {
   const navigate = useNavigate()
   const { data: assinatura, isLoading } = useMinhaAssinatura()
+  const { data: pagamentos, isLoading: loadingPagamentos } = useMeusPagamentosAssinatura()
   const { mutateAsync: gerarPix, isPending: gerando } = useGerarPixAssinatura()
   const [pixModal, setPixModal] = useState<PixDto | null>(null)
+  const [mostrarPagamentos, setMostrarPagamentos] = useState(false)
 
   async function handleGerarPix() {
     try {
@@ -99,8 +103,11 @@ export function MinhaAssinaturaPage() {
             <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-slate-500">Plano mensal</p>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
+                    {assinatura.nomePlano}
+                  </p>
                   <p className="text-3xl font-bold text-slate-900 mt-0.5">{formatCurrency(assinatura.valorContratado)}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">por mês</p>
                 </div>
                 {statusInfo && (
                   <span className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${statusInfo.color}`}>
@@ -142,6 +149,49 @@ export function MinhaAssinaturaPage() {
                 {gerando ? "Gerando QR Code..." : "Pagar via PIX"}
               </button>
             )}
+
+            {/* Histórico de pagamentos */}
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+              <button
+                onClick={() => setMostrarPagamentos(v => !v)}
+                className="w-full flex items-center justify-between px-5 py-4 active:bg-slate-50"
+              >
+                <p className="text-sm font-semibold text-slate-800">Histórico de pagamentos</p>
+                <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${mostrarPagamentos ? "rotate-90" : ""}`} />
+              </button>
+
+              {mostrarPagamentos && (
+                <div className="border-t border-slate-50">
+                  {loadingPagamentos ? (
+                    <div className="p-4 space-y-2">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-10 bg-slate-100 animate-pulse rounded-xl" />
+                      ))}
+                    </div>
+                  ) : !pagamentos?.length ? (
+                    <p className="text-center text-xs text-slate-400 py-6">
+                      Nenhum pagamento registrado.
+                    </p>
+                  ) : (
+                    <div className="divide-y divide-slate-50">
+                      {pagamentos.map(p => (
+                        <div key={p.id} className="flex items-center justify-between px-5 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-slate-800">
+                              {MESES[(p.competenciaMes ?? 1) - 1]}/{p.competenciaAno}
+                            </p>
+                            <p className="text-xs text-slate-400">{formatDate(p.dataPagamento)}</p>
+                          </div>
+                          <p className="text-sm font-bold text-green-600">
+                            {formatCurrency(p.valorPago)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>

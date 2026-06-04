@@ -17,6 +17,9 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
     private readonly IEmailLogRepository _emailLogRepo;
     private readonly IUnitOfWork _uow;
     private readonly ICurrentTenantService _tenant;
+    private readonly IAssinaturaRepository _assinaturaRepo;
+    private readonly IPlanoRepository _planoRepo;
+    private readonly ITransportadorRepository _transportadorRepo;
     private readonly ILogger<CadastrarAlunoHandler> _logger;
 
     public CadastrarAlunoHandler(
@@ -28,10 +31,14 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
         IEmailLogRepository emailLogRepo,
         IUnitOfWork uow,
         ICurrentTenantService tenant,
+        IAssinaturaRepository assinaturaRepo,
+        IPlanoRepository planoRepo,
+        ITransportadorRepository transportadorRepo,
         ILogger<CadastrarAlunoHandler> logger)
     {
         (_repo, _responsavelRepo, _usuarioRepo, _hasher, _emailService, _emailLogRepo, _uow, _tenant)
            = (repo, responsavelRepo, usuarioRepo, hasher, emailService, emailLogRepo, uow, tenant);
+        (_assinaturaRepo, _planoRepo, _transportadorRepo) = (assinaturaRepo, planoRepo, transportadorRepo);
         _logger = logger;
     }
 
@@ -39,6 +46,10 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
     {
         if (_tenant.TenantId is not Guid transportadorId)
             return Result<Guid>.Failure("Tenant não identificado. Operação não permitida para SuperAdmin.");
+
+        var limitError = await VerificarLimitePlanAsync(transportadorId, ct);
+        if (limitError is not null)
+            return Result<Guid>.Failure(limitError);
 
         Endereco? endereco = null;
         if (!string.IsNullOrWhiteSpace(request.EnderecoCEP))
@@ -130,6 +141,23 @@ public class CadastrarAlunoHandler : IRequestHandler<CadastrarAlunoCommand, Resu
         }
 
         return Result<Guid>.Success(aluno.Id);
+    }
+
+    private async Task<string?> VerificarLimitePlanAsync(Guid transportadorId, CancellationToken ct)
+    {
+        var assinatura = await _assinaturaRepo.ObterPorTransportadorAsync(transportadorId, ct);
+        if (assinatura is null)
+            return null;
+
+        var plano = await _planoRepo.ObterPorIdAsync(assinatura.PlanoId, ct);
+        if (plano?.LimiteAlunos is not int limite)
+            return null;
+
+        var total = await _transportadorRepo.ContarAlunosAsync(transportadorId, ct);
+        if (total >= limite)
+            return $"Limite de {limite} aluno(s) do plano '{plano.Nome}' atingido. Faça upgrade do plano para adicionar mais alunos.";
+
+        return null;
     }
 
     private const string SenhaPadrao = "Trans@123";

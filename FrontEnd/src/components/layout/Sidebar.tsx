@@ -15,6 +15,7 @@ const navItems = [
   { to: "/transportes", label: "Transportes", icon: Bus },
   { to: "/mensalidades", label: "Mensalidades", icon: CreditCard },
   { to: "/mural", label: "Mural", icon: MessageSquare },
+  { to: "/minha-assinatura", label: "Minha Assinatura", icon: Receipt },
 ]
 
 const responsavelItems = [

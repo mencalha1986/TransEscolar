@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TransporteEscolar.Domain.Interfaces;
+using TransporteEscolar.Infrastructure.BackgroundJobs;
 using TransporteEscolar.Infrastructure.Persistence;
 using TransporteEscolar.Infrastructure.Repositories;
 using TransporteEscolar.Infrastructure.Services;
@@ -70,6 +71,8 @@ public static class DependencyInjection
         {
             client.DefaultRequestHeaders.Add("User-Agent", "TransporteEscolar/1.0");
         });
+
+        services.AddHostedService<VerificarInadimplenciaJob>();
 
         return services;
     }

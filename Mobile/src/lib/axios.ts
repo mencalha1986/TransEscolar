@@ -1,4 +1,5 @@
 import axios from "axios"
+import { toast } from "sonner"
 
 // Para mobile, você precisará apontar para o endereço IP do seu servidor/máquina
 // Exemplo: "http://192.168.1.10:5000/api"
@@ -19,13 +20,25 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const status = error.response?.status
     const isLoginEndpoint = error.config?.url?.includes("/auth/login")
-    if (error.response?.status === 401 && !isLoginEndpoint) {
+    const isAssinaturaEndpoint = error.config?.url?.includes("/assinatura/minha")
+
+    if (status === 401 && !isLoginEndpoint) {
       localStorage.removeItem("token")
       sessionStorage.removeItem("mustChangePassword")
-      // No mobile, redirecionar via router é melhor, mas mantemos compatibilidade
       window.location.href = "/login"
+      return Promise.reject(error)
     }
+
+    if (status === 402 && !isAssinaturaEndpoint) {
+      const msg = error.response?.data?.error
+        ?? "Sua assinatura está inadimplente. Regularize o pagamento para continuar."
+      toast.error(msg, { duration: 6000, id: "assinatura-inadimplente" })
+      window.location.href = "/minha-assinatura"
+      return Promise.reject(error)
+    }
+
     return Promise.reject(error)
   }
 )

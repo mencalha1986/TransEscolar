@@ -25,4 +25,18 @@ public class AssinaturaRepository : BaseRepository<Assinatura>, IAssinaturaRepos
         await DbSet
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(a => a.PixCobrancaId == pixCobrancaId, ct);
+
+    public async Task<IEnumerable<Assinatura>> ListarAtivasVencidasAsync(DateTime referencia, CancellationToken ct = default) =>
+        await DbSet
+            .IgnoreQueryFilters()
+            .Where(a => a.Status == StatusAssinatura.Ativa && a.DataProximoVencimento < referencia)
+            .ToListAsync(ct);
+
+    public async Task<IEnumerable<Assinatura>> ListarProximasAoVencimentoAsync(DateTime referencia, int diasAviso, CancellationToken ct = default) =>
+        await DbSet
+            .IgnoreQueryFilters()
+            .Where(a => a.Status == StatusAssinatura.Ativa
+                && a.DataProximoVencimento.Date >= referencia.Date
+                && a.DataProximoVencimento.Date <= referencia.AddDays(diasAviso).Date)
+            .ToListAsync(ct);
 }

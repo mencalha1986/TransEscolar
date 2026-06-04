@@ -159,6 +159,53 @@ public class EmailService : IEmailService
         _logger.LogInformation("Email de aviso de falta enviado para {Email} — aluno {Aluno}", email, nomeAluno);
     }
 
+    public async Task EnviarAvisoVencimentoAssinaturaAsync(string email, string nomeContato, string nomePlano, DateTime dataVencimento, int diasRestantes, CancellationToken ct = default)
+    {
+        var dataFormatada = dataVencimento.ToString("dd/MM/yyyy");
+        var urgencia = diasRestantes == 1 ? "amanhã" : $"em {diasRestantes} dias";
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeContato, email));
+        message.Subject = $"⚠️ Sua assinatura vence {urgencia} — {nomePlano}";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Aviso de Vencimento de Assinatura</h2>
+                <p>Olá, <strong>{nomeContato}</strong>!</p>
+                <p>Sua assinatura do plano <strong>{nomePlano}</strong> vence <strong>{urgencia}</strong> ({dataFormatada}).</p>
+                <p>Para evitar a suspensão do acesso, acesse o sistema e renove sua assinatura via PIX.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email de aviso de vencimento enviado para {Email}", email);
+    }
+
+    public async Task EnviarAssinaturaInadimplenteAsync(string email, string nomeContato, string nomePlano, DateTime dataVencimento, CancellationToken ct = default)
+    {
+        var dataFormatada = dataVencimento.ToString("dd/MM/yyyy");
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(FromName, From));
+        message.To.Add(new MailboxAddress(nomeContato, email));
+        message.Subject = "🔴 Assinatura suspensa — regularize para continuar usando o sistema";
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Assinatura Suspensa</h2>
+                <p>Olá, <strong>{nomeContato}</strong>!</p>
+                <p>Sua assinatura do plano <strong>{nomePlano}</strong> venceu em <strong>{dataFormatada}</strong> e não foi renovada.</p>
+                <p>Seu acesso ao sistema está temporariamente suspenso. Para reativar, acesse o sistema e realize o pagamento via PIX.</p>
+                <br/>
+                <p>Atenciosamente,<br/>Equipe TransporteEscolar</p>
+                """
+        };
+        await EnviarAsync(message, ct);
+        _logger.LogInformation("Email de inadimplência enviado para {Email}", email);
+    }
+
     private string Host => _config["Email:Host"] ?? "smtp.gmail.com";
     private int Port => int.TryParse(_config["Email:Port"], out var p) ? p : 587;
     private string Username => _config["Email:Username"]!;

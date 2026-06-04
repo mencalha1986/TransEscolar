@@ -9,6 +9,7 @@ import type {
   EmailLog,
   MinhaAssinaturaDto,
   PagamentoAssinatura,
+  PagamentoAssinaturaDto,
   Plano,
   RegistrarPagamentoAssinaturaRequest,
   StatusTransportador,
@@ -99,4 +100,7 @@ export const backofficeService = {
 
   gerarPixAssinatura: () =>
     api.post<ApiResponse<import("@/types/mensalidade").PixDto>>("/assinatura/minha/pix").then(unwrap),
+
+  listarMeusPagamentos: () =>
+    api.get<ApiResponse<PagamentoAssinaturaDto[]>>("/assinatura/minha/pagamentos").then(unwrapList),
 }

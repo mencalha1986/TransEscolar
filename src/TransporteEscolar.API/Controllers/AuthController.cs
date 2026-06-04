@@ -2,6 +2,7 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Auth.Commands.AlterarSenha;
 using TransporteEscolar.Application.Auth.Commands.LoginUsuario;
@@ -30,6 +31,7 @@ public class AuthController : BaseController
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req, CancellationToken ct)
     {
         var cmd = new LoginUsuarioCommand(req.Email, req.Senha);
