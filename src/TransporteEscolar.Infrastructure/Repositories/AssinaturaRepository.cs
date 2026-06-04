@@ -20,4 +20,9 @@ public class AssinaturaRepository : BaseRepository<Assinatura>, IAssinaturaRepos
 
     public async Task AdicionarPagamentoAsync(PagamentoAssinatura pagamento, CancellationToken ct = default) =>
         await Ctx.PagamentosAssinatura.AddAsync(pagamento, ct);
+
+    public async Task<Assinatura?> ObterPorPixCobrancaIdAsync(string pixCobrancaId, CancellationToken ct = default) =>
+        await DbSet
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(a => a.PixCobrancaId == pixCobrancaId, ct);
 }

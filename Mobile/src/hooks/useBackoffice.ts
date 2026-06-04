@@ -156,3 +156,19 @@ export function useHistoricoRota(transportadorId: string, data: string) {
     enabled: !!transportadorId && !!data,
   })
 }
+
+export function useMinhaAssinatura() {
+  return useQuery({
+    queryKey: ["assinatura", "minha"],
+    queryFn: backofficeService.obterMinhaAssinatura,
+  })
+}
+
+export function useGerarPixAssinatura() {
+  return useMutation({
+    mutationFn: backofficeService.gerarPixAssinatura,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["assinatura", "minha"] })
+    },
+  })
+}

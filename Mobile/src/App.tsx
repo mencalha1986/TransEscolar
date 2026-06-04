@@ -43,6 +43,9 @@ import { HistoricoPage } from "@/pages/responsavel/HistoricoPage"
 import { AusenciaPage } from "@/pages/responsavel/AusenciaPage"
 import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
 
+// Assinatura
+import { MinhaAssinaturaPage } from "@/pages/assinatura/MinhaAssinaturaPage"
+
 // Backoffice
 import { BackofficeDashboardPage } from "@/pages/backoffice/BackofficeDashboardPage"
 import { TransportadoresPage } from "@/pages/backoffice/TransportadoresPage"
@@ -99,6 +102,7 @@ export function App() {
           <Route path="/mensalidades" element={<MensalidadesPage />} />
           <Route path="/mural" element={<MuralPage />} />
           <Route path="/mais" element={<MaisPage />} />
+          <Route path="/minha-assinatura" element={<MinhaAssinaturaPage />} />
           <Route path="/perfil" element={<PerfilPage />} />
           <Route path="/mais-responsavel" element={<MaisResponsavelPage />} />
           <Route path="/meus-filhos" element={<MeusFilhosPage />} />

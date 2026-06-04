@@ -101,6 +101,17 @@ export interface EmailLog {
   criadoEm: string
 }
 
+export type StatusAssinatura = "Ativa" | "Inadimplente" | "Cancelada"
+
+export interface MinhaAssinaturaDto {
+  id: string
+  status: StatusAssinatura
+  valorContratado: number
+  dataProximoVencimento: string
+  temPixPendente: boolean
+  pixExpiresAt?: string | null
+}
+
 export interface ViagemAtiva {
   id: string
   transportadorId: string

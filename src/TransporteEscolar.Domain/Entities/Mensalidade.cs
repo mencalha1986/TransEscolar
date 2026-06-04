@@ -14,6 +14,11 @@ public class Mensalidade : Entity
     public DateOnly? DataPagamento { get; private set; }
     public Guid TransportadorId { get; private set; }
 
+    public string? PixCobrancaId { get; private set; }
+    public string? PixBrCode { get; private set; }
+    public string? PixBrCodeBase64 { get; private set; }
+    public DateTime? PixExpiresAt { get; private set; }
+
     private Mensalidade() { }
 
     public static Result<Mensalidade> Gerar(Guid alunoId, DateOnly competencia, DateOnly dataVencimento, decimal valor, Guid transportadorId)
@@ -43,6 +48,15 @@ public class Mensalidade : Entity
         DataPagamento = dataPagamento;
         MarcarAtualizado();
         return Result<bool>.Success(true);
+    }
+
+    public void RegistrarPix(string pixId, string brCode, string brCodeBase64, DateTime expiresAt)
+    {
+        PixCobrancaId = pixId;
+        PixBrCode = brCode;
+        PixBrCodeBase64 = brCodeBase64;
+        PixExpiresAt = expiresAt;
+        MarcarAtualizado();
     }
 
     public void AtualizarStatus()

@@ -8,4 +8,5 @@ public interface IAssinaturaRepository : IRepository<Assinatura>
     Task<IEnumerable<Assinatura>> ListarTodasAsync(CancellationToken ct = default);
     Task<IEnumerable<PagamentoAssinatura>> ListarPagamentosAsync(Guid assinaturaId, CancellationToken ct = default);
     Task AdicionarPagamentoAsync(PagamentoAssinatura pagamento, CancellationToken ct = default);
+    Task<Assinatura?> ObterPorPixCobrancaIdAsync(string pixCobrancaId, CancellationToken ct = default);
 }

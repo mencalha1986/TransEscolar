@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { School, MessageSquare, UserCircle, ChevronRight } from "lucide-react"
+import { School, MessageSquare, UserCircle, Receipt, ChevronRight } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
 const menuItems = [
@@ -16,6 +16,13 @@ const menuItems = [
     description: "Comunicados e mensagens",
     path: "/mural",
     color: "text-purple-600 bg-purple-50",
+  },
+  {
+    icon: Receipt,
+    label: "Minha Assinatura",
+    description: "Status e pagamento via PIX",
+    path: "/minha-assinatura",
+    color: "text-emerald-600 bg-emerald-50",
   },
   {
     icon: UserCircle,

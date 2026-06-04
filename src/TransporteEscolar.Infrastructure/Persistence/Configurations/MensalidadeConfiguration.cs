@@ -16,6 +16,11 @@ public class MensalidadeConfiguration : IEntityTypeConfiguration<Mensalidade>
         builder.Property(m => m.Status).IsRequired().HasConversion<string>();
         builder.Property(m => m.DataPagamento);
 
+        builder.Property(m => m.PixCobrancaId).HasMaxLength(100);
+        builder.Property(m => m.PixBrCode);
+        builder.Property(m => m.PixBrCodeBase64);
+        builder.Property(m => m.PixExpiresAt);
+
         builder.HasIndex(m => new { m.AlunoId, m.Competencia }).IsUnique();
     }
 }

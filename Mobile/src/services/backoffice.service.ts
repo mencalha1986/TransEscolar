@@ -7,6 +7,7 @@ import type {
   CriarPlanoRequest,
   DashboardBackoffice,
   EmailLog,
+  MinhaAssinaturaDto,
   PagamentoAssinatura,
   Plano,
   RegistrarPagamentoAssinaturaRequest,
@@ -92,4 +93,10 @@ export const backofficeService = {
     api.get<ApiResponse<HistoricoRota>>(`${BASE}/monitoramento/historico`, {
       params: { transportadorId, data },
     }).then(unwrap),
+
+  obterMinhaAssinatura: () =>
+    api.get<ApiResponse<MinhaAssinaturaDto>>("/assinatura/minha").then(unwrap),
+
+  gerarPixAssinatura: () =>
+    api.post<ApiResponse<import("@/types/mensalidade").PixDto>>("/assinatura/minha/pix").then(unwrap),
 }

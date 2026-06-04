@@ -1,13 +1,13 @@
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { useMensalidades, usePagarMensalidade, useGerarMensalidade } from "@/hooks/useMensalidades"
+import { useMensalidades, usePagarMensalidade, useGerarMensalidade, useGerarPix } from "@/hooks/useMensalidades"
 import { useAlunos } from "@/hooks/useAlunos"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { Search, CheckCircle2, Plus, X } from "lucide-react"
+import { Search, CheckCircle2, Plus, X, QrCode, Copy, Clock } from "lucide-react"
 import { toast } from "sonner"
-import type { StatusMensalidade } from "@/types/mensalidade"
+import type { PixDto, StatusMensalidade } from "@/types/mensalidade"
 
 const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -37,11 +37,30 @@ export function MensalidadesPage() {
   const [statusFiltro, setStatusFiltro] = useState<StatusMensalidade | "Todos">("Todos")
   const [showGerar, setShowGerar] = useState(false)
   const [confirmPagar, setConfirmPagar] = useState<string | null>(null)
+  const [pixModal, setPixModal] = useState<PixDto | null>(null)
+  const [gerandoPixId, setGerandoPixId] = useState<string | null>(null)
 
   const { data: mensalidades, isLoading } = useMensalidades()
   const { data: alunos } = useAlunos()
   const { mutateAsync: pagar, isPending: pagando } = usePagarMensalidade()
   const { mutateAsync: gerar, isPending: gerando } = useGerarMensalidade()
+  const { mutateAsync: gerarPix } = useGerarPix()
+
+  async function handleGerarPix(id: string) {
+    setGerandoPixId(id)
+    try {
+      const pix = await gerarPix(id)
+      setPixModal(pix)
+    } catch (err) {
+      toast.error((err as Error).message || "Erro ao gerar PIX")
+    } finally {
+      setGerandoPixId(null)
+    }
+  }
+
+  function copiarBrCode(brCode: string) {
+    navigator.clipboard.writeText(brCode).then(() => toast.success("Código PIX copiado!"))
+  }
 
   const {
     register,
@@ -89,6 +108,54 @@ export function MensalidadesPage() {
 
   return (
     <div className="p-4 space-y-4 pb-8">
+      {/* Modal PIX */}
+      {pixModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={() => setPixModal(null)}>
+          <div
+            className="bg-white w-full rounded-t-3xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">Pagar via PIX</h3>
+              <button onClick={() => setPixModal(null)} className="text-slate-400 active:opacity-70">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* QR Code */}
+            <div className="flex justify-center">
+              <img
+                src={pixModal.brCodeBase64}
+                alt="QR Code PIX"
+                className="w-52 h-52 rounded-xl border border-slate-100"
+              />
+            </div>
+
+            {/* Vencimento */}
+            <div className="flex items-center gap-2 text-xs text-slate-500 justify-center">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Válido até {new Date(pixModal.expiresAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span>
+            </div>
+
+            {/* Copia e cola */}
+            <div className="bg-slate-50 rounded-xl p-3 space-y-2">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Copia e cola</p>
+              <p className="text-xs text-slate-700 break-all font-mono leading-relaxed">{pixModal.brCode}</p>
+              <button
+                onClick={() => copiarBrCode(pixModal.brCode)}
+                className="w-full h-10 bg-primary text-white text-sm font-semibold rounded-xl active:opacity-80 flex items-center justify-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copiar código PIX
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400 text-center">
+              Após o pagamento, a mensalidade será confirmada automaticamente.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Financeiro</h2>
@@ -248,13 +315,23 @@ export function MensalidadesPage() {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmPagar(m.id)}
-                    className="w-full h-10 bg-primary/10 text-primary text-sm font-bold rounded-lg active:opacity-70 flex items-center justify-center gap-2"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    Baixar Pagamento
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleGerarPix(m.id)}
+                      disabled={gerandoPixId === m.id}
+                      className="flex-1 h-10 bg-emerald-50 text-emerald-700 text-sm font-bold rounded-lg active:opacity-70 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      {gerandoPixId === m.id ? "..." : "PIX"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmPagar(m.id)}
+                      className="flex-1 h-10 bg-primary/10 text-primary text-sm font-bold rounded-lg active:opacity-70 flex items-center justify-center gap-1.5"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Baixar
+                    </button>
+                  </div>
                 )
               )}
             </div>

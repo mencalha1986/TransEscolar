@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
 using TransporteEscolar.Application.Mensalidades.Commands.GerarMensalidade;
+using TransporteEscolar.Application.Mensalidades.Commands.GerarPix;
 using TransporteEscolar.Application.Mensalidades.Commands.RegistrarPagamento;
 using TransporteEscolar.Application.Mensalidades.Queries.ListarMensalidades;
 using TransporteEscolar.Domain.Entities;
@@ -40,6 +41,14 @@ public class MensalidadesController : BaseController
         if (!result.IsSuccess)
             return ErrorResponse(result.Error);
         return OkResponse("Pagamento registrado com sucesso.");
+    }
+    [HttpPost("{id:guid}/pix")]
+    public async Task<IActionResult> GerarPix(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GerarPixCommand(id), ct);
+        if (!result.IsSuccess)
+            return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
     }
 }
 

@@ -65,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IFaltaRepository, FaltaRepository>();
         services.AddScoped<IDispositivoTokenRepository, DispositivoTokenRepository>();
         services.AddScoped<INotificacaoPushService, FirebasePushService>();
+        services.AddHttpClient<IPixService, AbacatePayService>();
         services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(client =>
         {
             client.DefaultRequestHeaders.Add("User-Agent", "TransporteEscolar/1.0");

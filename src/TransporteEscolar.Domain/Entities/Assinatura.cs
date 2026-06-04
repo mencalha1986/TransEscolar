@@ -13,6 +13,11 @@ public class Assinatura : Entity
     public StatusAssinatura Status { get; private set; }
     public decimal ValorContratado { get; private set; }
 
+    public string? PixCobrancaId { get; private set; }
+    public string? PixBrCode { get; private set; }
+    public string? PixBrCodeBase64 { get; private set; }
+    public DateTime? PixExpiresAt { get; private set; }
+
     private Assinatura() { }
 
     public static Result<Assinatura> Criar(Guid transportadorId, Guid planoId, decimal valorContratado, DateTime dataInicio)
@@ -33,6 +38,15 @@ public class Assinatura : Entity
             DataProximoVencimento = dataInicio.AddMonths(1),
             Status = StatusAssinatura.Ativa
         });
+    }
+
+    public void RegistrarPix(string pixId, string brCode, string brCodeBase64, DateTime expiresAt)
+    {
+        PixCobrancaId = pixId;
+        PixBrCode = brCode;
+        PixBrCodeBase64 = brCodeBase64;
+        PixExpiresAt = expiresAt;
+        MarcarAtualizado();
     }
 
     public void AlterarStatus(StatusAssinatura status) { Status = status; MarcarAtualizado(); }

@@ -27,4 +27,9 @@ public class MensalidadeRepository : BaseRepository<Mensalidade>, IMensalidadeRe
 
     public async Task RemoverPorAlunoAsync(Guid alunoId, CancellationToken ct = default) =>
         await DbSet.Where(m => m.AlunoId == alunoId).ExecuteDeleteAsync(ct);
+
+    public async Task<Mensalidade?> ObterPorPixCobrancaIdAsync(string pixCobrancaId, CancellationToken ct = default) =>
+        await DbSet
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(m => m.PixCobrancaId == pixCobrancaId, ct);
 }

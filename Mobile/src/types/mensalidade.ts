@@ -18,3 +18,9 @@ export interface GerarMensalidadeRequest {
   ano: number
   mes: number
 }
+
+export interface PixDto {
+  brCode: string
+  brCodeBase64: string
+  expiresAt: string
+}
