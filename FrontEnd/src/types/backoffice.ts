@@ -32,6 +32,7 @@ export interface Plano {
   limiteRotas?: number
   retencaoHistoricoDias?: number
   ativo: boolean
+  totalClientes: number
 }
 
 export interface Assinatura {

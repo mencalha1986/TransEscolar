@@ -42,4 +42,11 @@ public class AssinaturaRepository : BaseRepository<Assinatura>, IAssinaturaRepos
 
     public async Task<bool> ExistePorPlanoAsync(Guid planoId, CancellationToken ct = default) =>
         await DbSet.IgnoreQueryFilters().AnyAsync(a => a.PlanoId == planoId, ct);
+
+    public async Task<Dictionary<Guid, int>> ContarClientesPorPlanoAsync(CancellationToken ct = default) =>
+        await DbSet
+            .IgnoreQueryFilters()
+            .GroupBy(a => a.PlanoId)
+            .Select(g => new { PlanoId = g.Key, Total = g.Count() })
+            .ToDictionaryAsync(x => x.PlanoId, x => x.Total, ct);
 }

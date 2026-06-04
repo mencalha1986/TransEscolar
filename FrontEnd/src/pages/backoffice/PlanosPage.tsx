@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Trash2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { backofficeService } from "@/services/backoffice.service"
@@ -109,6 +110,7 @@ export function PlanosPage() {
             <TableHead>Alunos</TableHead>
             <TableHead>Rotas</TableHead>
             <TableHead>Histórico</TableHead>
+            <TableHead>Clientes</TableHead>
             <TableHead>Status</TableHead>
             <TableHead />
           </TableRow>
@@ -121,6 +123,7 @@ export function PlanosPage() {
               <TableCell>{p.limiteAlunos ?? "Ilimitado"}</TableCell>
               <TableCell>{p.limiteRotas ?? "Ilimitado"}</TableCell>
               <TableCell>{p.retencaoHistoricoDias ? `${p.retencaoHistoricoDias} dias` : "Ilimitado"}</TableCell>
+              <TableCell>{p.totalClientes}</TableCell>
               <TableCell>
                 <Badge variant={p.ativo ? "default" : "secondary"}>{p.ativo ? "Ativo" : "Inativo"}</Badge>
               </TableCell>
@@ -130,11 +133,12 @@ export function PlanosPage() {
                   size="sm"
                   className="text-destructive hover:text-destructive"
                   disabled={deleteMutation.isPending}
+                  aria-label="Remover"
                   onClick={() => {
-                    if (confirm(`Remover o plano "${p.nome}"?`)) deleteMutation.mutate(p.id)
+                    if (window.confirm(`Remover o plano "${p.nome}"?`)) deleteMutation.mutate(p.id)
                   }}
                 >
-                  Remover
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </TableCell>
             </TableRow>
