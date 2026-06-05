@@ -23,6 +23,7 @@ const TIPO_BADGE: Record<string, string> = {
   ParaEscola: "bg-green-100 text-green-700",
 }
 
+
 function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
 }
