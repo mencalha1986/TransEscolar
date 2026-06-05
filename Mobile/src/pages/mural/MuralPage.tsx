@@ -1,10 +1,7 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
 import { toast } from "sonner"
-import { ArrowLeft, MessageSquare, Plus, Trash2, X, Send, ThumbsUp } from "lucide-react"
+import { ArrowLeft, Send, ThumbsUp, Trash2, Check, CheckCheck, ChevronDown } from "lucide-react"
 import { useRecados, useEnviarRecado, useDeletarRecado, useDarCienciaRecado } from "@/hooks/useRecados"
 import { useEscolas } from "@/hooks/useEscolas"
 import { useAuth } from "@/contexts/AuthContext"
@@ -18,35 +15,16 @@ const TIPO_LABELS: Record<TipoRecado, string> = {
   DoResponsavel: "Do Responsável",
 }
 
-const TIPO_COLORS: Record<TipoRecado, string> = {
+const TIPO_BADGE: Record<string, string> = {
   Geral: "bg-blue-100 text-blue-700",
   ParaResponsavel: "bg-purple-100 text-purple-700",
   ParaTurno: "bg-amber-100 text-amber-700",
   ParaEscola: "bg-green-100 text-green-700",
-  DoResponsavel: "bg-orange-100 text-orange-700",
 }
 
-const schema = z.object({
-  tipo: z.enum(["Geral", "ParaResponsavel", "ParaTurno", "ParaEscola", "DoResponsavel"]),
-  turnoFiltro: z.enum(["Manha", "Tarde", "Noturno"]).nullable().optional(),
-  escolaFiltroId: z.string().nullable().optional(),
-  conteudo: z.string().min(1, "Digite uma mensagem").max(500, "Máximo 500 caracteres"),
-})
-
-type FormValues = z.infer<typeof schema>
-
-function formatDateTime(dateStr: string) {
-  return new Date(dateStr).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+function formatTime(dateStr: string) {
+  return new Date(dateStr).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
 }
-
-const inputClass =
-  "w-full h-11 px-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 text-sm"
 
 export function MuralPage() {
   const navigate = useNavigate()
@@ -56,24 +34,22 @@ export function MuralPage() {
   const { mutateAsync: enviar, isPending: enviando } = useEnviarRecado()
   const { mutateAsync: deletar } = useDeletarRecado()
   const { mutateAsync: darCiencia, isPending: darCienciaPending } = useDarCienciaRecado()
-  const [showForm, setShowForm] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+
+  const [conteudo, setConteudo] = useState("")
+  const [tipo, setTipo] = useState<TipoRecado>("Geral")
+  const [turnoFiltro, setTurnoFiltro] = useState<TurnoRecado | "">("")
+  const [escolaFiltroId, setEscolaFiltroId] = useState("")
   const [aba, setAba] = useState<"mural" | "historico">("mural")
   const [filtroData, setFiltroData] = useState("")
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [showTipoMenu, setShowTipoMenu] = useState(false)
+  const [showTurnoMenu, setShowTurnoMenu] = useState(false)
+  const [showEscolaMenu, setShowEscolaMenu] = useState(false)
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const isResponsavel = user?.perfil === "Responsavel"
   const isAdmin = user?.perfil === "Admin" || user?.perfil === "SuperAdmin"
-
-  const { register, handleSubmit, watch, control, reset, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      tipo: isResponsavel ? "DoResponsavel" : "Geral",
-      conteudo: "",
-    },
-  })
-
-  const tipo = watch("tipo")
-  const conteudo = watch("conteudo")
 
   const recadosAtivos = (recados ?? []).filter(
     r => !(r.tipo === "DoResponsavel" && r.cienciaAdmin)
@@ -85,19 +61,26 @@ export function MuralPage() {
     ? recadosHistorico.filter(r => r.cienciaAdminDadaEm?.startsWith(filtroData))
     : recadosHistorico
 
-  async function onSubmit(values: FormValues) {
+  const mensagensExibidas = aba === "mural" ? recadosAtivos : recadosHistoricoFiltrados
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [mensagensExibidas])
+
+  async function onEnviar() {
+    const texto = conteudo.trim()
+    if (!texto) return
+    const tipoFinal: TipoRecado = isResponsavel ? "DoResponsavel" : tipo
     try {
       await enviar({
-        conteudo: values.conteudo,
-        tipo: values.tipo,
-        turnoFiltro: values.tipo === "ParaTurno" ? (values.turnoFiltro as TurnoRecado) : null,
-        escolaFiltroId: values.tipo === "ParaEscola" ? values.escolaFiltroId : null,
+        conteudo: texto,
+        tipo: tipoFinal,
+        turnoFiltro: tipoFinal === "ParaTurno" && turnoFiltro ? (turnoFiltro as TurnoRecado) : null,
+        escolaFiltroId: tipoFinal === "ParaEscola" && escolaFiltroId ? escolaFiltroId : null,
       })
-      toast.success("Recado enviado!")
-      reset({ tipo: isResponsavel ? "DoResponsavel" : "Geral", conteudo: "" })
-      setShowForm(false)
+      setConteudo("")
     } catch (err) {
-      toast.error((err as Error).message || "Erro ao enviar recado")
+      toast.error((err as Error).message || "Erro ao enviar")
     }
   }
 
@@ -106,50 +89,36 @@ export function MuralPage() {
       await deletar(id)
       toast.success("Recado removido!")
       setConfirmDelete(null)
-    } catch (err) {
-      toast.error((err as Error).message || "Erro ao remover recado")
+    } catch {
+      toast.error("Erro ao remover")
     }
   }
 
   async function handleDarCiencia(id: string) {
     try {
       await darCiencia(id)
-      toast.success("Ciência registrada!")
-    } catch (err) {
-      toast.error((err as Error).message || "Erro ao dar ciência")
+    } catch {
+      toast.error("Erro ao dar ciência")
     }
   }
 
   return (
-    <div className="pb-8">
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Mural</h2>
-          </div>
-        </div>
-        {!showForm && aba === "mural" && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 bg-primary text-white text-sm font-semibold px-4 py-2.5 rounded-xl active:opacity-80"
-          >
-            <Plus className="h-4 w-4" />
-            Recado
-          </button>
-        )}
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border-b sticky top-0 z-10">
+        <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h2 className="text-lg font-bold text-slate-900">Mural</h2>
       </div>
-      <div className="p-4 space-y-4">
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+      <div className="flex bg-slate-100 mx-4 mt-3 rounded-xl p-1 gap-1 sticky top-[53px] z-10">
         <button
           className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
             aba === "mural" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
           }`}
-          onClick={() => { setAba("mural"); setShowForm(false) }}
+          onClick={() => setAba("mural")}
         >
           Mural
         </button>
@@ -157,7 +126,7 @@ export function MuralPage() {
           className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
             aba === "historico" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
           }`}
-          onClick={() => { setAba("historico"); setShowForm(false) }}
+          onClick={() => setAba("historico")}
         >
           Histórico
           {recadosHistorico.length > 0 && (
@@ -168,103 +137,9 @@ export function MuralPage() {
         </button>
       </div>
 
-      {/* Formulário novo recado (só na aba mural) */}
-      {aba === "mural" && showForm && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-800">Novo Recado</h3>
-            <button onClick={() => { setShowForm(false); reset() }} className="text-slate-400 active:opacity-70">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-            {!isResponsavel && (
-              <div>
-                <p className="text-xs font-semibold text-slate-600 mb-1">Destinatário</p>
-                <select className={inputClass} {...register("tipo")}>
-                  <option value="Geral">Geral (todos)</option>
-                  <option value="ParaTurno">Para um turno</option>
-                  <option value="ParaEscola">Para uma escola</option>
-                </select>
-              </div>
-            )}
-
-            {tipo === "ParaTurno" && (
-              <div>
-                <p className="text-xs font-semibold text-slate-600 mb-1">Turno</p>
-                <Controller
-                  control={control}
-                  name="turnoFiltro"
-                  render={({ field }) => (
-                    <select
-                      className={inputClass}
-                      value={field.value ?? ""}
-                      onChange={e => field.onChange(e.target.value || null)}
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="Manha">Manhã</option>
-                      <option value="Tarde">Tarde</option>
-                      <option value="Noturno">Noturno</option>
-                    </select>
-                  )}
-                />
-              </div>
-            )}
-
-            {tipo === "ParaEscola" && (
-              <div>
-                <p className="text-xs font-semibold text-slate-600 mb-1">Escola</p>
-                <Controller
-                  control={control}
-                  name="escolaFiltroId"
-                  render={({ field }) => (
-                    <select
-                      className={inputClass}
-                      value={field.value ?? ""}
-                      onChange={e => field.onChange(e.target.value || null)}
-                    >
-                      <option value="">Selecione...</option>
-                      {escolas?.map(e => (
-                        <option key={e.id} value={e.id}>{e.nome}</option>
-                      ))}
-                    </select>
-                  )}
-                />
-              </div>
-            )}
-
-            <div>
-              <p className="text-xs font-semibold text-slate-600 mb-1">Mensagem</p>
-              <textarea
-                rows={4}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 text-sm resize-none"
-                placeholder="Escreva seu recado..."
-                {...register("conteudo")}
-              />
-              <div className="flex justify-between items-start mt-0.5">
-                {errors.conteudo ? (
-                  <p className="text-red-600 text-xs">{errors.conteudo.message}</p>
-                ) : <span />}
-                <p className="text-xs text-slate-400">{conteudo?.length || 0}/500</p>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={enviando}
-              className="w-full h-11 rounded-xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-60"
-            >
-              <Send className="h-4 w-4" />
-              {enviando ? "Enviando..." : "Enviar"}
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* Filtro de data — só no histórico */}
+      {/* Date filter — historico only */}
       {aba === "historico" && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-4 mt-3">
           <p className="text-xs text-slate-500 whitespace-nowrap">Filtrar por data:</p>
           <input
             type="date"
@@ -273,138 +148,218 @@ export function MuralPage() {
             className="flex-1 h-9 px-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900"
           />
           {filtroData && (
-            <button
-              onClick={() => setFiltroData("")}
-              className="text-xs text-slate-500 active:opacity-70 whitespace-nowrap"
-            >
+            <button onClick={() => setFiltroData("")} className="text-xs text-slate-500 active:opacity-70">
               Limpar
             </button>
           )}
         </div>
       )}
 
-      {/* Lista */}
-      {isLoading ? (
-        <div className="py-10 text-center text-slate-500">Carregando recados...</div>
-      ) : aba === "mural" ? (
-        recadosAtivos.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">
-            <MessageSquare className="h-10 w-10 mx-auto mb-2 text-slate-300" />
-            <p>Nenhum recado ainda.</p>
+      {/* Messages area — pb-36 clears fixed input (≈68px) + bottom nav (64px) */}
+      <div className="px-4 py-4 pb-36 space-y-3">
+        {isLoading ? (
+          <div className="py-12 text-center text-slate-400 text-sm">Carregando...</div>
+        ) : mensagensExibidas.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-sm">
+            {aba === "historico" && filtroData ? "Nenhum recado nesta data." : "Nenhuma mensagem ainda."}
           </div>
         ) : (
-          <div className="space-y-3">
-            {recadosAtivos.map(recado => (
-              <div key={recado.id} className="bg-white rounded-2xl border border-slate-100 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-slate-800">{recado.autorNome}</span>
-                      {recado.euEnviei && (
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
-                          Você
-                        </span>
-                      )}
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
-                        {TIPO_LABELS[recado.tipo]}
-                      </span>
-                      {!isResponsavel && recado.tipo === "DoResponsavel" && recado.alunoNomes && (
-                        <span className="text-[10px] text-slate-500">
-                          Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{recado.conteudo}</p>
-                    <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
-                  </div>
+          mensagensExibidas.map(recado => (
+            <div
+              key={recado.id}
+              className={`flex flex-col ${recado.euEnviei ? "items-end" : "items-start"}`}
+            >
+              {/* Sender name — only for messages from others */}
+              {!recado.euEnviei && (
+                <p className="text-xs font-semibold text-slate-500 mb-0.5 ml-2">{recado.autorNome}</p>
+              )}
 
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {isAdmin && recado.tipo === "DoResponsavel" && !recado.euEnviei && (
-                      <button
-                        onClick={() => handleDarCiencia(recado.id)}
-                        disabled={darCienciaPending}
-                        className="text-slate-400 active:opacity-70 p-1 disabled:opacity-40"
-                        aria-label="Dar ciência"
-                      >
-                        <ThumbsUp className="h-4 w-4" />
+              {/* Bubble */}
+              <div className={`max-w-[80%] px-4 py-2.5 shadow-sm ${
+                recado.euEnviei
+                  ? "bg-primary text-white rounded-2xl rounded-br-sm"
+                  : "bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-bl-sm"
+              }`}>
+                {/* Type badge for broadcast messages */}
+                {recado.tipo !== "DoResponsavel" && (
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold mb-2 inline-block ${TIPO_BADGE[recado.tipo]}`}>
+                    {TIPO_LABELS[recado.tipo]}
+                  </span>
+                )}
+
+                {/* Student names — shown to admin on DoResponsavel messages */}
+                {!isResponsavel && recado.alunoNomes && recado.tipo === "DoResponsavel" && (
+                  <p className={`text-[10px] mb-1 ${recado.euEnviei ? "text-white/70" : "text-slate-400"}`}>
+                    Aluno(s): <span className="font-semibold">{recado.alunoNomes}</span>
+                  </p>
+                )}
+
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{recado.conteudo}</p>
+
+                {/* Timestamp + read indicator */}
+                <div className={`flex items-center justify-end gap-1 mt-1.5 ${
+                  recado.euEnviei ? "text-white/60" : "text-slate-400"
+                }`}>
+                  <span className="text-[10px]">{formatTime(recado.criadoEm)}</span>
+                  {recado.euEnviei && recado.tipo === "DoResponsavel" && (
+                    recado.cienciaAdmin
+                      ? <CheckCheck className="h-3.5 w-3.5 text-white/80" />
+                      : <Check className="h-3.5 w-3.5" />
+                  )}
+                  {aba === "historico" && recado.cienciaAdminDadaEm && (
+                    <CheckCheck className={`h-3.5 w-3.5 ${recado.euEnviei ? "text-white/80" : "text-green-500"}`} />
+                  )}
+                </div>
+              </div>
+
+              {/* Actions below bubble */}
+              <div className={`flex gap-2 mt-1 ${recado.euEnviei ? "mr-1" : "ml-1"}`}>
+                {/* Dar ciência — admin, DoResponsavel from others, active tab only */}
+                {isAdmin && recado.tipo === "DoResponsavel" && !recado.euEnviei && !recado.cienciaAdmin && aba === "mural" && (
+                  <button
+                    onClick={() => handleDarCiencia(recado.id)}
+                    disabled={darCienciaPending}
+                    className="flex items-center gap-1 text-[10px] text-slate-400 active:text-green-600 py-0.5 px-2 rounded-full border border-slate-200 bg-white disabled:opacity-40"
+                  >
+                    <ThumbsUp className="h-3 w-3" />
+                    Ciência
+                  </button>
+                )}
+
+                {/* Delete */}
+                {(recado.euEnviei || (isAdmin && recado.tipo !== "DoResponsavel")) && (
+                  confirmDelete === recado.id ? (
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => setConfirmDelete(null)} className="text-[10px] text-slate-400 active:opacity-70">
+                        Cancelar
                       </button>
-                    )}
-                    {(recado.euEnviei || (isAdmin && recado.tipo !== "DoResponsavel")) && (
-                      <div>
-                        {confirmDelete === recado.id ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => setConfirmDelete(null)}
-                              className="text-xs text-slate-500 active:opacity-70"
-                            >
-                              Não
-                            </button>
-                            <button
-                              onClick={() => handleDelete(recado.id)}
-                              className="text-xs text-red-600 font-semibold active:opacity-70"
-                            >
-                              Sim
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setConfirmDelete(recado.id)}
-                            className="text-slate-400 active:opacity-70 p-1"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      ) : (
-        // Aba histórico
-        recadosHistoricoFiltrados.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">
-            <ThumbsUp className="h-10 w-10 mx-auto mb-2 text-slate-300" />
-            <p>{filtroData ? "Nenhum recado nesta data." : "Nenhum recado no histórico."}</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {recadosHistoricoFiltrados.map(recado => (
-              <div key={recado.id} className="bg-white rounded-2xl border border-slate-100 p-4 opacity-90">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-slate-800">{recado.autorNome}</span>
-                      {recado.euEnviei && (
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
-                          Você
-                        </span>
-                      )}
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${TIPO_COLORS[recado.tipo]}`}>
-                        {TIPO_LABELS[recado.tipo]}
-                      </span>
-                      {recado.alunoNomes && !isResponsavel && (
-                        <span className="text-[10px] text-slate-500">
-                          Aluno(s): <span className="font-semibold text-slate-700">{recado.alunoNomes}</span>
-                        </span>
-                      )}
-                      <span className="text-[10px] bg-green-50 text-green-600 border border-green-200 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                        <ThumbsUp className="h-2.5 w-2.5" />
-                        Ciência: {formatDateTime(recado.cienciaAdminDadaEm!)}
-                      </span>
+                      <button onClick={() => handleDelete(recado.id)} className="text-[10px] text-red-500 font-semibold active:opacity-70">
+                        Remover
+                      </button>
                     </div>
-                    <p className="text-sm text-slate-700 mt-2 whitespace-pre-wrap">{recado.conteudo}</p>
-                    <p className="text-xs text-slate-400 mt-2">{formatDateTime(recado.criadoEm)}</p>
-                  </div>
-                </div>
+                  ) : (
+                    <button onClick={() => setConfirmDelete(recado.id)} className="p-1 text-slate-300 active:text-red-400">
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  )
+                )}
               </div>
-            ))}
-          </div>
-        )
-      )}
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
       </div>
+
+      {/* Fixed input bar — sits above bottom nav (h-16 = 64px) */}
+      {aba === "mural" && (
+        <div
+          className="fixed left-0 right-0 bg-white border-t border-slate-200 px-3 py-2 z-10"
+          style={{ bottom: "64px" }}
+          onClick={() => { setShowTipoMenu(false); setShowTurnoMenu(false); setShowEscolaMenu(false) }}
+        >
+          {/* Admin: tipo/turno/escola selectors */}
+          {!isResponsavel && (
+            <div className="flex flex-wrap gap-2 mb-2" onClick={e => e.stopPropagation()}>
+              {/* Tipo selector */}
+              <div className="relative">
+                <button
+                  onClick={() => { setShowTipoMenu(v => !v); setShowTurnoMenu(false); setShowEscolaMenu(false) }}
+                  className="flex items-center gap-1 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full active:bg-slate-200"
+                >
+                  {TIPO_LABELS[tipo]}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+                {showTipoMenu && (
+                  <div className="absolute bottom-9 left-0 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-20 min-w-[160px]">
+                    {(["Geral", "ParaTurno", "ParaEscola"] as TipoRecado[]).map(t => (
+                      <button
+                        key={t}
+                        onClick={() => { setTipo(t); setShowTipoMenu(false); setTurnoFiltro(""); setEscolaFiltroId("") }}
+                        className={`w-full text-left px-4 py-2 text-sm ${tipo === t ? "text-primary font-semibold" : "text-slate-700"}`}
+                      >
+                        {TIPO_LABELS[t]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Turno selector */}
+              {tipo === "ParaTurno" && (
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowTurnoMenu(v => !v); setShowTipoMenu(false) }}
+                    className="flex items-center gap-1 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full active:bg-slate-200"
+                  >
+                    {turnoFiltro ? (turnoFiltro === "Manha" ? "Manhã" : turnoFiltro) : "Selecione turno..."}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  {showTurnoMenu && (
+                    <div className="absolute bottom-9 left-0 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-20">
+                      {(["Manha", "Tarde", "Noturno"] as TurnoRecado[]).map(t => (
+                        <button
+                          key={t}
+                          onClick={() => { setTurnoFiltro(t); setShowTurnoMenu(false) }}
+                          className="w-full text-left px-4 py-2 text-sm text-slate-700"
+                        >
+                          {t === "Manha" ? "Manhã" : t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Escola selector */}
+              {tipo === "ParaEscola" && (
+                <div className="relative">
+                  <button
+                    onClick={() => { setShowEscolaMenu(v => !v); setShowTipoMenu(false) }}
+                    className="flex items-center gap-1 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full active:bg-slate-200"
+                  >
+                    {escolas?.find(e => e.id === escolaFiltroId)?.nome ?? "Selecione escola..."}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                  {showEscolaMenu && (
+                    <div className="absolute bottom-9 left-0 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-20 min-w-[200px] max-h-48 overflow-y-auto">
+                      {escolas?.map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => { setEscolaFiltroId(e.id); setShowEscolaMenu(false) }}
+                          className="w-full text-left px-4 py-2 text-sm text-slate-700"
+                        >
+                          {e.nome}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Text input + send */}
+          <div className="flex items-end gap-2">
+            <textarea
+              value={conteudo}
+              onChange={e => setConteudo(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onEnviar() } }}
+              placeholder="Digite uma mensagem..."
+              rows={1}
+              maxLength={500}
+              className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none overflow-y-auto"
+              style={{ minHeight: "42px", maxHeight: "112px" }}
+            />
+            <button
+              onClick={onEnviar}
+              disabled={enviando || !conteudo.trim()}
+              className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 active:opacity-80 disabled:opacity-40"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
