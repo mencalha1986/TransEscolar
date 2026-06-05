@@ -1,9 +1,10 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
-import { MessageSquare, Plus, Trash2, X, Send, ThumbsUp } from "lucide-react"
+import { ArrowLeft, MessageSquare, Plus, Trash2, X, Send, ThumbsUp } from "lucide-react"
 import { useRecados, useEnviarRecado, useDeletarRecado, useDarCienciaRecado } from "@/hooks/useRecados"
 import { useEscolas } from "@/hooks/useEscolas"
 import { useAuth } from "@/contexts/AuthContext"
@@ -48,6 +49,7 @@ const inputClass =
   "w-full h-11 px-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 text-sm"
 
 export function MuralPage() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { data: recados, isLoading } = useRecados()
   const { data: escolas } = useEscolas()
@@ -119,12 +121,15 @@ export function MuralPage() {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-8">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Mural</h2>
-          <p className="text-slate-500 text-sm">Recados e comunicados</p>
+    <div className="pb-8">
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-10">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="text-slate-600 active:opacity-70">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Mural</h2>
+          </div>
         </div>
         {!showForm && aba === "mural" && (
           <button
@@ -136,6 +141,7 @@ export function MuralPage() {
           </button>
         )}
       </div>
+      <div className="p-4 space-y-4">
 
       {/* Tabs */}
       <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
@@ -398,6 +404,7 @@ export function MuralPage() {
           </div>
         )
       )}
+      </div>
     </div>
   )
 }

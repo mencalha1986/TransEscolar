@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using TransporteEscolar.Application.Backoffice.Assinaturas.Commands.ConfirmarPagamentoPixAssinatura;
 using TransporteEscolar.Application.Mensalidades.Commands.ConfirmarPagamentoPix;
 
@@ -15,16 +16,15 @@ namespace TransporteEscolar.API.Controllers;
 [ApiController]
 public class WebhooksController : ControllerBase
 {
-    // Chave pública do AbacatePay para validação HMAC-SHA256
-    private const string AbacatePayPublicKey =
-        "t9dXRhHHo3yDEj5pVDYz0frf7q6bMKyMRmxxCPIPp3RCplBfXRxqlC6ZpiWmOqj4" +
-        "L63qEaeUOtrCI8P0VMUgo6iIga2ri9ogaHFs0WIIywSMg0q7RmBfybe1E5XJcfC4" +
-        "IW3alNqym0tXoAKkzvfEjZxV6bE0oG2zJrNNYmUCKZyV0KZ3JS8Votf9EAWWYdi" +
-        "DkMkpbMdPggfh1EqHlVkMiTady6jOR3hyzGEHrIz2Ret0xHKMbiqkr9HS1JhNHDX9";
-
     private readonly IMediator _mediator;
+    private readonly string _webhookSecret;
 
-    public WebhooksController(IMediator mediator) => _mediator = mediator;
+    public WebhooksController(IMediator mediator, IConfiguration config)
+    {
+        _mediator = mediator;
+        _webhookSecret = config["AbacatePay:WebhookSecret"]
+            ?? throw new InvalidOperationException("AbacatePay:WebhookSecret não configurado.");
+    }
 
     [HttpPost("pix")]
     public async Task<IActionResult> Pix(CancellationToken ct)
@@ -39,7 +39,7 @@ public class WebhooksController : ControllerBase
         if (!Request.Headers.TryGetValue("X-Webhook-Signature", out var signatureHeader))
             return BadRequest("Assinatura ausente.");
 
-        if (!ValidarAssinatura(rawBody, signatureHeader!))
+        if (!ValidarAssinatura(rawBody, signatureHeader!, _webhookSecret))
             return Unauthorized("Assinatura inválida.");
 
         var payload = JsonSerializer.Deserialize<AbacatePayWebhookPayload>(rawBody);
@@ -59,13 +59,13 @@ public class WebhooksController : ControllerBase
         return Ok();
     }
 
-    private static bool ValidarAssinatura(string rawBody, string signature)
+    private static bool ValidarAssinatura(string rawBody, string signature, string secret)
     {
         try
         {
             var bodyBytes = Encoding.UTF8.GetBytes(rawBody);
             var expectedSig = Convert.ToBase64String(
-                HMACSHA256.HashData(Encoding.UTF8.GetBytes(AbacatePayPublicKey), bodyBytes));
+                HMACSHA256.HashData(Encoding.UTF8.GetBytes(secret), bodyBytes));
 
             var a = Encoding.UTF8.GetBytes(expectedSig);
             var b = Encoding.UTF8.GetBytes(signature);

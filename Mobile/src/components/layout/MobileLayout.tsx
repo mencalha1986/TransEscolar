@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
-  LayoutDashboard, Users, Bus, FileText, MoreHorizontal,
+  LayoutDashboard, Users, Bus, CircleDollarSign, MoreHorizontal,
   BarChart3, Building2, ClipboardList, Receipt, UserCircle, ArrowLeft,
   MapPin, CalendarX, MessageSquare,
 } from "lucide-react"
@@ -12,7 +12,7 @@ const transportadorTabs = [
   { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Alunos", icon: Users, path: "/alunos" },
   { label: "Viagens", icon: Bus, path: "/transportes" },
-  { label: "Contas", icon: FileText, path: "/mensalidades" },
+  { label: "Financeiro", icon: CircleDollarSign, path: "/mensalidades" },
   { label: "Mais", icon: MoreHorizontal, path: "/mais" },
 ]
 

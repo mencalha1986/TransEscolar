@@ -1,6 +1,9 @@
 import { api } from "@/lib/axios"
 import type { ApiResponse } from "@/types/api"
 import type { GerarMensalidadeRequest, MensalidadeDto, StatusMensalidade } from "@/types/mensalidade"
+import type { PixAssinaturaDto } from "@/services/assinatura.service"
+
+export type PixMensalidadeDto = PixAssinaturaDto
 
 export interface ListarMensalidadesParams {
   alunoId?: string
@@ -23,4 +26,10 @@ export async function pagarMensalidade(id: string): Promise<void> {
   const hoje = new Date().toISOString().slice(0, 10)
   const res = await api.patch<ApiResponse<null>>(`/mensalidades/${id}/pagar`, { dataPagamento: hoje })
   if (!res.data.success) throw new Error(res.data.error ?? "Erro ao registrar pagamento")
+}
+
+export async function gerarPix(id: string): Promise<PixMensalidadeDto> {
+  const res = await api.post<ApiResponse<PixMensalidadeDto>>(`/mensalidades/${id}/pix`)
+  if (!res.data.success || !res.data.data) throw new Error(res.data.error ?? "Erro ao gerar PIX")
+  return res.data.data
 }

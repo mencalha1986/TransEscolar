@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { toast } from "sonner"
+import { Copy, CheckCircle, QrCode } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,11 +14,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SearchSelect } from "@/components/ui/search-select"
-import { useMensalidades, useGerarMensalidade, usePagarMensalidade } from "@/hooks/useMensalidades"
+import { useMensalidades, useGerarMensalidade, usePagarMensalidade, useGerarPixMensalidade } from "@/hooks/useMensalidades"
 import { useAlunos } from "@/hooks/useAlunos"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import type { StatusMensalidade } from "@/types/mensalidade"
 import type { AlunoDto } from "@/types/aluno"
+import type { PixMensalidadeDto } from "@/services/mensalidades.service"
 
 const statusColors: Record<StatusMensalidade, "default" | "secondary" | "destructive"> = {
   Pendente: "secondary",
@@ -29,6 +31,51 @@ const MESES = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ]
+
+function PixDialog({ pix, open, onClose }: { pix: PixMensalidadeDto; open: boolean; onClose: () => void }) {
+  const [copiado, setCopiado] = useState(false)
+
+  function copiarCodigo() {
+    navigator.clipboard.writeText(pix.brCode)
+    setCopiado(true)
+    toast.success("Código PIX copiado!")
+    setTimeout(() => setCopiado(false), 3000)
+  }
+
+  const expiresAt = new Date(pix.expiresAt)
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Pagamento via PIX</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-4 py-2">
+          {pix.brCodeBase64 && (
+            <img
+              src={`data:image/png;base64,${pix.brCodeBase64}`}
+              alt="QR Code PIX"
+              className="w-48 h-48 border rounded-lg"
+            />
+          )}
+          <p className="text-sm text-muted-foreground text-center">
+            Escaneie o QR Code ou copie o código abaixo
+          </p>
+          <div className="w-full rounded-md border bg-muted p-3">
+            <p className="text-xs font-mono break-all text-center select-all">{pix.brCode}</p>
+          </div>
+          <Button onClick={copiarCodigo} className="w-full gap-2" variant={copiado ? "secondary" : "default"}>
+            {copiado ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copiado ? "Copiado!" : "Copiar código PIX"}
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Válido até {expiresAt.toLocaleString("pt-BR")}
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 const gerarSchema = z.object({
   alunoId: z.string().min(1, "Selecione o aluno"),
@@ -140,9 +187,11 @@ export function MensalidadesPage() {
   const [alunoId, setAlunoId] = useState("")
   const [status, setStatus] = useState<StatusMensalidade | "">("")
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [pixModal, setPixModal] = useState<PixMensalidadeDto | null>(null)
   const { data: mensalidades, isLoading, error } = useMensalidades(alunoId || undefined, status || undefined)
   const { data: alunos } = useAlunos()
   const { mutateAsync: pagar } = usePagarMensalidade()
+  const { mutateAsync: gerarPix, isPending: gerandoPix } = useGerarPixMensalidade()
 
   const alunoOptions = [
     { value: "", label: "Todos os alunos" },
@@ -158,6 +207,15 @@ export function MensalidadesPage() {
     }
   }
 
+  async function handleGerarPix(id: string) {
+    try {
+      const pix = await gerarPix(id)
+      setPixModal(pix)
+    } catch (err) {
+      toast.error("Não foi possível gerar o PIX. Tente novamente.")
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -167,6 +225,14 @@ export function MensalidadesPage() {
       />
 
       <GerarDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+
+      {pixModal && (
+        <PixDialog
+          pix={pixModal}
+          open={true}
+          onClose={() => setPixModal(null)}
+        />
+      )}
 
       <div className="mb-4 flex gap-3 flex-wrap">
         <div className="w-72">
@@ -236,9 +302,21 @@ export function MensalidadesPage() {
                   <TableCell>{m.dataPagamento ? formatDate(m.dataPagamento) : "—"}</TableCell>
                   <TableCell>
                     {m.status !== "Pago" && (
-                      <Button size="sm" variant="outline" onClick={() => handlePagar(m.id)}>
-                        Pagar
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="gap-1"
+                          disabled={gerandoPix}
+                          onClick={() => handleGerarPix(m.id)}
+                        >
+                          <QrCode className="h-3.5 w-3.5" />
+                          PIX
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handlePagar(m.id)}>
+                          Manual
+                        </Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>

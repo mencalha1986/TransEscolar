@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
 import type { StatusMensalidade } from "@/types/mensalidade"
 import type { GerarMensalidadeRequest } from "@/types/mensalidade"
-import { gerarMensalidade, listarMensalidades, pagarMensalidade } from "@/services/mensalidades.service"
+import { gerarMensalidade, gerarPix, listarMensalidades, pagarMensalidade } from "@/services/mensalidades.service"
 
 export const MENSALIDADE_KEYS = {
   all: ["mensalidades"] as const,
@@ -32,5 +32,11 @@ export function usePagarMensalidade() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: MENSALIDADE_KEYS.all })
     },
+  })
+}
+
+export function useGerarPixMensalidade() {
+  return useMutation({
+    mutationFn: (id: string) => gerarPix(id),
   })
 }
