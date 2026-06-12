@@ -30,7 +30,7 @@ public class ImpersonarTransportadorHandler : IRequestHandler<ImpersonarTranspor
         if (adminDoTenant is null)
             return Result<string>.Failure("Nenhum usuário Admin encontrado para este transportador.");
 
-        var token = _tokenService.GerarToken(adminDoTenant);
+        var token = _tokenService.GerarToken(adminDoTenant, transportador.TipoOperacao);
         return Result<string>.Success(token);
     }
 }

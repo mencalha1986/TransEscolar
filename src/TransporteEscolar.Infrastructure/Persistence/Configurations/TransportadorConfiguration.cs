@@ -16,6 +16,7 @@ public class TransportadorConfiguration : IEntityTypeConfiguration<Transportador
         builder.Property(t => t.Telefone).HasMaxLength(20);
         builder.Property(t => t.Status).IsRequired().HasConversion<string>();
         builder.Property(t => t.Vitalicio).IsRequired().HasDefaultValue(false);
+        builder.Property(t => t.TipoOperacao).IsRequired().HasConversion<string>().HasDefaultValue(TipoOperacao.Autonomo);
         builder.HasIndex(t => t.Email).IsUnique();
         builder.HasIndex(t => t.CpfCnpj).IsUnique();
     }

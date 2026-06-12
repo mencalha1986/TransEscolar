@@ -1,10 +1,12 @@
 export type Perfil = "Admin" | "Motorista" | "Responsavel" | "SuperAdmin"
+export type TipoOperacao = "Autonomo" | "Frota"
 
 export interface AuthUser {
   id: string
   email: string
   nome: string
   perfil: Perfil
+  tipoOperacao?: TipoOperacao
 }
 
 export interface LoginResponse {

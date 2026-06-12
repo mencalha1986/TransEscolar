@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { backofficeService } from "@/services/backoffice.service"
 import { formatPhone, formatCPFCNPJ, onlyDigitsKeyDown } from "@/lib/masks"
+import type { TipoOperacao } from "@/types/backoffice"
 
 export function CadastrarTransportadorPage() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ nomeEmpresa: "", nomeContato: "", cpfCnpj: "", email: "", telefone: "" })
+  const [form, setForm] = useState({ nomeEmpresa: "", nomeContato: "", cpfCnpj: "", email: "", telefone: "", tipoOperacao: "Autonomo" as TipoOperacao })
 
   const mutation = useMutation({
     mutationFn: () => backofficeService.cadastrarTransportador({ ...form }),
@@ -62,6 +63,28 @@ export function CadastrarTransportadorPage() {
               onChange={(e) => setForm((f) => ({ ...f, telefone: formatPhone(e.target.value) }))}
               placeholder="(11) 99999-0000"
             />
+          </div>
+          <div className="space-y-2">
+            <Label>Tipo de Operação</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(["Autonomo", "Frota"] as TipoOperacao[]).map((tipo) => (
+                <button
+                  key={tipo}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, tipoOperacao: tipo }))}
+                  className={`rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
+                    form.tipoOperacao === tipo
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {tipo === "Autonomo" ? "Autônomo" : "Empresa com Frota"}
+                  <p className="mt-0.5 text-xs font-normal opacity-70">
+                    {tipo === "Autonomo" ? "Um motorista, seus alunos" : "Múltiplos motoristas e rotas"}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex gap-2 pt-2">
             <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>

@@ -3,6 +3,7 @@ using TransporteEscolar.Domain.Common;
 namespace TransporteEscolar.Domain.Entities;
 
 public enum StatusTransportador { Ativo, Inativo, Suspenso }
+public enum TipoOperacao { Autonomo, Frota }
 
 public class Transportador : Entity
 {
@@ -13,10 +14,11 @@ public class Transportador : Entity
     public string? Telefone { get; private set; }
     public StatusTransportador Status { get; private set; }
     public bool Vitalicio { get; private set; }
+    public TipoOperacao TipoOperacao { get; private set; }
 
     private Transportador() { }
 
-    public static Result<Transportador> Criar(string nomeEmpresa, string nomeContato, string cpfCnpj, string email, string? telefone = null)
+    public static Result<Transportador> Criar(string nomeEmpresa, string nomeContato, string cpfCnpj, string email, string? telefone = null, TipoOperacao tipoOperacao = TipoOperacao.Autonomo)
     {
         if (string.IsNullOrWhiteSpace(nomeEmpresa))
             return Result<Transportador>.Failure("Nome da empresa é obrigatório.");
@@ -34,7 +36,8 @@ public class Transportador : Entity
             CpfCnpj = cpfCnpj,
             Email = email.ToLowerInvariant(),
             Telefone = telefone,
-            Status = StatusTransportador.Ativo
+            Status = StatusTransportador.Ativo,
+            TipoOperacao = tipoOperacao
         });
     }
 
@@ -48,6 +51,7 @@ public class Transportador : Entity
     }
 
     public void AlterarStatus(StatusTransportador status) { Status = status; MarcarAtualizado(); }
+    public void AlterarTipoOperacao(TipoOperacao tipo) { TipoOperacao = tipo; MarcarAtualizado(); }
 
     public void MarcarVitalicio() { Vitalicio = true; MarcarAtualizado(); }
     public void RevogarVitalicio() { Vitalicio = false; MarcarAtualizado(); }

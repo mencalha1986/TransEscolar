@@ -4,5 +4,5 @@ namespace TransporteEscolar.Domain.Interfaces;
 
 public interface ITokenService
 {
-    string GerarToken(Usuario usuario);
+    string GerarToken(Usuario usuario, TipoOperacao? tipoOperacao = null);
 }

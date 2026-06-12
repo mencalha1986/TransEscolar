@@ -14,7 +14,7 @@ public class TokenService : ITokenService
 
     public TokenService(IConfiguration config) => _config = config;
 
-    public string GerarToken(Usuario usuario)
+    public string GerarToken(Usuario usuario, TipoOperacao? tipoOperacao = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -32,6 +32,9 @@ public class TokenService : ITokenService
 
         if (usuario.TransportadorId.HasValue)
             claimsList.Add(new Claim("tenant_id", usuario.TransportadorId.Value.ToString()));
+
+        if (tipoOperacao.HasValue)
+            claimsList.Add(new Claim("tipo_operacao", tipoOperacao.Value.ToString()));
 
         var claims = claimsList.ToArray();
 

@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   LayoutDashboard, GraduationCap, School, Bus, CreditCard,
-  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin, Phone, History, CalendarX
+  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin, Phone, History, CalendarX, Users, Route
 } from "lucide-react"
 
-const navItems = [
+const navItemsBase = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/alunos", label: "Alunos", icon: GraduationCap },
   { to: "/escolas", label: "Escolas", icon: School },
@@ -16,6 +16,11 @@ const navItems = [
   { to: "/mensalidades", label: "Mensalidades", icon: CreditCard },
   { to: "/mural", label: "Mural", icon: MessageSquare },
   { to: "/minha-assinatura", label: "Minha Assinatura", icon: Receipt },
+]
+
+const navItemsFrota = [
+  { to: "/motoristas", label: "Motoristas", icon: Users },
+  { to: "/rotas", label: "Rotas", icon: Route },
 ]
 
 const responsavelItems = [
@@ -46,6 +51,8 @@ export function Sidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth()
   const isSuperAdmin = user?.perfil === "SuperAdmin"
   const isResponsavel = user?.perfil === "Responsavel"
+  const isFrota = user?.tipoOperacao === "Frota"
+  const navItems = isFrota ? [...navItemsBase, ...navItemsFrota] : navItemsBase
   const items = isSuperAdmin ? backofficeItems : isResponsavel ? responsavelItems : navItems
 
   return (

@@ -31,6 +31,8 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<ViagemPercurso> ViagemPercursos => Set<ViagemPercurso>();
     public DbSet<Falta> Faltas => Set<Falta>();
     public DbSet<DispositivoToken> DispositivoTokens => Set<DispositivoToken>();
+    public DbSet<Motorista> Motoristas => Set<Motorista>();
+    public DbSet<Rota> Rotas => Set<Rota>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +76,12 @@ public class AppDbContext : DbContext, IUnitOfWork
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
 
         modelBuilder.Entity<Falta>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Motorista>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<Rota>().HasQueryFilter(e =>
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
     }
 

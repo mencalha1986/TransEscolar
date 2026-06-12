@@ -206,6 +206,18 @@ export function TransportadorDetailPage() {
         </Card>
 
         <Card>
+          <CardHeader><CardTitle className="text-sm text-muted-foreground">Tipo de Operação</CardTitle></CardHeader>
+          <CardContent>
+            <Badge variant={data.tipoOperacao === "Frota" ? "default" : "secondary"}>
+              {data.tipoOperacao === "Frota" ? "Empresa com Frota" : "Autônomo"}
+            </Badge>
+            <p className="text-xs text-muted-foreground mt-1">
+              {data.tipoOperacao === "Frota" ? "Tem acesso a Motoristas e Rotas." : "Fluxo simplificado."}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
           <CardHeader><CardTitle className="text-sm text-muted-foreground">Contato</CardTitle></CardHeader>
           <CardContent>
             <p className="font-medium">{data.nomeContato}</p>

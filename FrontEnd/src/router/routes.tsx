@@ -29,6 +29,8 @@ import { AcompanharPage } from "@/pages/responsavel/AcompanharPage"
 import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
 import { AusenciaPage } from "@/pages/responsavel/AusenciaPage"
 import { AssinaturaPage } from "@/pages/assinatura/AssinaturaPage"
+import { MotoristasPage } from "@/pages/motoristas/MotoristasPage"
+import { RotasPage } from "@/pages/rotas/RotasPage"
 
 export const router = createBrowserRouter([
   {
@@ -59,6 +61,8 @@ export const router = createBrowserRouter([
           { path: "/mensalidades", element: <MensalidadesPage /> },
           { path: "/mural", element: <MuralPage /> },
           { path: "/minha-assinatura", element: <AssinaturaPage /> },
+          { path: "/motoristas", element: <MotoristasPage /> },
+          { path: "/rotas", element: <RotasPage /> },
           { path: "/meus-filhos", element: <MeusFilhosPage /> },
           { path: "/mensalidades/responsavel", element: <MensalidadesResponsavelPage /> },
           { path: "/historico", element: <HistoricoPage /> },

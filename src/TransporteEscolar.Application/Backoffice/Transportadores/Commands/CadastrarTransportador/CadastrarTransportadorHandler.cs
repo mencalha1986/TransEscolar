@@ -49,7 +49,7 @@ public class CadastrarTransportadorHandler : IRequestHandler<CadastrarTransporta
         if (await _usuarioRepo.ExisteEmailAsync(request.Email, ct))
             return Result<Guid>.Failure("Este email já está em uso por outro usuário do sistema.");
 
-        var result = Transportador.Criar(request.NomeEmpresa, request.NomeContato, request.CpfCnpj, request.Email, request.Telefone);
+        var result = Transportador.Criar(request.NomeEmpresa, request.NomeContato, request.CpfCnpj, request.Email, request.Telefone, request.TipoOperacao);
         if (!result.IsSuccess)
             return Result<Guid>.Failure(result.Error);
 

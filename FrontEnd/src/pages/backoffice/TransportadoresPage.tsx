@@ -64,6 +64,7 @@ export function TransportadoresPage() {
               <TableHead>Contato</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Plano</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Cadastro</TableHead>
               <TableHead></TableHead>
@@ -81,6 +82,9 @@ export function TransportadoresPage() {
                 <TableCell>{t.nomeContato}</TableCell>
                 <TableCell>{t.email}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">{t.nomePlano ?? "—"}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                  {t.tipoOperacao === "Frota" ? "Frota" : "Autônomo"}
+                </TableCell>
                 <TableCell>
                   <Badge variant={statusColor[t.status] as "default" | "secondary" | "destructive"}>{t.status}</Badge>
                 </TableCell>

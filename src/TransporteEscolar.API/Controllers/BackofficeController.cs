@@ -75,7 +75,7 @@ public class BackofficeController : BaseController
     public async Task<IActionResult> CadastrarTransportador([FromBody] CadastrarTransportadorRequest req, CancellationToken ct)
     {
         var result = await _mediator.Send(new CadastrarTransportadorCommand(
-            req.NomeEmpresa, req.NomeContato, req.CpfCnpj, req.Email, req.Telefone), ct);
+            req.NomeEmpresa, req.NomeContato, req.CpfCnpj, req.Email, req.Telefone, req.TipoOperacao), ct);
 
         if (!result.IsSuccess)
             return ErrorResponse(result.Error);
@@ -215,7 +215,7 @@ public class BackofficeController : BaseController
     }
 }
 
-public record CadastrarTransportadorRequest(string NomeEmpresa, string NomeContato, string CpfCnpj, string Email, string? Telefone);
+public record CadastrarTransportadorRequest(string NomeEmpresa, string NomeContato, string CpfCnpj, string Email, string? Telefone, TipoOperacao TipoOperacao = TipoOperacao.Autonomo);
 public record AtualizarTransportadorRequest(string NomeEmpresa, string NomeContato, string Email, string? Telefone);
 public record VincularPlanoRequest(Guid PlanoId);
 public record MarcarVitalicioRequest(bool Vitalicio);

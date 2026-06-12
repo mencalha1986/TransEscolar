@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { jwtDecode } from "jwt-decode"
-import type { AuthUser, LoginRequest, LoginResponse } from "@/types/auth"
+import type { AuthUser, LoginRequest, LoginResponse, TipoOperacao } from "@/types/auth"
 import { api } from "@/lib/axios"
 import type { ApiResponse } from "@/types/api"
 
@@ -21,7 +21,9 @@ function decodeUser(token: string): AuthUser | null {
     const rawRole = decoded[ROLE_CLAIM] as string
     if (!["Admin", "Motorista", "Responsavel", "SuperAdmin"].includes(rawRole)) return null
     const perfil = rawRole as AuthUser["perfil"]
-    return { id: decoded.sub, email: decoded.email, nome: decoded.name, perfil }
+    const rawTipo = decoded["tipo_operacao"] as string | undefined
+    const tipoOperacao = (rawTipo === "Frota" || rawTipo === "Autonomo") ? rawTipo as TipoOperacao : undefined
+    return { id: decoded.sub, email: decoded.email, nome: decoded.name, perfil, tipoOperacao }
   } catch {
     return null
   }

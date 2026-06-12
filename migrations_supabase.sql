@@ -449,5 +449,74 @@ BEGIN
     VALUES ('20260517044418_RemoveTransporteIdFromCheckIn', '9.0.16');
     END IF;
 END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000000_AddTipoOperacaoToTransportador') THEN
+    ALTER TABLE "Transportadores" ADD "TipoOperacao" character varying(20) NOT NULL DEFAULT 'Autonomo';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000000_AddTipoOperacaoToTransportador') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260612000000_AddTipoOperacaoToTransportador', '9.0.16');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000001_AddMotoristas') THEN
+    CREATE TABLE "Motoristas" (
+        "Id" uuid NOT NULL,
+        "Nome" character varying(200) NOT NULL,
+        "Cpf" character varying(20) NOT NULL,
+        "Cnh" character varying(20),
+        "Telefone" character varying(20),
+        "TransportadorId" uuid NOT NULL,
+        "UsuarioId" uuid,
+        "Ativo" boolean NOT NULL DEFAULT true,
+        "CriadoEm" timestamp with time zone NOT NULL,
+        "AtualizadoEm" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_Motoristas" PRIMARY KEY ("Id")
+    );
+    CREATE UNIQUE INDEX "IX_Motoristas_Cpf_TransportadorId" ON "Motoristas" ("Cpf", "TransportadorId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000001_AddMotoristas') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260612000001_AddMotoristas', '9.0.16');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000002_AddRotas') THEN
+    CREATE TABLE "Rotas" (
+        "Id" uuid NOT NULL,
+        "Nome" character varying(200) NOT NULL,
+        "Turno" character varying(20) NOT NULL,
+        "TransportadorId" uuid NOT NULL,
+        "MotoristaId" uuid,
+        "TransporteId" uuid,
+        "AlunoIds" uuid[] NOT NULL DEFAULT '{}',
+        "CriadoEm" timestamp with time zone NOT NULL,
+        "AtualizadoEm" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_Rotas" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20260612000002_AddRotas') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20260612000002_AddRotas', '9.0.16');
+    END IF;
+END $EF$;
 COMMIT;
 

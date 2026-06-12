@@ -24,6 +24,6 @@ public class ListarTransportadoresHandler : IRequestHandler<ListarTransportadore
 
         return transportadores.Select(t => new TransportadorResumoDto(
             t.Id, t.NomeEmpresa, t.NomeContato, t.Email, t.Status, t.CriadoEm,
-            planosPorTransportador.GetValueOrDefault(t.Id), t.Vitalicio));
+            planosPorTransportador.GetValueOrDefault(t.Id), t.Vitalicio, t.TipoOperacao));
     }
 }

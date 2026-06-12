@@ -1,5 +1,6 @@
 export type StatusTransportador = "Ativo" | "Inativo" | "Suspenso"
 export type StatusAssinatura = "Ativa" | "Inadimplente" | "Cancelada"
+export type TipoOperacao = "Autonomo" | "Frota"
 
 export interface TransportadorResumo {
   id: string
@@ -10,6 +11,7 @@ export interface TransportadorResumo {
   criadoEm: string
   nomePlano?: string
   vitalicio: boolean
+  tipoOperacao: TipoOperacao
 }
 
 export interface TransportadorDetalhe {
@@ -24,6 +26,7 @@ export interface TransportadorDetalhe {
   criadoEm: string
   vitalicio: boolean
   nomePlano?: string
+  tipoOperacao: TipoOperacao
 }
 
 export interface Plano {
@@ -72,6 +75,7 @@ export interface CadastrarTransportadorRequest {
   cpfCnpj: string
   email: string
   telefone?: string
+  tipoOperacao: TipoOperacao
 }
 
 export interface CriarPlanoRequest {

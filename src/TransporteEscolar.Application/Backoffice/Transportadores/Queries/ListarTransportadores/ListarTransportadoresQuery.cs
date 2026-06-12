@@ -11,7 +11,8 @@ public record TransportadorResumoDto(
     StatusTransportador Status,
     DateTime CriadoEm,
     string? NomePlano,
-    bool Vitalicio
+    bool Vitalicio,
+    TipoOperacao TipoOperacao
 );
 
 public record ListarTransportadoresQuery : IRequest<IEnumerable<TransportadorResumoDto>>;
