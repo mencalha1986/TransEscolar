@@ -158,7 +158,7 @@ export function RotasPage() {
                       <div className="flex items-center gap-2">
                         <Select
                           value={alunoSelecionado}
-                          onValueChange={v => setAlunoParaAdicionar(prev => ({ ...prev, [r.id]: v }))}
+                          onValueChange={v => setAlunoParaAdicionar(prev => ({ ...prev, [r.id]: v ?? "" }))}
                         >
                           <SelectTrigger className="h-8 text-sm flex-1">
                             <SelectValue placeholder="Adicionar aluno..." />
