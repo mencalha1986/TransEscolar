@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import { Plus, Trash2, BarChart2 } from "lucide-react"
 import { Link } from "react-router-dom"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
@@ -23,7 +23,7 @@ const TIPOS: TipoDespesa[] = ["Combustivel", "Pedagio", "Manutencao", "Seguro", 
 const schema = z.object({
   tipo: z.enum(["Combustivel", "Pedagio", "Manutencao", "Seguro", "IPVA", "Multa", "Lavagem", "Outro"] as const),
   descricao: z.string().min(1, "Descrição obrigatória").max(300),
-  valor: z.coerce.number().positive("Valor deve ser maior que zero"),
+  valor: z.number().positive("Valor deve ser maior que zero"),
   dataLancamento: z.string().min(1, "Data obrigatória"),
   observacao: z.string().optional(),
 })
@@ -88,7 +88,7 @@ function NovaDespesaDialog({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label>Valor (R$)</Label>
-              <Input {...register("valor")} type="number" step="0.01" placeholder="0,00" />
+              <Input {...register("valor", { valueAsNumber: true })} type="number" step="0.01" placeholder="0,00" />
               {errors.valor && <p className="text-destructive text-sm">{errors.valor.message}</p>}
             </div>
             <div className="space-y-1">
@@ -136,11 +136,11 @@ export function DespesasPage() {
       <PageHeader
         title="Despesas"
         description="Registro de gastos operacionais do veículo"
-        action={
+        actions={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/financeiro/resumo"><BarChart2 className="h-4 w-4 mr-2" />Resumo</Link>
-            </Button>
+            <Link to="/financeiro/resumo" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <BarChart2 className="h-4 w-4 mr-2" />Resumo
+            </Link>
             <Button size="sm" onClick={() => setNovaOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />Nova Despesa
             </Button>

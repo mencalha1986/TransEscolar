@@ -2,7 +2,7 @@ import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import { Link } from "react-router-dom"
 import { PageHeader } from "@/components/layout/PageHeader"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -30,10 +30,10 @@ export function ResumoPage() {
       <PageHeader
         title="Resumo Financeiro"
         description="Totais de despesas por período"
-        action={
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/financeiro/despesas"><ArrowLeft className="h-4 w-4 mr-2" />Voltar</Link>
-          </Button>
+        actions={
+          <Link to="/financeiro/despesas" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            <ArrowLeft className="h-4 w-4 mr-2" />Voltar
+          </Link>
         }
       />
 
