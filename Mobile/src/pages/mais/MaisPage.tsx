@@ -1,8 +1,15 @@
 import { useNavigate } from "react-router-dom"
-import { School, MessageSquare, UserCircle, Receipt, ChevronRight } from "lucide-react"
+import { School, MessageSquare, UserCircle, Receipt, ChevronRight, CircleDollarSign } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
 const menuItems = [
+  {
+    icon: CircleDollarSign,
+    label: "Financeiro",
+    description: "Mensalidades e cobranças",
+    path: "/mensalidades",
+    color: "text-green-600 bg-green-50",
+  },
   {
     icon: School,
     label: "Escolas",

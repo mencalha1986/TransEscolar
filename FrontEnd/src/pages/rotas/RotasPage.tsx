@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Pencil, Trash2, Plus, Route, Users, ChevronDown, ChevronUp } from "lucide-react"
+import { Pencil, Trash2, Plus, Route, Users, ChevronDown, ChevronUp, X, UserPlus } from "lucide-react"
 import { PageHeader } from "@/components/layout/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { rotaService } from "@/services/rota.service"
 import { motoristaService } from "@/services/motorista.service"
+import { listarAlunos } from "@/services/alunos.service"
 import type { Rota, Turno } from "@/types/rota"
 
 type FormState = { nome: string; turno: Turno; motoristaId: string; transporteId: string }
@@ -31,9 +32,11 @@ export function RotasPage() {
   const [editing, setEditing] = useState<Rota | null>(null)
   const [form, setForm] = useState<FormState>(empty)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [alunoParaAdicionar, setAlunoParaAdicionar] = useState<Record<string, string>>({})
 
   const { data: rotas, isLoading } = useQuery({ queryKey: ["rotas"], queryFn: rotaService.listar })
   const { data: motoristas } = useQuery({ queryKey: ["motoristas"], queryFn: motoristaService.listar })
+  const { data: todosAlunos } = useQuery({ queryKey: ["alunos"], queryFn: () => listarAlunos() })
 
   const criar = useMutation({
     mutationFn: () => rotaService.criar({ nome: form.nome, turno: form.turno, motoristaId: form.motoristaId || undefined, transporteId: form.transporteId || undefined }),
@@ -50,6 +53,24 @@ export function RotasPage() {
   const deletar = useMutation({
     mutationFn: (id: string) => rotaService.deletar(id),
     onSuccess: () => { toast.success("Rota removida!"); qc.invalidateQueries({ queryKey: ["rotas"] }) },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  const adicionarAluno = useMutation({
+    mutationFn: ({ rotaId, alunoId }: { rotaId: string; alunoId: string }) =>
+      rotaService.adicionarAluno(rotaId, alunoId),
+    onSuccess: (_, { rotaId }) => {
+      toast.success("Aluno adicionado!")
+      qc.invalidateQueries({ queryKey: ["rotas"] })
+      setAlunoParaAdicionar(prev => ({ ...prev, [rotaId]: "" }))
+    },
+    onError: (e: Error) => toast.error(e.message),
+  })
+
+  const removerAluno = useMutation({
+    mutationFn: ({ rotaId, alunoId }: { rotaId: string; alunoId: string }) =>
+      rotaService.removerAluno(rotaId, alunoId),
+    onSuccess: () => { toast.success("Aluno removido!"); qc.invalidateQueries({ queryKey: ["rotas"] }) },
     onError: (e: Error) => toast.error(e.message),
   })
 
@@ -84,45 +105,86 @@ export function RotasPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {(rotas ?? []).map(r => (
-            <Card key={r.id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${turnoColor[r.turno]}`}>
-                      {turnoLabel[r.turno]}
-                    </span>
-                    <CardTitle className="text-base truncate">{r.nome}</CardTitle>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
-                      {expandedId === r.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => abrirEditar(r)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deletar.mutate(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
-                  <span>Motorista: <strong className="text-foreground">{r.nomeMotorista ?? "—"}</strong></span>
-                  <span>Veículo: <strong className="text-foreground">{r.placaTransporte ?? "—"}</strong></span>
-                  <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{r.alunoIds.length} alunos</span>
-                </div>
-              </CardHeader>
-              {expandedId === r.id && (
-                <CardContent className="pt-0 pb-4">
-                  {r.alunoIds.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhum aluno vinculado a esta rota ainda.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {r.alunoIds.map(id => (
-                        <Badge key={id} variant="secondary" className="text-xs">{id.slice(0, 8)}…</Badge>
-                      ))}
+          {(rotas ?? []).map(r => {
+            const alunosNaRota = new Set(r.alunos.map(a => a.id))
+            const alunosDisponiveis = (todosAlunos ?? []).filter(a => !alunosNaRota.has(a.id))
+            const alunoSelecionado = alunoParaAdicionar[r.id] ?? ""
+
+            return (
+              <Card key={r.id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${turnoColor[r.turno]}`}>
+                        {turnoLabel[r.turno]}
+                      </span>
+                      <CardTitle className="text-base truncate">{r.nome}</CardTitle>
                     </div>
-                  )}
-                </CardContent>
-              )}
-            </Card>
-          ))}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
+                        {expandedId === r.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => abrirEditar(r)}><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => deletar.mutate(r.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
+                    <span>Motorista: <strong className="text-foreground">{r.nomeMotorista ?? "—"}</strong></span>
+                    <span>Veículo: <strong className="text-foreground">{r.placaTransporte ?? "—"}</strong></span>
+                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{r.alunos.length} alunos</span>
+                  </div>
+                </CardHeader>
+                {expandedId === r.id && (
+                  <CardContent className="pt-0 pb-4 space-y-3">
+                    {r.alunos.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Nenhum aluno vinculado a esta rota ainda.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {r.alunos.map(a => (
+                          <Badge key={a.id} variant="secondary" className="text-xs gap-1 pr-1">
+                            {a.nome}
+                            <button
+                              className="ml-0.5 rounded-sm opacity-60 hover:opacity-100 transition-opacity"
+                              onClick={() => removerAluno.mutate({ rotaId: r.id, alunoId: a.id })}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
+                    {alunosDisponiveis.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={alunoSelecionado}
+                          onValueChange={v => setAlunoParaAdicionar(prev => ({ ...prev, [r.id]: v }))}
+                        >
+                          <SelectTrigger className="h-8 text-sm flex-1">
+                            <SelectValue placeholder="Adicionar aluno..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {alunosDisponiveis.map(a => (
+                              <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          className="h-8"
+                          disabled={!alunoSelecionado || adicionarAluno.isPending}
+                          onClick={() => adicionarAluno.mutate({ rotaId: r.id, alunoId: alunoSelecionado })}
+                        >
+                          <UserPlus className="h-3.5 w-3.5 mr-1" />
+                          Adicionar
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+            )
+          })}
         </div>
       )}
 

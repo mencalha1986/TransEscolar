@@ -25,6 +25,9 @@ import { EscolasPage } from "@/pages/escolas/EscolasPage"
 // Transportes
 import { TransportesPage } from "@/pages/transportes/TransportesPage"
 
+// Rotas
+import { RotasPage } from "@/pages/rotas/RotasPage"
+
 // Mensalidades
 import { MensalidadesPage } from "@/pages/mensalidades/MensalidadesPage"
 
@@ -99,6 +102,7 @@ export function App() {
           <Route path="/alunos/:id/editar" element={<EditarAlunoPage />} />
           <Route path="/escolas" element={<EscolasPage />} />
           <Route path="/transportes" element={<TransportesPage />} />
+          <Route path="/rotas" element={<RotasPage />} />
           <Route path="/mensalidades" element={<MensalidadesPage />} />
           <Route path="/mural" element={<MuralPage />} />
           <Route path="/mais" element={<MaisPage />} />

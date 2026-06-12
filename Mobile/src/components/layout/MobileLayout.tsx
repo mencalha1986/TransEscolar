@@ -1,8 +1,8 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
-  LayoutDashboard, Users, Bus, CircleDollarSign, MoreHorizontal,
+  LayoutDashboard, Users, Bus, MoreHorizontal,
   BarChart3, Building2, ClipboardList, Receipt, UserCircle, ArrowLeft,
-  MapPin, CalendarX, MessageSquare,
+  MapPin, CalendarX, MessageSquare, Route as RouteIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
@@ -12,7 +12,7 @@ const transportadorTabs = [
   { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Alunos", icon: Users, path: "/alunos" },
   { label: "Viagens", icon: Bus, path: "/transportes" },
-  { label: "Financeiro", icon: CircleDollarSign, path: "/mensalidades" },
+  { label: "Rotas", icon: RouteIcon, path: "/rotas" },
   { label: "Mais", icon: MoreHorizontal, path: "/mais" },
 ]
 
@@ -34,7 +34,7 @@ const responsavelTabs = [
 
 const maisRoutes = [
   "/mais", "/escolas", "/mural", "/perfil", "/perfil/alterar-senha",
-  "/mais-responsavel", "/meus-filhos", "/mensalidades/responsavel", "/historico", "/contato-transportador",
+  "/mais-responsavel", "/meus-filhos", "/mensalidades", "/mensalidades/responsavel", "/historico", "/contato-transportador",
 ]
 
 export function MobileLayout() {
