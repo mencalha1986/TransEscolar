@@ -7,6 +7,7 @@ export interface AuthUser {
   nome: string
   perfil: Perfil
   tipoOperacao?: TipoOperacao
+  temModuloFinanceiro: boolean
 }
 
 export interface LoginResponse {

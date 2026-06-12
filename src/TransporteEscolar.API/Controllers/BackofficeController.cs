@@ -22,6 +22,8 @@ using TransporteEscolar.Application.Backoffice.EmailLogs.Queries;
 using TransporteEscolar.Application.Backoffice.EmailLogs.Commands;
 using TransporteEscolar.Application.Backoffice.Monitoramento.Queries.ListarViagensAtivas;
 using TransporteEscolar.Application.Backoffice.Monitoramento.Queries.ObterHistoricoRota;
+using TransporteEscolar.Application.Backoffice.ModuloFinanceiro.Commands.AtivarModuloFinanceiro;
+using TransporteEscolar.Application.Backoffice.ModuloFinanceiro.Commands.DesativarModuloFinanceiro;
 using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.API.Controllers;
@@ -210,6 +212,24 @@ public class BackofficeController : BaseController
     {
         var result = await _mediator.Send(new RegistrarPagamentoAssinaturaCommand(
             id, req.ValorPago, req.CompetenciaMes, req.CompetenciaAno, req.Observacao), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    // --- Módulo Financeiro ---
+
+    [HttpPost("transportadores/{id:guid}/modulo-financeiro/ativar")]
+    public async Task<IActionResult> AtivarModuloFinanceiro(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new AtivarModuloFinanceiroCommand(id), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
+
+    [HttpPost("transportadores/{id:guid}/modulo-financeiro/desativar")]
+    public async Task<IActionResult> DesativarModuloFinanceiro(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DesativarModuloFinanceiroCommand(id), ct);
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }

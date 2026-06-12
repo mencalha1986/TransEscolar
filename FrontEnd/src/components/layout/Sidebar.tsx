@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
   LayoutDashboard, GraduationCap, School, Bus, CreditCard,
-  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin, Phone, History, CalendarX, Users, Route
+  Building2, ClipboardList, Receipt, BarChart3, LogOut, ArrowLeft, X, MessageSquare, Mail, MapPin, Phone, History, CalendarX, Users, Route, Radio, Wallet
 } from "lucide-react"
 
 const navItemsBase = [
@@ -21,6 +21,7 @@ const navItemsBase = [
 const navItemsFrota = [
   { to: "/motoristas", label: "Motoristas", icon: Users },
   { to: "/rotas", label: "Rotas", icon: Route },
+  { to: "/frota/monitorar", label: "Minha Frota", icon: Radio },
 ]
 
 const responsavelItems = [
@@ -52,7 +53,12 @@ export function Sidebar({ onClose }: SidebarProps) {
   const isSuperAdmin = user?.perfil === "SuperAdmin"
   const isResponsavel = user?.perfil === "Responsavel"
   const isFrota = user?.tipoOperacao === "Frota"
-  const navItems = isFrota ? [...navItemsBase, ...navItemsFrota] : navItemsBase
+  const despesasItem = user?.temModuloFinanceiro
+    ? [{ to: "/financeiro/despesas", label: "Despesas", icon: Wallet }]
+    : []
+  const navItems = isFrota
+    ? [...navItemsBase, ...navItemsFrota, ...despesasItem]
+    : [...navItemsBase, ...despesasItem]
   const items = isSuperAdmin ? backofficeItems : isResponsavel ? responsavelItems : navItems
 
   return (

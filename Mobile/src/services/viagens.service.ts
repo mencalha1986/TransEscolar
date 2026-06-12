@@ -31,6 +31,28 @@ export async function listarViagens(data?: string): Promise<ViagemDto[]> {
   return res.data.data ?? []
 }
 
+export interface VeiculoAtivoDto {
+  viagemId: string
+  motoristaId: string | null
+  motoristaNome: string
+  rotaId: string | null
+  rotaNome: string
+  turno: string
+  latitude: number | null
+  longitude: number | null
+  ultimaAtualizacao: string | null
+  totalAlunos: number
+}
+
+export async function obterFrotaAtiva(): Promise<VeiculoAtivoDto[]> {
+  try {
+    const res = await api.get<ApiResponse<VeiculoAtivoDto[]>>("/viagens/frota-ativa")
+    return res.data.success && res.data.data ? res.data.data : []
+  } catch {
+    return []
+  }
+}
+
 export async function obterPercurso(viagemId: string): Promise<PercursoPontoDto[]> {
   const res = await api.get<ApiResponse<PercursoPontoDto[]>>(`/viagens/${viagemId}/percurso`)
   if (!res.data.success) throw new Error(res.data.error ?? "Erro ao obter percurso")

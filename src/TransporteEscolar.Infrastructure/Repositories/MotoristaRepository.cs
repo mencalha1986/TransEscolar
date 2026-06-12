@@ -14,4 +14,7 @@ public class MotoristaRepository : BaseRepository<Motorista>, IMotoristaReposito
 
     public async Task<IEnumerable<Motorista>> ListarPorTransportadorAsync(Guid transportadorId, CancellationToken ct = default) =>
         await DbSet.Where(m => m.TransportadorId == transportadorId).OrderBy(m => m.Nome).ToListAsync(ct);
+
+    public async Task<Motorista?> ObterPorUsuarioIdAsync(Guid usuarioId, CancellationToken ct = default) =>
+        await DbSet.FirstOrDefaultAsync(m => m.UsuarioId == usuarioId, ct);
 }

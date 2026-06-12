@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TransporteEscolar.API.Common;
+using TransporteEscolar.Application.Motoristas.Commands.CriarAcessoMotorista;
 using TransporteEscolar.Application.Motoristas.Commands.CriarMotorista;
 using TransporteEscolar.Application.Motoristas.Commands.DeletarMotorista;
 using TransporteEscolar.Application.Motoristas.Commands.EditarMotorista;
@@ -47,7 +48,16 @@ public class MotoristasController : BaseController
         if (!result.IsSuccess) return ErrorResponse(result.Error);
         return OkResponse(result.Value);
     }
+
+    [HttpPost("{id:guid}/criar-acesso")]
+    public async Task<IActionResult> CriarAcesso(Guid id, [FromBody] CriarAcessoMotoristaRequest req, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CriarAcessoMotoristaCommand(id, req.Email), ct);
+        if (!result.IsSuccess) return ErrorResponse(result.Error);
+        return OkResponse(result.Value);
+    }
 }
 
 public record CriarMotoristaRequest(string Nome, string Cpf, string? Cnh, string? Telefone);
 public record EditarMotoristaRequest(string Nome, string? Cnh, string? Telefone);
+public record CriarAcessoMotoristaRequest(string Email);

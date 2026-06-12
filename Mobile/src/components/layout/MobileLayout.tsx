@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, Users, Bus, MoreHorizontal,
   BarChart3, Building2, ClipboardList, Receipt, UserCircle, ArrowLeft,
-  MapPin, CalendarX, MessageSquare, Route as RouteIcon,
+  MapPin, CalendarX, MessageSquare, Route as RouteIcon, Radio,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
@@ -13,6 +13,20 @@ const transportadorTabs = [
   { label: "Alunos", icon: Users, path: "/alunos" },
   { label: "Viagens", icon: Bus, path: "/transportes" },
   { label: "Rotas", icon: RouteIcon, path: "/rotas" },
+  { label: "Mais", icon: MoreHorizontal, path: "/mais" },
+]
+
+const frotaAdminTabs = [
+  { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Viagens", icon: Bus, path: "/transportes" },
+  { label: "Frota", icon: Radio, path: "/frota/monitorar" },
+  { label: "Rotas", icon: RouteIcon, path: "/rotas" },
+  { label: "Mais", icon: MoreHorizontal, path: "/mais" },
+]
+
+const motoristaTabs = [
+  { label: "Home", icon: LayoutDashboard, path: "/dashboard" },
+  { label: "Viagens", icon: Bus, path: "/transportes" },
   { label: "Mais", icon: MoreHorizontal, path: "/mais" },
 ]
 
@@ -45,7 +59,13 @@ export function MobileLayout() {
 
   const isSuperAdmin = user?.perfil === "SuperAdmin"
   const isResponsavel = user?.perfil === "Responsavel"
-  const tabs = isSuperAdmin ? superAdminTabs : isResponsavel ? responsavelTabs : transportadorTabs
+  const isFrotaAdmin = user?.perfil === "Admin" && user?.tipoOperacao === "Frota"
+  const isMotoristaFrota = !!user?.motoristaId
+  const tabs = isSuperAdmin ? superAdminTabs
+    : isResponsavel ? responsavelTabs
+    : isFrotaAdmin ? frotaAdminTabs
+    : isMotoristaFrota ? motoristaTabs
+    : transportadorTabs
 
   function isTabActive(tabPath: string): boolean {
     if (tabPath === "/mais" || tabPath === "/mais-responsavel") {

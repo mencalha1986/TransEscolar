@@ -34,3 +34,25 @@ export async function obterPercurso(viagemId: string): Promise<PercursoPontoDto[
   if (!res.data.success || !res.data.data) return []
   return res.data.data
 }
+
+export interface VeiculoAtivoDto {
+  viagemId: string
+  motoristaId: string | null
+  motoristaNome: string
+  rotaId: string | null
+  rotaNome: string
+  turno: string
+  latitude: number | null
+  longitude: number | null
+  ultimaAtualizacao: string | null
+  totalAlunos: number
+}
+
+export async function obterFrotaAtiva(): Promise<VeiculoAtivoDto[]> {
+  try {
+    const res = await api.get<ApiResponse<VeiculoAtivoDto[]>>("/viagens/frota-ativa")
+    return res.data.success && res.data.data ? res.data.data : []
+  } catch {
+    return []
+  }
+}

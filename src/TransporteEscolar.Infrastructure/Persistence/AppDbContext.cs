@@ -33,6 +33,7 @@ public class AppDbContext : DbContext, IUnitOfWork
     public DbSet<DispositivoToken> DispositivoTokens => Set<DispositivoToken>();
     public DbSet<Motorista> Motoristas => Set<Motorista>();
     public DbSet<Rota> Rotas => Set<Rota>();
+    public DbSet<LancamentoFinanceiro> LancamentosFinanceiros => Set<LancamentoFinanceiro>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +83,9 @@ public class AppDbContext : DbContext, IUnitOfWork
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
 
         modelBuilder.Entity<Rota>().HasQueryFilter(e =>
+            CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
+
+        modelBuilder.Entity<LancamentoFinanceiro>().HasQueryFilter(e =>
             CurrentIsSuperAdmin || CurrentTenantId == null || e.TransportadorId == CurrentTenantIdOrEmpty);
     }
 

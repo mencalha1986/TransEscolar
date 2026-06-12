@@ -20,7 +20,13 @@ function decodeUser(token: string): AuthUser | null {
     if (decoded.exp * 1000 < Date.now()) return null
     const rawRole = decoded[ROLE_CLAIM] as string
     const perfil = rawRole as AuthUser["perfil"]
-    return { id: decoded.sub, email: decoded.email, nome: decoded.name, perfil }
+    const rawModuloFinanceiro = decoded["modulo_financeiro"]
+    return {
+      id: decoded.sub, email: decoded.email, nome: decoded.name, perfil,
+      tipoOperacao: (decoded["tipo_operacao"] as string) ?? null,
+      motoristaId: (decoded["motorista_id"] as string) ?? null,
+      temModuloFinanceiro: rawModuloFinanceiro === "true" || rawModuloFinanceiro === true,
+    }
   } catch {
     return null
   }

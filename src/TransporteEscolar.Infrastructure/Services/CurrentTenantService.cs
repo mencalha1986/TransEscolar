@@ -40,6 +40,15 @@ public class CurrentTenantService : ICurrentTenantService
         }
     }
 
+    public Guid? MotoristaId
+    {
+        get
+        {
+            var claim = _httpContextAccessor.HttpContext?.User.FindFirst("motorista_id");
+            return claim is not null && Guid.TryParse(claim.Value, out var id) ? id : null;
+        }
+    }
+
     public string? UsuarioNome =>
         _httpContextAccessor.HttpContext?.User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Name)?.Value
         ?? _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Name)?.Value;
@@ -50,4 +59,13 @@ public class CurrentTenantService : ICurrentTenantService
 
     public string? UsuarioPerfil =>
         _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+
+    public bool ModuloFinanceiroAtivo
+    {
+        get
+        {
+            var claim = _httpContextAccessor.HttpContext?.User.FindFirst("modulo_financeiro");
+            return claim?.Value == "true";
+        }
+    }
 }

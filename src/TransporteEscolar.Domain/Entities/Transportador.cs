@@ -15,6 +15,7 @@ public class Transportador : Entity
     public StatusTransportador Status { get; private set; }
     public bool Vitalicio { get; private set; }
     public TipoOperacao TipoOperacao { get; private set; }
+    public bool ModuloFinanceiroAtivo { get; private set; }
 
     private Transportador() { }
 
@@ -55,4 +56,7 @@ public class Transportador : Entity
 
     public void MarcarVitalicio() { Vitalicio = true; MarcarAtualizado(); }
     public void RevogarVitalicio() { Vitalicio = false; MarcarAtualizado(); }
+
+    public void AtivarModuloFinanceiro() { ModuloFinanceiroAtivo = true; MarcarAtualizado(); }
+    public void DesativarModuloFinanceiro() { ModuloFinanceiroAtivo = false; MarcarAtualizado(); }
 }

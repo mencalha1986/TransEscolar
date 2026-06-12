@@ -10,6 +10,7 @@ export interface ViagemDto {
   longitudeAtual?: number | null
   iniciadaEm?: string | null
   concluidaEm?: string | null
+  rotaId?: string | null
 }
 
 export interface PercursoPontoDto {
@@ -20,6 +21,7 @@ export interface PercursoPontoDto {
 
 export interface IniciarViagemRequest {
   turno: TurnoAluno
+  rotaId?: string | null
 }
 
 export interface AtualizarPosicaoRequest {

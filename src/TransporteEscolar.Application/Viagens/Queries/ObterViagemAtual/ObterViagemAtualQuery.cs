@@ -12,6 +12,7 @@ public record ViagemDto(
     double? LatitudeAtual,
     double? LongitudeAtual,
     DateTime? IniciadaEm,
-    DateTime? ConcluidaEm);
+    DateTime? ConcluidaEm,
+    Guid? RotaId);
 
 public record ObterViagemAtualQuery : IRequest<Result<ViagemDto?>>;

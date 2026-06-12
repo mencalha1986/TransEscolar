@@ -8,11 +8,12 @@ public class LoginUsuarioHandler : IRequestHandler<LoginUsuarioCommand, Result<L
 {
     private readonly IUsuarioRepository _repo;
     private readonly ITransportadorRepository _transportadorRepo;
+    private readonly IMotoristaRepository _motoristaRepo;
     private readonly IPasswordHasher _hasher;
     private readonly ITokenService _tokenService;
 
-    public LoginUsuarioHandler(IUsuarioRepository repo, ITransportadorRepository transportadorRepo, IPasswordHasher hasher, ITokenService tokenService)
-        => (_repo, _transportadorRepo, _hasher, _tokenService) = (repo, transportadorRepo, hasher, tokenService);
+    public LoginUsuarioHandler(IUsuarioRepository repo, ITransportadorRepository transportadorRepo, IMotoristaRepository motoristaRepo, IPasswordHasher hasher, ITokenService tokenService)
+        => (_repo, _transportadorRepo, _motoristaRepo, _hasher, _tokenService) = (repo, transportadorRepo, motoristaRepo, hasher, tokenService);
 
     public async Task<Result<LoginResponse>> Handle(LoginUsuarioCommand request, CancellationToken ct)
     {
@@ -21,13 +22,17 @@ public class LoginUsuarioHandler : IRequestHandler<LoginUsuarioCommand, Result<L
             return Result<LoginResponse>.Failure("Credenciais inválidas.");
 
         Domain.Entities.TipoOperacao? tipoOperacao = null;
+        bool? moduloFinanceiroAtivo = null;
         if (usuario.TransportadorId.HasValue)
         {
             var transportador = await _transportadorRepo.ObterPorIdAsync(usuario.TransportadorId.Value, ct);
             tipoOperacao = transportador?.TipoOperacao;
+            moduloFinanceiroAtivo = transportador?.ModuloFinanceiroAtivo;
         }
 
-        var token = _tokenService.GerarToken(usuario, tipoOperacao);
+        var motorista = await _motoristaRepo.ObterPorUsuarioIdAsync(usuario.Id, ct);
+
+        var token = _tokenService.GerarToken(usuario, tipoOperacao, motorista?.Id, moduloFinanceiroAtivo);
         return Result<LoginResponse>.Success(new LoginResponse(token, usuario.MustChangePassword));
     }
 }

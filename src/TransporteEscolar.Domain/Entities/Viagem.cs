@@ -14,17 +14,21 @@ public class Viagem : Entity
     public double? LongitudeAtual { get; private set; }
     public DateTime? IniciadaEm { get; private set; }
     public DateTime? ConcluidaEm { get; private set; }
+    public Guid? RotaId { get; private set; }
+    public Guid? MotoristaId { get; private set; }
 
     private Viagem() { }
 
-    public static Viagem Iniciar(TurnoAluno turno, Guid transportadorId) =>
+    public static Viagem Iniciar(TurnoAluno turno, Guid transportadorId, Guid? rotaId = null, Guid? motoristaId = null) =>
         new()
         {
             TransportadorId = transportadorId,
             Turno = turno,
             Data = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = StatusViagem.EmRota,
-            IniciadaEm = DateTime.UtcNow
+            IniciadaEm = DateTime.UtcNow,
+            RotaId = rotaId,
+            MotoristaId = motoristaId
         };
 
     public void AtualizarPosicao(double latitude, double longitude)

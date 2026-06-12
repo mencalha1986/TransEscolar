@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom"
-import { School, MessageSquare, UserCircle, Receipt, ChevronRight, CircleDollarSign } from "lucide-react"
+import { School, MessageSquare, UserCircle, Receipt, ChevronRight, CircleDollarSign, Fuel } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
-const menuItems = [
+const menuItemsBase = [
   {
     icon: CircleDollarSign,
     label: "Financeiro",
@@ -40,9 +40,21 @@ const menuItems = [
   },
 ]
 
+const itemDespesas = {
+  icon: Fuel,
+  label: "Minhas Despesas",
+  description: "Combustível, pedágio, manutenção...",
+  path: "/financeiro/despesas",
+  color: "text-orange-600 bg-orange-50",
+}
+
 export function MaisPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
+
+  const menuItems = user?.temModuloFinanceiro
+    ? [menuItemsBase[0], itemDespesas, ...menuItemsBase.slice(1)]
+    : menuItemsBase
 
   return (
     <div className="p-4 space-y-4">

@@ -28,6 +28,9 @@ import { TransportesPage } from "@/pages/transportes/TransportesPage"
 // Rotas
 import { RotasPage } from "@/pages/rotas/RotasPage"
 
+// Frota
+import { MonitorarFrotaPage } from "@/pages/frota/MonitorarFrotaPage"
+
 // Mensalidades
 import { MensalidadesPage } from "@/pages/mensalidades/MensalidadesPage"
 
@@ -45,6 +48,10 @@ import { MensalidadesResponsavelPage } from "@/pages/responsavel/MensalidadesRes
 import { HistoricoPage } from "@/pages/responsavel/HistoricoPage"
 import { AusenciaPage } from "@/pages/responsavel/AusenciaPage"
 import { ContatoTransportadorPage } from "@/pages/responsavel/ContatoTransportadorPage"
+
+// Financeiro
+import { DespesasPage } from "@/pages/financeiro/DespesasPage"
+import { CadastrarDespesaPage } from "@/pages/financeiro/CadastrarDespesaPage"
 
 // Assinatura
 import { MinhaAssinaturaPage } from "@/pages/assinatura/MinhaAssinaturaPage"
@@ -103,6 +110,7 @@ export function App() {
           <Route path="/escolas" element={<EscolasPage />} />
           <Route path="/transportes" element={<TransportesPage />} />
           <Route path="/rotas" element={<RotasPage />} />
+          <Route path="/frota/monitorar" element={<MonitorarFrotaPage />} />
           <Route path="/mensalidades" element={<MensalidadesPage />} />
           <Route path="/mural" element={<MuralPage />} />
           <Route path="/mais" element={<MaisPage />} />
@@ -114,6 +122,8 @@ export function App() {
           <Route path="/historico" element={<HistoricoPage />} />
           <Route path="/ausencias" element={<AusenciaPage />} />
           <Route path="/contato-transportador" element={<ContatoTransportadorPage />} />
+          <Route path="/financeiro/despesas" element={<DespesasPage />} />
+          <Route path="/financeiro/despesas/nova" element={<CadastrarDespesaPage />} />
 
           {/* SuperAdmin routes */}
           <Route path="/backoffice" element={<SuperAdminRoute><BackofficeDashboardPage /></SuperAdminRoute>} />

@@ -4,4 +4,4 @@ using TransporteEscolar.Domain.Entities;
 
 namespace TransporteEscolar.Application.Viagens.Commands.IniciarViagem;
 
-public record IniciarViagemCommand(TurnoAluno Turno) : IRequest<Result<Guid>>;
+public record IniciarViagemCommand(TurnoAluno Turno, Guid? RotaId = null) : IRequest<Result<Guid>>;

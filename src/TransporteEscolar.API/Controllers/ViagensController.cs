@@ -7,6 +7,7 @@ using TransporteEscolar.Application.Viagens.Commands.EncerrarViagem;
 using TransporteEscolar.Application.Viagens.Commands.IniciarViagem;
 using TransporteEscolar.Application.Viagens.Queries.ListarViagens;
 using TransporteEscolar.Application.Viagens.Queries.ObterPercursoViagem;
+using TransporteEscolar.Application.Viagens.Queries.ObterFrotaAtiva;
 using TransporteEscolar.Application.Viagens.Queries.ObterViagemAtual;
 using TransporteEscolar.Domain.Entities;
 
@@ -23,7 +24,7 @@ public class ViagensController : BaseController
     [HttpPost]
     public async Task<IActionResult> IniciarViagem([FromBody] IniciarViagemRequest req, CancellationToken ct)
     {
-        var result = await _mediator.Send(new IniciarViagemCommand(req.Turno), ct);
+        var result = await _mediator.Send(new IniciarViagemCommand(req.Turno, req.RotaId), ct);
         return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
     }
 
@@ -61,7 +62,15 @@ public class ViagensController : BaseController
         var result = await _mediator.Send(new ObterPercursoViagemQuery(id), ct);
         return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
     }
+
+    [HttpGet("frota-ativa")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> FrotaAtiva(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ObterFrotaAtivaQuery(), ct);
+        return result.IsSuccess ? OkResponse(result.Value) : ErrorResponse(result.Error);
+    }
 }
 
-public record IniciarViagemRequest(TurnoAluno Turno);
+public record IniciarViagemRequest(TurnoAluno Turno, Guid? RotaId = null);
 public record AtualizarPosicaoRequest(double Latitude, double Longitude);

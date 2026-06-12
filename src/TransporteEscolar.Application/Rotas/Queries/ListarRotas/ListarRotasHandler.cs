@@ -19,7 +19,12 @@ public class ListarRotasHandler : IRequestHandler<ListarRotasQuery, IEnumerable<
         if (_tenant.TenantId is not Guid transportadorId)
             return [];
 
-        var rotas = await _repo.ListarPorTransportadorAsync(transportadorId, ct);
+        var rotas = (await _repo.ListarPorTransportadorAsync(transportadorId, ct)).ToList();
+
+        // Motorista logado vê apenas suas próprias rotas
+        if (_tenant.MotoristaId.HasValue)
+            rotas = rotas.Where(r => r.MotoristaId == _tenant.MotoristaId).ToList();
+
         var motoristas = await _motoristaRepo.ListarPorTransportadorAsync(transportadorId, ct);
         var transportes = await _transporteRepo.ListarTodosAsync(ct);
         var alunos = await _alunoRepo.ListarPorTransportadorAsync(transportadorId, ct);

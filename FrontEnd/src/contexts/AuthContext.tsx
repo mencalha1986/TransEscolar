@@ -23,7 +23,9 @@ function decodeUser(token: string): AuthUser | null {
     const perfil = rawRole as AuthUser["perfil"]
     const rawTipo = decoded["tipo_operacao"] as string | undefined
     const tipoOperacao = (rawTipo === "Frota" || rawTipo === "Autonomo") ? rawTipo as TipoOperacao : undefined
-    return { id: decoded.sub, email: decoded.email, nome: decoded.name, perfil, tipoOperacao }
+    const rawModuloFinanceiro = decoded["modulo_financeiro"]
+    const temModuloFinanceiro = rawModuloFinanceiro === "true" || rawModuloFinanceiro === true
+    return { id: decoded.sub, email: decoded.email, nome: decoded.name, perfil, tipoOperacao, temModuloFinanceiro }
   } catch {
     return null
   }

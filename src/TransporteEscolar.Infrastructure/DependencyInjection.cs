@@ -67,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IDispositivoTokenRepository, DispositivoTokenRepository>();
         services.AddScoped<IMotoristaRepository, MotoristaRepository>();
         services.AddScoped<IRotaRepository, RotaRepository>();
+        services.AddScoped<ILancamentoFinanceiroRepository, LancamentoFinanceiroRepository>();
         services.AddScoped<INotificacaoPushService, FirebasePushService>();
         services.AddHttpClient<IPixService, AbacatePayService>();
         services.AddHttpClient<IGeocodingService, NominatimGeocodingService>(client =>

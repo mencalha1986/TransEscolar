@@ -39,7 +39,9 @@ public class RegistrarCheckInHandler : IRequestHandler<RegistrarCheckInCommand, 
             catch (Exception ex) { _logger.LogWarning(ex, "Falha ao resolver endereço no check-in"); }
         }
 
-        var viagemAtual = await _viagemRepo.ObterEmRotaAsync(_tenant.TenantId.Value, ct);
+        var viagemAtual = _tenant.MotoristaId.HasValue
+            ? await _viagemRepo.ObterEmRotaPorMotoristaAsync(_tenant.MotoristaId.Value, ct)
+            : await _viagemRepo.ObterEmRotaAsync(_tenant.TenantId.Value, ct);
 
         var checkIn = CheckIn.Registrar(
             request.AlunoId, request.Tipo, _tenant.TenantId.Value,

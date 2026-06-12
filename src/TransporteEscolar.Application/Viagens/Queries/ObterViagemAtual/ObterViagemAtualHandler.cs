@@ -17,7 +17,10 @@ public class ObterViagemAtualHandler : IRequestHandler<ObterViagemAtualQuery, Re
         if (!_tenant.TenantId.HasValue)
             return Result<ViagemDto?>.Failure("Usuário sem transportador associado.");
 
-        var viagem = await _repo.ObterEmRotaAsync(_tenant.TenantId.Value, ct);
+        var viagem = _tenant.MotoristaId.HasValue
+            ? await _repo.ObterEmRotaPorMotoristaAsync(_tenant.MotoristaId.Value, ct)
+            : await _repo.ObterEmRotaAsync(_tenant.TenantId.Value, ct);
+
         if (viagem == null)
             return Result<ViagemDto?>.Success(null);
 
@@ -29,7 +32,8 @@ public class ObterViagemAtualHandler : IRequestHandler<ObterViagemAtualQuery, Re
             viagem.LatitudeAtual,
             viagem.LongitudeAtual,
             viagem.IniciadaEm,
-            viagem.ConcluidaEm);
+            viagem.ConcluidaEm,
+            viagem.RotaId);
 
         return Result<ViagemDto?>.Success(dto);
     }

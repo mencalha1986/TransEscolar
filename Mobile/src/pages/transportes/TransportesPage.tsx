@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { rotaService } from "@/services/rota.service"
+import type { Rota } from "@/types/rota"
 import { useAlunos } from "@/hooks/useAlunos"
 import { useRegistrarCheckIn, useCheckIns } from "@/hooks/useTransportes"
 import { useViagemAtual, useIniciarViagem, useAtualizarPosicao, useEncerrarViagem, useViagensHistorico, usePercursoViagem } from "@/hooks/useViagens"
@@ -180,12 +183,20 @@ function ViewResponsavel({ checkinsHoje, viagemAtual }: {
 export function TransportesPage() {
   const { user } = useAuth()
   const isMotorista = user?.perfil === "Admin" || user?.perfil === "Motorista" || user?.perfil === "SuperAdmin"
+  const isMotoristaFrota = !!user?.motoristaId
 
   const [view, setView] = useState<"lista" | "mapa" | "historico">("lista")
   const [dataFiltro, setDataFiltro] = useState("")
   const [turnoSelecionado, setTurnoSelecionado] = useState<TurnoAluno>("Manha")
+  const [rotaSelecionada, setRotaSelecionada] = useState<Rota | null>(null)
   const [showTurnoModal, setShowTurnoModal] = useState(false)
   const [viagemSelecionada, setViagemSelecionada] = useState<ViagemDto | null>(null)
+
+  const { data: minhasRotas = [] } = useQuery({
+    queryKey: ["rotas"],
+    queryFn: rotaService.listar,
+    enabled: isMotoristaFrota,
+  })
 
   const { data: alunos, isLoading: loadingAlunos } = useAlunos()
   const { data: checkins, isLoading: loadingCheckins } = useCheckIns()
@@ -226,10 +237,18 @@ export function TransportesPage() {
 
   const confirmarSaida = () => {
     setShowTurnoModal(false)
-    iniciarViagem({ turno: turnoSelecionado }, {
-      onSuccess: () => toast.success(`Viagem do turno ${turnoLabel(turnoSelecionado)} iniciada! Responsáveis notificados.`),
-      onError: (err: unknown) => toast.error("Erro: " + (err as Error).message),
-    })
+    if (isMotoristaFrota) {
+      if (!rotaSelecionada) return
+      iniciarViagem({ turno: rotaSelecionada.turno, rotaId: rotaSelecionada.id }, {
+        onSuccess: () => toast.success(`Rota ${rotaSelecionada.nome} iniciada! Responsáveis notificados.`),
+        onError: (err: unknown) => toast.error("Erro: " + (err as Error).message),
+      })
+    } else {
+      iniciarViagem({ turno: turnoSelecionado }, {
+        onSuccess: () => toast.success(`Viagem do turno ${turnoLabel(turnoSelecionado)} iniciada! Responsáveis notificados.`),
+        onError: (err: unknown) => toast.error("Erro: " + (err as Error).message),
+      })
+    }
   }
 
   const handleEncerrar = () => {
@@ -263,8 +282,17 @@ export function TransportesPage() {
   }
 
   const checkinsHoje = checkins ?? []
-  const alunosDoTurno = (viagemAtual ? alunos?.filter(a => a.turno === viagemAtual.turno) ?? [] : alunos ?? [])
-    .filter(a => !ausentesHoje.has(a.id))
+  const rotaAtiva = isMotoristaFrota && viagemAtual?.rotaId
+    ? minhasRotas.find(r => r.id === viagemAtual.rotaId) ?? null
+    : null
+  const alunosDoTurno = (() => {
+    if (isMotoristaFrota && rotaAtiva) {
+      const idsRota = new Set(rotaAtiva.alunos.map(a => a.id))
+      return (alunos ?? []).filter(a => idsRota.has(a.id) && !ausentesHoje.has(a.id))
+    }
+    return (viagemAtual ? alunos?.filter(a => a.turno === viagemAtual.turno) ?? [] : alunos ?? [])
+      .filter(a => !ausentesHoje.has(a.id))
+  })()
   const todosDesembarcados = alunosDoTurno.length === 0 ||
     alunosDoTurno.every(a => checkinsHoje.some(c => c.alunoId === a.id && c.tipo === "Desembarque"))
   const posicaoMotorista = viagemAtual?.latitudeAtual && viagemAtual?.longitudeAtual
@@ -333,27 +361,52 @@ export function TransportesPage() {
         </div>
       )}
 
-      {/* Modal turno */}
+      {/* Modal turno / rota */}
       {showTurnoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 text-center">Qual turno vai sair agora?</h3>
-            <div className="space-y-2">
-              {(["Manha", "Tarde", "Noturno"] as TurnoAluno[]).map(t => (
-                <button key={t} onClick={() => setTurnoSelecionado(t)}
-                  className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
-                    turnoSelecionado === t ? "bg-primary text-white" : "bg-slate-100 text-slate-700"
-                  }`}>
-                  {turnoLabel(t)}
-                </button>
-              ))}
-            </div>
+            {isMotoristaFrota ? (
+              <>
+                <h3 className="text-lg font-bold text-slate-900 text-center">Qual rota vai sair agora?</h3>
+                {minhasRotas.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-4">Nenhuma rota atribuída a você.</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {minhasRotas.map(r => (
+                      <button key={r.id} onClick={() => setRotaSelecionada(r)}
+                        className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-colors text-left ${
+                          rotaSelecionada?.id === r.id ? "bg-primary text-white" : "bg-slate-100 text-slate-700"
+                        }`}>
+                        <p className="font-bold">{r.nome}</p>
+                        <p className={`text-xs mt-0.5 ${rotaSelecionada?.id === r.id ? "text-white/70" : "text-slate-500"}`}>
+                          {turnoLabel(r.turno)} • {r.alunos.length} aluno(s)
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold text-slate-900 text-center">Qual turno vai sair agora?</h3>
+                <div className="space-y-2">
+                  {(["Manha", "Tarde", "Noturno"] as TurnoAluno[]).map(t => (
+                    <button key={t} onClick={() => setTurnoSelecionado(t)}
+                      className={`w-full py-3 rounded-xl font-semibold text-sm transition-colors ${
+                        turnoSelecionado === t ? "bg-primary text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                      {turnoLabel(t)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
             <div className="flex gap-2">
               <button onClick={() => setShowTurnoModal(false)}
                 className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold">
                 Cancelar
               </button>
-              <button onClick={confirmarSaida} disabled={isIniciando}
+              <button onClick={confirmarSaida} disabled={isIniciando || (isMotoristaFrota && !rotaSelecionada)}
                 className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50">
                 {isIniciando ? <Loader2 className="animate-spin h-4 w-4 mx-auto" /> : "Sair de Casa"}
               </button>
@@ -368,7 +421,9 @@ export function TransportesPage() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Viagens</h2>
             {viagemAtual ? (
-              <p className="text-xs font-medium text-amber-600">🚌 Em rota — Turno {turnoLabel(viagemAtual.turno)}</p>
+              <p className="text-xs font-medium text-amber-600">
+                🚌 Em rota{rotaAtiva ? ` — ${rotaAtiva.nome}` : ` — Turno ${turnoLabel(viagemAtual.turno)}`}
+              </p>
             ) : (
               <p className="text-xs text-slate-500">Embarque, mapa e histórico</p>
             )}

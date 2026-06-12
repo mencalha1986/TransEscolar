@@ -59,7 +59,8 @@ public class ListarViagensHandler : IRequestHandler<ListarViagensQuery, Result<I
             v.LatitudeAtual,
             v.LongitudeAtual,
             v.IniciadaEm,
-            v.ConcluidaEm));
+            v.ConcluidaEm,
+            v.RotaId));
 
         return Result<IEnumerable<ViagemDto>>.Success(dtos);
     }

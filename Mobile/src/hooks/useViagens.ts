@@ -1,6 +1,6 @@
 import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query"
 import { queryClient } from "@/lib/queryClient"
-import { obterViagemAtual, iniciarViagem, atualizarPosicao, encerrarViagem, listarViagens, obterPercurso } from "@/services/viagens.service"
+import { obterViagemAtual, iniciarViagem, atualizarPosicao, encerrarViagem, listarViagens, obterPercurso, obterFrotaAtiva } from "@/services/viagens.service"
 import type { IniciarViagemRequest, AtualizarPosicaoRequest } from "@/types/viagem"
 
 export const VIAGEM_KEYS = {
@@ -59,5 +59,14 @@ export function usePercursoViagem(viagemId: string | null) {
     queryKey: VIAGEM_KEYS.percurso(viagemId),
     queryFn: () => obterPercurso(viagemId!),
     enabled: !!viagemId,
+  })
+}
+
+export function useFrotaAtiva() {
+  return useQuery({
+    queryKey: ["frota", "ativa"],
+    queryFn: obterFrotaAtiva,
+    refetchInterval: 15_000,
+    placeholderData: keepPreviousData,
   })
 }

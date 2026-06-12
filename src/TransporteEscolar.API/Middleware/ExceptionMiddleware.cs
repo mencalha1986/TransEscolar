@@ -27,6 +27,13 @@ public class ExceptionMiddleware
             var body = JsonSerializer.Serialize(new { success = false, errors });
             await ctx.Response.WriteAsync(body);
         }
+        catch (ModuloFinanceiroInativoException ex)
+        {
+            ctx.Response.StatusCode = 403;
+            ctx.Response.ContentType = "application/json";
+            var body = JsonSerializer.Serialize(ApiResponse<object>.Fail(ex.Message));
+            await ctx.Response.WriteAsync(body);
+        }
         catch (AssinaturaInadimplenteException ex)
         {
             ctx.Response.StatusCode = 402;

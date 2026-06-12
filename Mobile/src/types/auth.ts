@@ -5,6 +5,9 @@ export interface AuthUser {
   email: string
   nome: string
   perfil: Perfil
+  tipoOperacao?: string | null
+  motoristaId?: string | null
+  temModuloFinanceiro: boolean
 }
 
 export interface LoginResponse {

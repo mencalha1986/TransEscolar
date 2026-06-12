@@ -13,7 +13,10 @@ public class ViagemConfiguration : IEntityTypeConfiguration<Viagem>
         builder.Property(v => v.Turno).IsRequired();
         builder.Property(v => v.Data).IsRequired();
         builder.Property(v => v.Status).IsRequired();
+        builder.Property(v => v.RotaId);
+        builder.Property(v => v.MotoristaId);
         builder.HasIndex(v => new { v.TransportadorId, v.Data, v.Turno });
         builder.HasIndex(v => new { v.TransportadorId, v.Status });
+        builder.HasIndex(v => new { v.MotoristaId, v.Data, v.Status });
     }
 }
